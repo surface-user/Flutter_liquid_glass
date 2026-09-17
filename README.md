@@ -55,7 +55,14 @@ dependencies:
 flutter pub get
 ```
 
-GitHub 仓库地址暂未配置；发布仓库后可改用 Git 依赖。这里不使用尚未确认存在的 pub.dev 版本或仓库地址。
+也可以直接从 GitHub 引用：
+
+```yaml
+dependencies:
+  lightweight_liquid_glass:
+    git:
+      url: https://github.com/surface-user/Flutter_liquid_glass.git
+```
 
 ### 2. 运行最小示例
 
@@ -694,7 +701,7 @@ flutter test --update-goldens
 
 本项目采用 [MIT License](LICENSE)，版本变更见 [CHANGELOG.md](CHANGELOG.md)。
 
-组件库源码仓库与在线示例托管相互独立：示例已上线，不代表源码已发布到 GitHub 或包已发布到 pub.dev。创建 GitHub 仓库后，可补充 `pubspec.yaml` 的 `repository`、`homepage` 和 `issue_tracker` 等真实地址。
+源码仓库：[surface-user/Flutter_liquid_glass](https://github.com/surface-user/Flutter_liquid_glass)。在线示例托管与源码仓库相互独立；组件库目前可通过本地路径或 Git 依赖使用。
 
 准备发布到 pub.dev 时，在组件库根目录执行：
 
@@ -702,4 +709,4 @@ flutter test --update-goldens
 flutter pub publish --dry-run
 ```
 
-当前预检仍有仓库 / 主页地址未填写的元数据提示，不影响本地路径依赖使用。`.pubignore` 会排除构建输出、本地部署副本和测试资源，保持发布包轻量。
+`.pubignore` 会排除构建输出、本地部署副本和测试资源，保持发布包轻量。
