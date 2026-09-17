@@ -1,0 +1,16 @@
+name: glass_example
+description: Interactive gallery for lightweight_liquid_glass.
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  lightweight_liquid_glass:
+    path: ../
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true

@@ -1,0 +1,10 @@
+analyzer:
+  errors:
+    unused_import: warning
+linter:
+  rules:
+    - avoid_print
+    - prefer_const_constructors
+    - use_super_parameters
+    - unawaited_futures
+

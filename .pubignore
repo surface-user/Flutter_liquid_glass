@@ -1,0 +1,13 @@
+.git/
+deployment/
+.github/
+.dart_tool/
+build/
+coverage/
+example/build/
+example/.dart_tool/
+example/.idea/
+example/test/
+test/
+doc/screenshots/
+*.iml

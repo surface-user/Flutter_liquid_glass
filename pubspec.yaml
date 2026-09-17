@@ -1,0 +1,15 @@
+name: lightweight_liquid_glass
+description: Lightweight, accessible glass surfaces and components built entirely with Flutter, with bounded blur and explicit performance controls.
+version: 0.1.0
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+  flutter: '>=3.44.0'
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+
