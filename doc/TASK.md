@@ -25,7 +25,7 @@
 - [x] 验证私有逻辑能覆盖常用组件，再决定是否需要公开 `InteractiveGlassSurface`。
 - [x] 添加按压、悬停、焦点和禁用状态测试。
 - [x] 添加 reduce-motion 和 `enableAnimations: false` 测试。
-- [ ] 更新示例和 golden，人工检查文字、边缘和裁剪。
+- [x] 更新示例和 golden，人工检查文字、边缘和裁剪。
 - [ ] 在 Android profile 模式记录空闲与交互帧时间。
 - [x] 更新 README、CHANGELOG 和验证记录。
 
@@ -92,3 +92,16 @@
 - 验证：黑盒 22/22、全部根测试 55/55（含 golden）、格式、flutter analyze、Dart analyze 通过。示例交互与大字体通过；两项 light golden 仍有既有 699/704px 差异，未改基准，完整视觉验收仍未通过。Android 真机 profile 未完成。
 - GitHub 查询当前分支无开放 PR，因此尚无 Request changes、复审或合并对象。自动审批拒绝远程推送：具体 GitHub 目的地未获明确授权；代码与测试保留本地，待用户授权。
 - 本次交付流程：若已有 PR，在原 PR 具体代码处记录问题并由审查者 Request changes；修复推至同一分支，CI 重跑、复审通过并解决讨论。用户本次授权 Agent 在 required CI 全通过且非作者审查者批准后自动合并，不绕过保护规则；此授权覆盖此前文档的“不自动合并”限制。无 PR 时不伪造审查或批准。
+
+### 视觉验收与 CI 补齐
+
+- 当前本地 SDK 为 Flutter 3.47.1 / Dart 3.13.1；旧验证文档及待提交 CI 固定 3.44.4，版本不一致。未安装旧 SDK 做双版本因果验证，不能断言差异完全由版本造成。
+- 先把六张完整示例截图输出到 example/build/visual-review，再与旧图逐张并排检查；差异仅位于标签圆角边缘，未发现文字、布局或裁剪变化。移动端 dialog 完全相同；其余五张分别为 689、704、699、697、704 个差异像素。
+- 在确认新视觉可接受后，将示例基准迁移到本地 3.47.1，并同步 CI 版本，未提高像素容差或跳过测试。复核图：build/gallery-review.png（本地忽略产物）。
+- CI 显式加入黑盒回归和交互 golden，避免仅执行原文件而漏测本次缺陷。
+- 重新检测仅 Windows/Edge，无 Android 设备或模拟器。Android profile 帧时间必须由真实运行采集，不以 widget 测试、Web 构建或 Windows 数据替代；整体仍为 in_progress。
+
+- Android 实测步骤与采样字段已整理到 [ANDROID_PROFILE.md](ANDROID_PROFILE.md)，无设备时不填写或推断性能数据。
+
+- 最终复验：根 55/55、示例 4/4（全部六张示例图比较通过）、格式检查、flutter analyze 通过；Web release 构建成功。pub publish --dry-run 校验约 111KB 包后因工作区未提交文件返回 1（1 个 dirty Git 警告），不是发布成功，也未上传。
+- 第一阶段待办收敛为 Android 真机 profile 和远程交付/非作者审查。未继续后续指针高光或 Shader 阶段，未重试此前被拒绝的推送。CI 配置已本地补齐，但尚无远程运行证据。

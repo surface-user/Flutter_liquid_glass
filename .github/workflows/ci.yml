@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/**"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: 3.47.1
+
+jobs:
+  static-analysis-and-tests:
+    name: static-analysis-and-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve package dependencies
+        run: flutter pub get
+
+      - name: Resolve example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test example/lib example/test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test package behavior
+        run: flutter test test/style_test.dart test/widget_test.dart test/black_box_interaction_test.dart
+
+      - name: Test example behavior
+        working-directory: example
+        run: flutter test test/widget_test.dart
+
+      - name: Build Web example
+        working-directory: example
+        run: flutter build web --release
+
+      - name: Validate package publication
+        run: flutter pub publish --dry-run
+
+  visual-regression:
+    name: visual-regression
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve package dependencies
+        run: flutter pub get
+
+      - name: Resolve example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      - name: Test component goldens
+        run: flutter test test/golden_test.dart test/interaction_golden_test.dart
+
+      - name: Test example goldens
+        working-directory: example
+        run: flutter test test/gallery_golden_test.dart
+
+  pull-request-policy:
+    name: pull-request-policy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Conventional Commit style title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|docs|test|refactor|perf|build|ci|chore|revert)(\([a-z0-9._-]+\))?!?: .+'
+          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
+            echo "PR title must match: type(scope): description"
+            exit 1
+          fi
