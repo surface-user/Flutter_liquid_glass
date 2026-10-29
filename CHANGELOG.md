@@ -1,3 +1,8 @@
+## Unreleased
+
+- Add shared press, hover and keyboard focus feedback to buttons, icon buttons and tappable cards without changing public APIs or blur radii.
+- Respect all reduced-motion switches and isolate animated backdrop inputs.
+
 ## 0.1.0
 
 - Initial pure Flutter glass surface, immutable styles and seven presets.
