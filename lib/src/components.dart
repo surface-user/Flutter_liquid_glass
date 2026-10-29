@@ -301,17 +301,27 @@ class _GlassInteractionState extends State<_GlassInteraction> {
           autofocus: widget.autofocus,
           focusNode: widget.focusNode,
           canRequestFocus: enabled,
-          onHighlightChanged: (value) => setState(() => pressed = value),
+          onHighlightChanged: (value) {
+            if (widget.onTap != null && pressed != value) {
+              setState(() => pressed = value);
+            }
+          },
           onHover: (value) => setState(() => hovered = value),
           onFocusChange: (value) => setState(() => focused = value),
           child: widget.child,
         ),
       ),
     );
-    if (reduced || !enabled) return surface;
+    // Keep the InkWell mounted so motion changes cannot interrupt gesture cleanup.
     return TweenAnimationBuilder<double>(
-      tween: Tween(end: down ? -1.0 : (focus ? 0.0 : (hover ? .5 : 0.0))),
-      duration: Duration(milliseconds: down ? 90 : (hover ? 160 : 180)),
+      tween: Tween(
+        end: reduced || !enabled
+            ? 0.0
+            : (down ? -1.0 : (focus ? 0.0 : (hover ? .5 : 0.0))),
+      ),
+      duration: reduced || !enabled
+          ? Duration.zero
+          : Duration(milliseconds: down ? 90 : (hover ? 160 : 180)),
       curve: Curves.easeOutCubic,
       child: surface,
       builder: (context, value, child) => Transform.translate(

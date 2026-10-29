@@ -74,13 +74,16 @@ void main() {
         tester.getCenter(find.text('Press')),
       );
       await tester.pumpAndSettle();
-      expect(
+      final transforms = tester.widgetList<Transform>(
         find.descendant(
           of: find.byType(GlassButton),
           matching: find.byType(Transform),
         ),
-        findsNothing,
       );
+      expect(transforms, isNotEmpty);
+      for (final transform in transforms) {
+        expect(transform.transform.isIdentity(), isTrue);
+      }
       await gesture.up();
       await tester.pumpAndSettle();
       expect(tester.binding.transientCallbackCount, 0);

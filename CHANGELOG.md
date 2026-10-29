@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Preserve gesture cleanup when reduced-motion settings change during a press.
+
 - Add shared press, hover and keyboard focus feedback to buttons, icon buttons and tappable cards without changing public APIs or blur radii.
 - Respect all reduced-motion switches and isolate animated backdrop inputs.
 
