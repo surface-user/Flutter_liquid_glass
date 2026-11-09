@@ -60,7 +60,7 @@
 - 不接入原生 Kotlin/Compose 动画层。
 - 不移植 TypeScript 运行时。
 - 不使用反编译实现。
-- 不自动合并 PR。
+- 不绕过 CI、未完成验收或非作者批准要求合并 PR；用户已授权满足条件后由 Agent 合并。
 
 ## 完成记录
 
@@ -115,3 +115,13 @@
 
 - 2026-11-10 最终校验：根测试 55/55、示例测试 7/7、19 个文件格式检查、flutter analyze、Dart analyze、Web release 构建均通过。Android profile build bundle 资源打包通过，并额外用 `flutter assemble --output=build/profile_compile_check -dTargetPlatform=android-arm64 -dBuildMode=profile -dTargetFile=integration_test/glass_performance_test.dart kernel_snapshot_program` 验证测试入口 Dart kernel 编译通过；不是完整 APK/AOT 验收，也没有真机运行数据。CI 已加入该编译步骤。
 - 等待外部输入：已请求接入可调试的 Android 真机，以及明确授权向 origin GitHub 仓库推送并创建 PR。用户未答复前不重试被拒绝的推送、不伪造设备记录或审查批准。当前可独立完成的采样准备已完成，任务不能标注全部完成。
+
+### 2026-11-10 后续实现与交付授权
+
+- 用户确认当前无可用真机，要求先集中完成实现、稍后统一设备验证；允许 Android Studio 模拟器做功能验证，但不将模拟器结果写为真机性能。Android profile 待办保留。
+- 用户已明确授权向 https://github.com/surface-user/Flutter_liquid_glass.git 推送当前分支并创建 PR；此前远程授权阻塞已解除。
+- [x] 指针高光：三类组件共享私有径向边缘 painter，ValueNotifier 直接 repaint，无指针位置 setState，无布局或模糊参数变化；退出清除，dispose 释放。禁用、减少动画、高对比度、减少透明度和 low 质量关闭该效果。
+- [x] 通用表面评估：GlassCard 的任意 child + onTap 已覆盖当前场景。扩展 GlassSurface 会把交互混入静态渲染；命名构造与独立 InteractiveGlassSurface 均增加重复公开接口，当前没有必须新增的用例，故不新增。
+- [ ] 可选 Shader：实验性后续能力，当前仍未满足支持的 Impeller 与 Android 真机 profile 前置条件，继续待办而非标记实现完成。现有 BackdropFilter 路径保留。
+
+- 指针专项 6/6 通过：像素随位置变化、移动不重建 CustomPaint/不改变布局、退出后无 ticker，以及五类禁用/降级。新增 pointer golden 已人工查看。原示例 7/7 继续通过，原视觉基准不变。

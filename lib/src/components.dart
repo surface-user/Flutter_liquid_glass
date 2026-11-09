@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'motion.dart';
 import 'style.dart';
@@ -263,11 +264,37 @@ class _GlassInteraction extends StatefulWidget {
 
 class _GlassInteractionState extends State<_GlassInteraction> {
   bool pressed = false, hovered = false, focused = false;
+  final pointer = ValueNotifier<Offset?>(null);
+
+  bool get pointerEnabled {
+    final theme = LiquidGlassTheme.of(context);
+    return widget.onTap != null &&
+        !glassReduceMotion(context) &&
+        !theme.accessibility.highContrast &&
+        MediaQuery.maybeOf(context)?.highContrast != true &&
+        !theme.accessibility.reduceTransparency &&
+        theme.performance.quality != GlassQuality.low;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!pointerEnabled) pointer.value = null;
+  }
+
+  @override
+  void dispose() {
+    pointer.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(_GlassInteraction oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.onTap == null) pressed = hovered = focused = false;
+    if (widget.onTap == null) {
+      pressed = hovered = focused = false;
+      pointer.value = null;
+    }
   }
 
   @override
@@ -296,19 +323,32 @@ class _GlassInteractionState extends State<_GlassInteraction> {
       child: GlassSurface(
         style: style,
         constraints: widget.constraints,
-        child: InkWell(
-          onTap: widget.onTap,
-          autofocus: widget.autofocus,
-          focusNode: widget.focusNode,
-          canRequestFocus: enabled,
-          onHighlightChanged: (value) {
-            if (widget.onTap != null && pressed != value) {
-              setState(() => pressed = value);
-            }
+        child: MouseRegion(
+          onHover: (event) {
+            if (pointerEnabled) pointer.value = event.localPosition;
           },
-          onHover: (value) => setState(() => hovered = value),
-          onFocusChange: (value) => setState(() => focused = value),
-          child: widget.child,
+          onExit: (_) => pointer.value = null,
+          child: CustomPaint(
+            foregroundPainter: _PointerHighlight(
+              pointer,
+              style,
+              enabled: pointerEnabled,
+            ),
+            child: InkWell(
+              onTap: widget.onTap,
+              autofocus: widget.autofocus,
+              focusNode: widget.focusNode,
+              canRequestFocus: enabled,
+              onHighlightChanged: (value) {
+                if (widget.onTap != null && pressed != value) {
+                  setState(() => pressed = value);
+                }
+              },
+              onHover: (value) => setState(() => hovered = value),
+              onFocusChange: (value) => setState(() => focused = value),
+              child: widget.child,
+            ),
+          ),
         ),
       ),
     );
@@ -330,4 +370,53 @@ class _GlassInteractionState extends State<_GlassInteraction> {
       ),
     );
   }
+}
+
+class _PointerHighlight extends CustomPainter {
+  _PointerHighlight(this.pointer, this.style, {required this.enabled})
+    : super(repaint: pointer);
+  final ValueNotifier<Offset?> pointer;
+  final GlassStyle style;
+  final bool enabled;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final position = pointer.value;
+    if (!enabled ||
+        position == null ||
+        size.isEmpty ||
+        style.highlightOpacity == 0)
+      return;
+    final rect = Offset.zero & size;
+    final width = math.min(3.0, math.min(size.width, size.height) / 2);
+    final path = Path();
+    if (style.shape == BoxShape.circle) {
+      path.addOval(rect.deflate(width / 2));
+    } else {
+      path.addRRect(style.borderRadius.toRRect(rect).deflate(width / 2));
+    }
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..shader = RadialGradient(
+        center: Alignment(
+          position.dx / size.width * 2 - 1,
+          position.dy / size.height * 2 - 1,
+        ),
+        radius: 1,
+        colors: [
+          style.highlightColor.withValues(
+            alpha: style.highlightColor.a * style.highlightOpacity,
+          ),
+          style.highlightColor.withValues(alpha: 0),
+        ],
+      ).createShader(rect);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_PointerHighlight oldDelegate) =>
+      oldDelegate.style != style ||
+      oldDelegate.enabled != enabled ||
+      oldDelegate.pointer != pointer;
 }

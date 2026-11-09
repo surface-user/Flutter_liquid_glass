@@ -48,7 +48,7 @@ jobs:
         run: flutter analyze
 
       - name: Test package behavior
-        run: flutter test test/style_test.dart test/widget_test.dart test/black_box_interaction_test.dart
+        run: flutter test test/style_test.dart test/widget_test.dart test/black_box_interaction_test.dart test/pointer_highlight_test.dart
 
       - name: Test example behavior
         working-directory: example

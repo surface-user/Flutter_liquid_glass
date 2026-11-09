@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add pointer-following rim highlights with repaint-only tracking and accessibility/low-quality fallback.
+
 - Add an SDK-only example Android profile sampler with raw frame timings and tested percentile summaries. Hardware measurements remain required.
 
 - Preserve gesture cleanup when reduced-motion settings change during a press.
