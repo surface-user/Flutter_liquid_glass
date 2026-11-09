@@ -125,3 +125,5 @@
 - [ ] 可选 Shader：实验性后续能力，当前仍未满足支持的 Impeller 与 Android 真机 profile 前置条件，继续待办而非标记实现完成。现有 BackdropFilter 路径保留。
 
 - 指针专项 6/6 通过：像素随位置变化、移动不重建 CustomPaint/不改变布局、退出后无 ticker，以及五类禁用/降级。新增 pointer golden 已人工查看。原示例 7/7 继续通过，原视觉基准不变。
+
+- 远程交付：分支已推送，草稿 PR https://github.com/surface-user/Flutter_liquid_glass/pull/1 已创建（当前尚未合并）。统一验证根 62/62、示例 7/7、格式、分析通过；发布预检 0 warnings，未发布。Android 集中验收按用户安排后置，任务仍 in_progress。
