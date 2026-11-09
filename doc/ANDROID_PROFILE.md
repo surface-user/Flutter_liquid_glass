@@ -31,3 +31,24 @@ flutter run --profile -d <device-id>
 | 默认交互帧时间与超预算帧 | 未采集 |
 | 降级及减少动画 | widget 回归通过，Android 待验证 |
 | 性能验收 | 未完成 |
+
+## 自动采样入口（2026-11-10）
+
+示例增加了 Flutter SDK 自带的 integration_test 开发依赖，库运行时依赖不变。在 example 目录执行：
+
+```sh
+flutter pub get
+flutter drive --profile -d <device-id> --driver=test_driver/performance.dart --target=integration_test/glass_performance_test.dart
+```
+
+入口只接受 Android profile 模式，使用 fullyLive 引擎帧策略；默认、关闭模糊、高对比度、减少动画分别采集 10 秒空闲和约 30 秒交互，约需 3 分钟。交互使用固定三组件夹具（GlassButton、GlassIconButton、可点击 GlassCard），不等同于整个 Gallery 的最大负载测试。每轮先预热并等待引擎批量帧报告排空；空闲观察不 pump，不人为生成帧。
+
+默认报告为 `example/build/integration_response_data.json`（设置 FLUTTER_TEST_OUTPUTS_DIR 时位于该目录），包含系统信息、屏幕刷新率、采样时长、原始 UI/build 与 raster 毫秒数组、nearest-rank p50/p95/最大值及超预算计数。`frames_over_budget` 按同一帧 build 或 raster 任一超预算计一次，`>` 而非 `>=`；不把流水线两阶段耗时相加冒充逐帧延迟。空闲没有新帧时 count=0、百分位=null。交互无样本或交互 ticker 未停止时测试失败；失败报告会尽可能保存，失败数据不作为验收通过依据。
+
+报告不会猜测设备型号、引擎版本或后端，请在同一终端保存 `flutter --version`、`flutter devices`，并记录目标设备型号和启动日志中的渲染后端。若设置了 FLUTTER_TEST_OUTPUTS_DIR，应为每个设备/运行单独指定目录，避免覆盖证据。自动夹具不能替代上述真实页面、文字裁剪、触摸及减少动画验收。
+
+本地可运行 `flutter test test/frame_metrics_test.dart` 校验统计逻辑；此命令的合成数据只是单测输入，不是真机性能。Android bundle 编译成功也不代表 APK 构建成功或已运行真机。
+
+### 当前编译与本地验证
+
+2026-11-10：统计单测及示例共 7 项、根 55 项、格式和分析通过。profile 资源打包与单独 kernel_snapshot_program 编译通过。CI 同样编译 Android profile Dart 入口，但不会运行真机采样；这些结果不能完成上方性能验收表。

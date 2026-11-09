@@ -42,7 +42,7 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed lib test example/lib example/test
+        run: dart format --output=none --set-exit-if-changed lib test example/lib example/test example/integration_test example/test_driver
 
       - name: Analyze
         run: flutter analyze
@@ -52,7 +52,11 @@ jobs:
 
       - name: Test example behavior
         working-directory: example
-        run: flutter test test/widget_test.dart
+        run: flutter test test/widget_test.dart test/frame_metrics_test.dart
+
+      - name: Compile Android profile test Dart (not an APK or device benchmark)
+        working-directory: example
+        run: flutter assemble --output=build/profile_compile_check -dTargetPlatform=android-arm64 -dBuildMode=profile -dTargetFile=integration_test/glass_performance_test.dart kernel_snapshot_program
 
       - name: Build Web example
         working-directory: example

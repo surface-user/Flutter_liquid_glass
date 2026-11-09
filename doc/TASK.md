@@ -105,3 +105,13 @@
 
 - 最终复验：根 55/55、示例 4/4（全部六张示例图比较通过）、格式检查、flutter analyze 通过；Web release 构建成功。pub publish --dry-run 校验约 111KB 包后因工作区未提交文件返回 1（1 个 dirty Git 警告），不是发布成功，也未上传。
 - 第一阶段待办收敛为 Android 真机 profile 和远程交付/非作者审查。未继续后续指针高光或 Shader 阶段，未重试此前被拒绝的推送。CI 配置已本地补齐，但尚无远程运行证据。
+
+### 2026-11-10 持续推进：自动性能采样
+
+- 重新检测仍仅 Windows/Edge，没有 Android 设备或配置的模拟器；只安装了缺少 source.properties 的 NDK 目录。当前分支仍无 PR（GitHub 只读查询）。Android 性能项继续未勾选，整体仍 in_progress。
+- 增加 example/integration_test/glass_performance_test.dart 与 test_driver/performance.dart：仅允许 Android profile，四种降级模式各采样 10 秒空闲及约 30 秒真实引擎交互帧。用稳定的三组件夹具，空闲不 pump；报告包含原始数据、刷新率、p50/p95/max 和超预算帧数。没有设备时不生成性能报告。
+- 为统计计算增加 example/test/frame_metrics_test.dart，覆盖空帧 null、nearest-rank、流水线配对超预算计数、输入不变及无效数据拒绝。Flutter SDK integration_test 仅为示例开发依赖，没有新增库运行时依赖或公开 API。
+- CI 加入统计单测及新目录格式检查。采样入口与报告说明见 ANDROID_PROFILE.md；真正 Android 数据、完整 APK 与设备校准仍待接入硬件。
+
+- 2026-11-10 最终校验：根测试 55/55、示例测试 7/7、19 个文件格式检查、flutter analyze、Dart analyze、Web release 构建均通过。Android profile build bundle 资源打包通过，并额外用 `flutter assemble --output=build/profile_compile_check -dTargetPlatform=android-arm64 -dBuildMode=profile -dTargetFile=integration_test/glass_performance_test.dart kernel_snapshot_program` 验证测试入口 Dart kernel 编译通过；不是完整 APK/AOT 验收，也没有真机运行数据。CI 已加入该编译步骤。
+- 等待外部输入：已请求接入可调试的 Android 真机，以及明确授权向 origin GitHub 仓库推送并创建 PR。用户未答复前不重试被拒绝的推送、不伪造设备记录或审查批准。当前可独立完成的采样准备已完成，任务不能标注全部完成。
