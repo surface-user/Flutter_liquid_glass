@@ -46,6 +46,7 @@ example/android/gradle.properties
 example/android/gradle/wrapper/gradle-wrapper.properties
 example/android/settings.gradle.kts
 example/integration_test/frame_metrics.dart
+example/integration_test/gallery_test.dart
 example/integration_test/glass_performance_test.dart
 example/lib/main.dart
 example/pubspec.yaml
@@ -98,6 +99,7 @@ test/golden_test.dart
 test/goldens/contrast.png
 test/goldens/dark.png
 test/goldens/fallback.png
+test/goldens/interaction-pointer.png
 test/goldens/light.png
 test/interaction_golden_test.dart
 test/pointer_highlight_test.dart

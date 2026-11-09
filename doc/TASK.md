@@ -127,3 +127,8 @@
 - 指针专项 6/6 通过：像素随位置变化、移动不重建 CustomPaint/不改变布局、退出后无 ticker，以及五类禁用/降级。新增 pointer golden 已人工查看。原示例 7/7 继续通过，原视觉基准不变。
 
 - 远程交付：分支已推送，草稿 PR https://github.com/surface-user/Flutter_liquid_glass/pull/1 已创建（当前尚未合并）。统一验证根 62/62、示例 7/7、格式、分析通过；发布预检 0 warnings，未发布。Android 集中验收按用户安排后置，任务仍 in_progress。
+
+- 模拟器功能入口 example/integration_test/gallery_test.dart 已复用 Gallery 场景，主题、减少动画、对话框与页面往返的本地测试 2/2 通过；设备运行按用户安排后置。
+- PR 依赖审查失败证据：job 129329066327 提示 Dependency graph 未启用，并非发现漏洞。保留该失败检查，已请求开启仓库设置的授权；不以跳过检查合并。
+
+- 远程 CI（ef6e089）：static-analysis-and-tests、visual-regression、pull-request-policy 均成功；dependency-review 因仓库功能未开启失败。后续 Gallery 功能入口本地全示例 8/8 通过，分析通过；设备运行未执行。

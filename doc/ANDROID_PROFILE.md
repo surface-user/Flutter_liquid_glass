@@ -52,3 +52,13 @@ flutter drive --profile -d <device-id> --driver=test_driver/performance.dart --t
 ### 当前编译与本地验证
 
 2026-11-10：统计单测及示例共 7 项、根 55 项、格式和分析通过。profile 资源打包与单独 kernel_snapshot_program 编译通过。CI 同样编译 Android profile Dart 入口，但不会运行真机采样；这些结果不能完成上方性能验收表。
+
+## Android Studio 模拟器功能验证
+
+用户安排实现完成后统一设备验证。届时在 Android Studio Device Manager 创建并启动 AVD，用 flutter devices 确认 ID，在 example 目录执行：
+
+```sh
+flutter test integration_test/gallery_test.dart -d <emulator-id>
+```
+
+入口复用本地 Gallery 测试，覆盖主题切换、减少动画、对话框和页面往返。它可在 debug 模拟器运行，不测硬件帧率。尚未安装或启动 AVD；如受 NDK 缺失阻塞，需先修复 Android 构建环境。
