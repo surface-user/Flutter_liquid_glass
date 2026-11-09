@@ -697,6 +697,17 @@ flutter test --update-goldens
 
 完整记录见 [验证说明](doc/VERIFICATION.md)、[部署说明](doc/DEPLOYMENT.md) 和 [文件清单](doc/FILES.txt)。
 
+## Agent 与贡献工作流
+
+- [Agent 开发规范](doc/AGENTS.md)
+- [当前任务与验收标准](doc/TASK.md)
+- [玻璃交互动画规格](doc/ANIMATION_SPEC.md)
+- [开发、CI 与 PR 工作流](doc/WORKFLOW.md)
+- [PR 审查清单](doc/REVIEW_CHECKLIST.md)
+- [发布流程](doc/RELEASE.md)
+
+仓库在 PR 和 `codex/**` 分支上自动执行格式、分析、行为测试、Windows 视觉回归、Web 构建及发布预检。Dependabot 每周检查 GitHub Actions 并自动创建更新 PR；所有 PR 仍需通过检查和非作者审查；用户授权后 Agent 可在条件满足时合并。
+
 ## 开源与发布
 
 本项目采用 [MIT License](LICENSE)，版本变更见 [CHANGELOG.md](CHANGELOG.md)。
@@ -710,3 +721,10 @@ flutter pub publish --dry-run
 ```
 
 `.pubignore` 会排除构建输出、本地部署副本和测试资源，保持发布包轻量。
+
+### 交互反馈
+
+`GlassButton`、`GlassIconButton` 和带 `onTap` 的 `GlassCard` 自动提供按压（0.98 倍、下移 1.5px）、悬停（最多 1.01 倍）和键盘焦点加粗边缘反馈，不改变布局或模糊半径。空回调禁用交互。
+系统 `disableAnimations`、`accessibleNavigation`、主题 `reduceMotion` 和 `enableAnimations: false` 均关闭缩放与位移，保留即时状态提示。示例的 Interaction 区可用鼠标、按住和 Tab 体验这些状态；Material Lab 的 Reduce motion 可比较降级效果。
+
+鼠标移动时交互组件的边缘高光跟随指针，直接重绘而不重建布局；减少动画、高对比度、减少透明度和低质量模式下关闭该效果。

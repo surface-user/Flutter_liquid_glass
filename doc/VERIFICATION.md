@@ -24,10 +24,9 @@ No changes were made to the separate Multi account project.
 - Six gallery/dialog baselines use actual Roboto and Material Icons fonts.
   Shadow rendering is enabled when producing visual baselines.
 - flutter build web --release: passed; creates example/build/web.
-- flutter pub publish --dry-run validates an approximately 89 KB archive
-  before this verification document. It reports a warning for the missing
-  real homepage/repository URL; therefore its process exit status is nonzero.
-  A GitHub remote has not been configured. No upload/publish was performed.
+- flutter pub publish --dry-run previously validated an approximately 89 KB
+  archive. Repository metadata is now configured for the GitHub project.
+  No pub.dev upload/publish was performed.
 
 ## Visual review and fixes
 
@@ -76,3 +75,14 @@ images. Pin both OS and Flutter version for pixel-identical golden comparisons.
 
 The package archive excludes development-only test fonts, goldens and build
 outputs; the full repository keeps those assets and their upstream licenses.
+
+## 2026-10-29 interaction follow-up
+
+- Current local SDK: Flutter 3.47.1 stable / Dart 3.13.1 on Windows. Earlier 3.44.4 records above are historical, not the current run.
+- Root suite: 55 passed, including 22 independent black-box event cases and 4 interaction visual states. Example suite: all 4 passed, including six gallery/dialog comparisons and enlarged text.
+- GLASS-001 dynamic reduced-motion regression is fixed; all four original failure cases remain active. Public API and runtime dependencies are unchanged.
+- Six candidate example images were rendered outside the baseline directory and compared side by side before acceptance. Five differed only on rounded tag edges (689/704/699/697/704 pixels); mobile dialog was identical. Version mismatch is a plausible cause, not a proven cause without running both SDKs.
+- Accepted example goldens and CI now target Flutter 3.47.1 on Windows. CI behavior includes black_box_interaction_test.dart; visual job includes interaction_golden_test.dart. No comparison tolerance was introduced.
+- Android device discovery found only Windows/Edge and no configured emulators. Android profile acceptance remains outstanding; see ANDROID_PROFILE.md. Overall task remains in_progress.
+
+- Final format check and flutter analyze passed. Web release build succeeded. Publication dry-run completed package-content validation (~111 KB) but exited 1 with one warning about uncommitted tracked files; no upload occurred. Remote CI has not run for these changes.

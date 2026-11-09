@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 在线示例
+    url: https://lightweight-liquid-glass-lab.marseille-cjh.chatgpt.site
+    about: 提交问题前可在示例中验证组件行为
