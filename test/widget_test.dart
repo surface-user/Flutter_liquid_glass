@@ -17,6 +17,121 @@ Widget host(
 );
 
 void main() {
+  testWidgets('interactive glass presses, cancels, hovers and stops ticking', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(GlassButton(onPressed: () {}, child: const Text('Press'))),
+    );
+    final ink = find.descendant(
+      of: find.byType(GlassButton),
+      matching: find.byType(InkWell),
+    );
+    double scale() => tester
+        .widget<Transform>(
+          find
+              .descendant(
+                of: find.byType(GlassButton),
+                matching: find.byType(Transform),
+              )
+              .last,
+        )
+        .transform
+        .storage[0];
+    final gesture = await tester.startGesture(tester.getCenter(ink));
+    await tester.pump(const Duration(milliseconds: 120));
+    await tester.pumpAndSettle();
+    expect(scale(), closeTo(.98, .001));
+    await gesture.cancel();
+    await tester.pumpAndSettle();
+    expect(scale(), 1);
+    tester.widget<InkWell>(ink).onHover!(true);
+    await tester.pumpAndSettle();
+    expect(scale(), closeTo(1.01, .001));
+    expect(tester.binding.transientCallbackCount, 0);
+  });
+
+  for (final mode in ['system', 'navigation', 'theme', 'disabledAnimations']) {
+    testWidgets('interaction respects reduced motion / $mode', (tester) async {
+      await tester.pumpWidget(
+        host(
+          GlassButton(onPressed: () {}, child: const Text('Press')),
+          media: MediaQueryData(
+            disableAnimations: mode == 'system',
+            accessibleNavigation: mode == 'navigation',
+          ),
+          theme: LiquidGlassThemeData(
+            accessibility: GlassAccessibilityConfig(
+              reduceMotion: mode == 'theme',
+            ),
+            performance: GlassPerformanceConfig(
+              enableAnimations: mode != 'disabledAnimations',
+            ),
+          ),
+        ),
+      );
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Press')),
+      );
+      await tester.pumpAndSettle();
+      final transforms = tester.widgetList<Transform>(
+        find.descendant(
+          of: find.byType(GlassButton),
+          matching: find.byType(Transform),
+        ),
+      );
+      expect(transforms, isNotEmpty);
+      for (final transform in transforms) {
+        expect(transform.transform.isIdentity(), isTrue);
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(tester.binding.transientCallbackCount, 0);
+    });
+  }
+
+  testWidgets('clickable cards share feedback and focus has a thicker rim', (
+    tester,
+  ) async {
+    final node = FocusNode();
+    addTearDown(node.dispose);
+    await tester.pumpWidget(
+      host(
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GlassCard(onTap: () {}, child: const Text('Card')),
+            GlassButton(
+              focusNode: node,
+              onPressed: () {},
+              child: const Text('Button'),
+            ),
+          ],
+        ),
+      ),
+    );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Card')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widgetList<Transform>(find.byType(Transform))
+          .any((t) => (t.transform.storage[0] - .98).abs() < .001),
+      isTrue,
+    );
+    await gesture.up();
+    node.requestFocus();
+    await tester.pumpAndSettle();
+    final surface = tester.widget<GlassSurface>(
+      find.descendant(
+        of: find.byType(GlassButton),
+        matching: find.byType(GlassSurface),
+      ),
+    );
+    expect(surface.style!.borderWidth, greaterThan(1));
+  });
+
   testWidgets(
     'source context resolves theme motion and removes system animation duration',
     (tester) async {

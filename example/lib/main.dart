@@ -210,7 +210,11 @@ class _GlassGalleryState extends State<GlassGallery> {
                             children: [
                               GlassButton(
                                 onPressed: () => _dialog(context),
-                                child: const Text('Open glass dialog'),
+                                child: const Tooltip(
+                                  message:
+                                      'Hover, hold to press, or use Tab for focus. Toggle Reduce motion in Material Lab.',
+                                  child: Text('Open glass dialog'),
+                                ),
                               ),
                               GlassButton(
                                 onPressed: () => Navigator.of(context).push(

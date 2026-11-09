@@ -10,6 +10,8 @@ dependencies:
   lightweight_liquid_glass:
     path: ../
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
 flutter:
