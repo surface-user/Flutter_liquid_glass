@@ -66,6 +66,7 @@ API 对照使用 SDK 已安装的 analyzer 解析重构前备份与当前源码�
 | 新增视觉基准 | design-light/design-dark 已逐张目检（Agent），暗色局部文字对比度调整后重新生成，并普通测试比较通过 | build/m2/design-render-retest.log、test/goldens/design-*.png |
 | example 测试 | 8/8 通过；最终配置代码再次复核 | build/m2/example-test.log |
 | Web release | 构建通过；最终配置代码再次复核，以最终日志/CI 为准；已有 CupertinoIcons 提示保留 | build/m2/web-build.log |
+| 发布预检 | 144 KB，0 warnings，未发布 | build/m2/publish-dry-run.log |
 
 保留的失败记录：
 
@@ -75,3 +76,5 @@ API 对照使用 SDK 已安装的 analyzer 解析重构前备份与当前源码�
 - 早期格式/分析错误修复后复验；没有删除、跳过或降低原失败测试。
 
 M2/M3 自动化验证了字段/状态继承、显式覆盖/清空、密度与目标尺寸、实际过滤 sigma、动态主题/减少动画、Esc/焦点恢复、外部 FocusNode 复用和 2x 中英文文字。Windows 实窗、Android 真机/模拟器与硬件性能未执行；它们与非作者审查分别列为待验，不以 86 项通过替代。
+
+远程边界：M2/M3 分支推送被自动审批拒绝，虽然 origin 与已连接仓库/PR 信息已核对，审批仍要求明确确认本次源码 payload 与具体目的地。未绕过拦截，未创建本轮 PR、未取得本轮远程 CI 结果。草稿正文已在本地 build/m2/pr-body.md 准备。

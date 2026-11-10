@@ -2,7 +2,7 @@
 
 ## 当前目标与范围
 
-状态：REVIEW。M0 完成；M1 保持 REVIEW。2026-11-11 用户授权继续后，M2/M3 实现与本地回归完成，远程交付及非作者审查待完成。
+状态：REVIEW。M0 完成；M1 保持 REVIEW。2026-11-11 用户授权继续后，M2/M3 实现与本地回归完成；远程推送被自动审批拒绝，待具体外传授权；非作者审查待完成。
 目标：职责与依赖正确 → API/参数契约清晰 → 交互可靠 → 文档和测试可验证 → 视觉细节。
 本轮保持旧接口可调用、旧默认布局/视觉、包名、SDK 与依赖；以增量公开配置接入主题和密度，不扩建 example，不修改 StudyWorkbench。
 规则唯一来源：[AGENTS.md](AGENTS.md)。本轮优先 Windows 桌面验证；Android 性能与其他平台待验项继续保留。
@@ -341,10 +341,11 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 - 尚未只读核对 StudyWorkbench 真实调用；库侧缺口不等于应用问题根因。
 - M2/M3 已按 [design-system.md](design-system.md) 实现：旧替换保留，新增显式 merge。M4 尚未实施，先冻结必要输入/导航/菜单清单；M3 实窗验收仍待完成。
 - 非作者审查与合并单列；本轮不自动合并、不发布包。
+- M2/M3 远程推送被自动审批拒绝：要求明确授权将 `codex/m2-theme-density` 分支源码推送到 `https://github.com/surface-user/Flutter_liquid_glass.git`。已核对 origin、连接器仓库权限和 PR #2，未绕过拒绝；本轮 PR/CI 尚未创建/执行。
 
 ## 交付与审查
 
-- 当前开发分支：`codex/m2-theme-density`，基于 M1 的 `17126f0`；M2/M3 交付独立草稿 PR，保留原 PR 与审查状态。
+- 当前开发分支：`codex/m2-theme-density`，基于 M1 的 `17126f0`；实现提交 `e234943`。已准备独立草稿 PR 正文 `build/m2/pr-body.md`，待推送授权；原 PR 与审查状态保留。
 
 - 分支：`codex/m0-m1-modularization`；实现提交 `c8817c0`。
 - [草稿 PR #2](https://github.com/surface-user/Flutter_liquid_glass/pull/2) 以 `codex/phase1-glass-interaction` 为基底，依赖未合并的 [PR #1](https://github.com/surface-user/Flutter_liquid_glass/pull/1)，本 PR 仅展示 M0/M1 差异。
