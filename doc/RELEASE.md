@@ -8,7 +8,7 @@
 
 ## 发布前
 
-1. `doc/TASK.md` 已完成，PR 已合并。
+1. `doc/task.md` 已完成，PR 已合并。
 2. 更新 `pubspec.yaml` 版本和 `CHANGELOG.md`。
 3. 执行 `flutter analyze`、完整测试、Web 构建和 `flutter pub publish --dry-run`。
 4. 检查 README、GitHub 地址、License 和 `.pubignore`。

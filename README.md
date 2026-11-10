@@ -595,12 +595,14 @@ Flutter_liquid_glass/
 ├── lib/
 │   ├── lightweight_liquid_glass.dart  # 唯一公开导出入口
 │   └── src/
-│       ├── style.dart                # 样式与七种预设
-│       ├── surface.dart              # 玻璃表面、样式切换、分组与绘制
-│       ├── backdrop.dart             # 渐变、柔光光斑和可选动画
-│       ├── theme.dart                # 主题、性能与无障碍配置
-│       ├── components.dart           # 卡片、按钮、AppBar、弹窗
-│       └── motion.dart               # 动画配置与页面路由
+│       ├── core/                     # 纯配置、样式、分组和底层绘制/转场
+│       ├── theme/                    # 主题数据、解析和减少动画
+│       └── components/
+│           ├── buttons/              # 按钮、图标按钮
+│           ├── surfaces/             # 主题感知表面、背景和卡片
+│           ├── navigation/           # AppBar 与页面路由
+│           ├── overlays/             # 弹窗及主题捕获
+│           └── interaction.dart      # 私有共享交互及指针高光
 ├── example/
 │   ├── lib/main.dart                 # 完整交互演示
 │   ├── test/                         # 示例测试及视觉基准
@@ -700,7 +702,11 @@ flutter test --update-goldens
 ## Agent 与贡献工作流
 
 - [Agent 开发规范](doc/AGENTS.md)
-- [当前任务与验收标准](doc/TASK.md)
+- [当前任务与验收标准](doc/task.md)
+- [架构与依赖边界](doc/architecture.md)
+- [公开 API 与兼容契约](doc/api.md)
+- [真实组件与能力目录](doc/component-catalog.md)
+- [当前测试基线与验证边界](doc/testing.md)
 - [玻璃交互动画规格](doc/ANIMATION_SPEC.md)
 - [开发、CI 与 PR 工作流](doc/WORKFLOW.md)
 - [PR 审查清单](doc/REVIEW_CHECKLIST.md)
