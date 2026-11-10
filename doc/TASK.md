@@ -42,6 +42,19 @@
 
 ## 后续阶段
 
+### 视觉与交互体系演进（新增规划）
+
+用户提出将项目从玻璃组件扩展为可组织完整界面的视觉与交互规范。方案见 [VISUAL_INTERACTION_SYSTEM.md](VISUAL_INTERACTION_SYSTEM.md)。以下是规划，未实现项不可标记完成，原动画与设备验收继续保留。
+
+- [x] V0：盘点现有 API，形成材质角色、交互模式、API 使用路径与 Windows/Android 平台边界的设计草案。
+- [ ] V1：在示例中验证语义色、密度、留白与层级，复用现有主题并演示两套主题覆盖。
+- [ ] V2：完成宽/窄窗口工作区场景，覆盖查找、选择、详情及临时操作面板的完整流程。
+- [ ] V3：实现并测试焦点恢复、导航选中、取消与反馈等组合行为。
+- [ ] V4：提供场景 → 配方 → 材质的 API 指南，仅按实际复用需求提炼公开接口。
+- [ ] V5：分别完成 Windows 原生窗口/DPI/键鼠与 Android 功能、目标硬件性能验收。
+
+先推进 V1/V2 的可运行场景，不直接扩张组件数量或新增主题框架。
+
 ### 指针高光
 
 记录局部指针位置，通过 `CustomPainter` 调整径向高光和边缘亮度。优先直接 repaint，不触发布局。
@@ -132,3 +145,9 @@
 - PR 依赖审查失败证据：job 129329066327 提示 Dependency graph 未启用，并非发现漏洞。保留该失败检查，已请求开启仓库设置的授权；不以跳过检查合并。
 
 - 远程 CI（ef6e089）：static-analysis-and-tests、visual-regression、pull-request-policy 均成功；dependency-review 因仓库功能未开启失败。后续 Gallery 功能入口本地全示例 8/8 通过，分析通过；设备运行未执行。
+
+### 当前交付状态补记
+
+Dependency graph 已经用户授权开启；在 fdd5656 上重跑后，dependency-review、static-analysis-and-tests、visual-regression、pull-request-policy 均通过。此前关于该设置等待授权的记录为历史状态，已解除。非作者批准和集中设备验收仍未完成。
+
+本次新增视觉与交互体系设计及 V0–V5 路线，未新增 Dart API 或修改既有默认视觉；新设计链接已检查，旧未完成项保留。

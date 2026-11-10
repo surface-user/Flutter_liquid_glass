@@ -21,6 +21,7 @@ doc/RELEASE.md
 doc/REVIEW_CHECKLIST.md
 doc/TASK.md
 doc/VERIFICATION.md
+doc/VISUAL_INTERACTION_SYSTEM.md
 doc/WORKFLOW.md
 example/.gitignore
 example/.metadata

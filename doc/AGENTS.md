@@ -4,6 +4,8 @@
 
 维护一个纯 Flutter、无业务耦合、无第三方 UI 运行时依赖的轻量玻璃组件库。所有公开接口从 `lib/lightweight_liquid_glass.dart` 导出。
 
+演进方向为以玻璃材质为起点的视觉与交互体系，见 `VISUAL_INTERACTION_SYSTEM.md`。新增能力先用完整场景证明，再按复用需求扩展 API；Windows 桌面与 Android 移动端均需列明验收范围，现有兼容性和性能约束继续有效。
+
 ## 开始任务前
 
 1. 阅读根目录 `AGENTS.md`、本文件和 `doc/TASK.md`。

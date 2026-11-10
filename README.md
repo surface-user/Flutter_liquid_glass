@@ -699,6 +699,8 @@ flutter test --update-goldens
 
 ## Agent 与贡献工作流
 
+演进规划：[从玻璃材质到视觉与交互体系](doc/VISUAL_INTERACTION_SYSTEM.md)。下一阶段以完整界面场景验证视觉层级、导航、输入与反馈，再按实际需求提炼 API；该规划尚未表示新增接口已发布。
+
 - [Agent 开发规范](doc/AGENTS.md)
 - [当前任务与验收标准](doc/TASK.md)
 - [玻璃交互动画规格](doc/ANIMATION_SPEC.md)
