@@ -53,11 +53,11 @@ class GlassSurface extends StatelessWidget {
       performance: performance,
       highContrast: highContrast,
       opaque: opaque,
-      fallbackColor:
-          fallbackColor ??
-          (theme.brightness == Brightness.dark
-              ? const Color(0xff202a3c)
-              : const Color(0xffedf1f8)),
+      fallbackColor: highContrast
+          ? (theme.brightness == Brightness.dark
+                ? const Color(0xff202a3c)
+                : const Color(0xffedf1f8))
+          : fallbackColor ?? theme.surfaceColor,
       width: width,
       height: height,
       constraints: constraints,

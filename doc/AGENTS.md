@@ -19,7 +19,7 @@
 - 不复制反编译代码；只允许参考公开行为、公开规范或许可证兼容的源码。
 - 不持续动画 `blurSigmaX` / `blurSigmaY`。交互动画优先使用透明度、位移、轻微缩放、边框和高光。
 - 所有动画必须遵循 `MediaQuery.disableAnimations`、`accessibleNavigation`、主题 `reduceMotion` 和 `enableAnimations`。
-- Android 是首要性能目标；空闲状态不得保留无意义的 ticker。本轮 M0/M1 以 Windows 桌面兼容验证为优先，Android 历史性能待验项保留，不以桌面/自动化代替真机。
+- Android 是首要性能目标；空闲状态不得保留无意义的 ticker。本轮重构以 Windows 桌面兼容验证为优先，Android 历史性能待验项保留，不以桌面/自动化代替真机。
 - `GlassGroup` 中重叠元素不得共享 backdrop key。
 - 高对比度、减少透明度和关闭模糊时必须保持内容可读、可操作。
 - 不加入具体业务类型、业务文案或业务状态。
@@ -31,7 +31,7 @@
 - 交互状态必须覆盖 idle、hover、focus、pressed、disabled 和 reduce-motion。
 - 动画绘制优先通过 `Listenable` 直接触发 repaint，避免每帧 build/layout。
 - 不为未来需求预留抽象、配置或依赖。
-- M0/M1 仅重组职责与依赖，保持 API/默认值/视觉；不扩建 example，不修改 StudyWorkbench，不提前实现 M2–M5。
+- 结构阶段保留 API/默认值/视觉；后续阶段按 task.md 当前授权增量实施，不扩建 example，不修改 StudyWorkbench，不以审查待办代替已批准合并。
 - core 不依赖 theme/components；theme 仅依赖 core 纯配置；内部共享声明不得因跨文件复用进入公开导出。
 - Golden 只在确认视觉变化正确后更新，不用更新基准掩盖失败。
 

@@ -2,6 +2,8 @@
 
 本清单对应 M0 的 `8504ca7`，M1 保留这些符号、参数含义和默认值。消费者仅导入 `package:lightweight_liquid_glass/lightweight_liquid_glass.dart`；`src/` 路径不属于兼容接口。版本仍为 0.1.0，运行时仅依赖 Flutter SDK。
 
+下列 20 项为历史基线；现行 M2/M3 增量见文末。原构造调用继续可编译，默认视觉不变。
+
 ## 导出清单
 
 20 个公开声明：`GlassStyle`、`GlassPresets`、`GlassQuality`、`GlassPerformanceConfig`、`GlassAccessibilityConfig`、`LiquidGlassThemeData`、`LiquidGlassTheme`、`GlassGroup`、`GlassSurface`、`AnimatedGlassSurface`、`GlassBackdrop`、`GlassCard`、`GlassButton`、`GlassIconButton`、`GlassAppBar`、`GlassDialog`、`showGlassDialog`、`GlassTransition`、`GlassMotionSpec`、`GlassPageRoute`。
@@ -63,3 +65,21 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 - `GlassAccessibilityConfig` 默认 highContrast/reduceMotion/reduceTransparency 均 false。系统 highContrast 与主题高对比度合并；系统 disableAnimations/accessibleNavigation、主题 reduceMotion 或关闭 enableAnimations 任一满足即减少动画。
 
 断言、copyWith 显式清空、离散插值、相异过滤隔离、动态减少动画的原测试保留。M1 不新增文字角色、状态样式、密度或部分覆盖配置。
+
+## M2/M3 增量接口
+
+公开类型增加 `GlassLayout`，当前共 21 个公开声明。保留原声明，入口仍使用逐项 show。
+
+- `LiquidGlassTheme.merge({Key? key, required LiquidGlassThemeData Function(LiquidGlassThemeData parent) data, required Widget child})` 是返回 Widget 的静态方法。最近父配置传给同步更新函数；使用 parent.copyWith 继承未修改字段。旧构造函数仍完整替换。
+- `LiquidGlassThemeData` 新增 colorScheme=null、textTheme=空 TextTheme、layout=默认 GlassLayout、controlStyle=空 ButtonStyle、visualDensity=standard、tapTargetSize=padded。copyWith 中 colorScheme 未指定则保留、显式 null 清空。其他非空配置传空默认对象可重置。语义 getter：foregroundColor、surfaceColor、focusColor。
+- `GlassLayout`：cardPadding=20、buttonPadding=20/12、iconButtonPadding=12、dialogPadding=24、dialogMaxWidth=480、titleSpacing=16、actionSpacing=24、actionRunSpacing=12、iconSize/appBarTitleSpacing=null。不可变，提供 copyWith/lerp；两个 nullable 尺寸未指定保留，显式 null 恢复 Flutter 默认。
+- `GlassPerformanceConfig`、`GlassAccessibilityConfig`、`GlassMotionSpec` 增加 copyWith，未提供字段保留。
+- `GlassMotionSpec` 新增 pressDuration=90ms、hoverDuration=160ms、releaseDuration=180ms、surfaceDuration=240ms、interactionCurve=easeOutCubic。系统/主题减少动画最终覆盖这些设置。
+- `GlassButton` 新增 controlStyle；`GlassIconButton` 新增 controlStyle/focusNode/autofocus；`GlassCard` 新增 focusNode/autofocus；`GlassDialog` 新增 padding/constraints。
+- Button/Card 的 padding 参数、AnimatedGlassSurface 的 duration/curve 参数接受 null 表示继承。原同名非空 getter 仍返回旧默认值；build 使用内部未指定信息解析主题。外部 FocusNode 仍由外部释放。
+
+ButtonStyle 支持 foregroundColor、backgroundColor（着色颜色）、overlayColor（合成状态着色）、side、textStyle、iconSize、padding、minimumSize、visualDensity、tapTargetSize、animationDuration。组件状态解析返回 null 时继续继承对应主题状态。材质形状/阴影仍通过 GlassStyle 设置，不将 elevation/fixedSize 等未接入字段描述成有效能力。padding 和 minimumSize 若显式按状态改变，布局会随之改变；普通配色状态不改变尺寸。
+
+主题 lerp 的数字/颜色仍插值，实际材质 sigma 采用目标值；过渡期间性能限制取交集、无障碍取并集，结束才解除旧限制。colorScheme 的 null 边界及离散 motion/tapTargetSize 在 .5 切换；layout 的 nullable 尺寸采用同样离散规则。
+
+密度、继承、无障碍优先级及窗口契约见 [design-system.md](design-system.md)。库控件使用语义色；调用方 child 自己写死的 TextStyle 仍属于应用负责的内容样式。

@@ -34,6 +34,19 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
       bottom: bottom,
       automaticallyImplyLeading: automaticallyImplyLeading,
       toolbarHeight: toolbarHeight,
+      foregroundColor: glassTextStyle(
+        context,
+        LiquidGlassTheme.of(context).textTheme.titleLarge,
+      ).color,
+      titleTextStyle: LiquidGlassTheme.of(context).textTheme.titleLarge == null
+          ? null
+          : Theme.of(context).textTheme.titleLarge?.merge(
+              glassTextStyle(
+                context,
+                LiquidGlassTheme.of(context).textTheme.titleLarge,
+              ),
+            ),
+      titleSpacing: LiquidGlassTheme.of(context).layout.appBarTitleSpacing,
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: 0,

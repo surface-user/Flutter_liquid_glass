@@ -192,7 +192,7 @@ void main() {
   });
 
   test(
-    'public barrel explicitly exports exactly the original twenty declarations',
+    'public barrel preserves original declarations and explicitly lists additions',
     () {
       final source = File(
         'lib/lightweight_liquid_glass.dart',
@@ -218,6 +218,7 @@ void main() {
           'GlassAccessibilityConfig',
           'LiquidGlassThemeData',
           'LiquidGlassTheme',
+          'GlassLayout',
           'GlassGroup',
           'GlassSurface',
           'AnimatedGlassSurface',

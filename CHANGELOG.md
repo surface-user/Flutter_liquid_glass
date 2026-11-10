@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Add explicit inherited theme merging, geometry/typography/semantic-color configuration, state-aware control styles and opt-in compact density while preserving legacy default visuals.
+- Apply theme geometry and motion to existing controls, cards, dialogs, app bars and animated surfaces. Preserve external focus ownership and dialog Esc/focus behavior.
+- Keep blur sigma discrete and restrictive accessibility/performance policies active during theme interpolation; high contrast overrides decorative foreground/fallback colors.
+
 - Separate core rendering/configuration, themes and component modules; remove the theme/route dependency cycle. Preserve all twenty public declarations, defaults and visual baselines through the existing entry point.
 
 - Add pointer-following rim highlights with repaint-only tracking and accessibility/low-quality fallback.
