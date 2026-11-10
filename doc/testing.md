@@ -77,4 +77,4 @@ API 对照使用 SDK 已安装的 analyzer 解析重构前备份与当前源码�
 
 M2/M3 自动化验证了字段/状态继承、显式覆盖/清空、密度与目标尺寸、实际过滤 sigma、动态主题/减少动画、Esc/焦点恢复、外部 FocusNode 复用和 2x 中英文文字。Windows 实窗、Android 真机/模拟器与硬件性能未执行；它们与非作者审查分别列为待验，不以 86 项通过替代。
 
-远程边界：M2/M3 分支推送被自动审批拒绝，虽然 origin 与已连接仓库/PR 信息已核对，审批仍要求明确确认本次源码 payload 与具体目的地。未绕过拦截，未创建本轮 PR、未取得本轮远程 CI 结果。草稿正文已在本地 build/m2/pr-body.md 准备。
+远程边界：此前 M2/M3 分支推送被自动审批拒绝，未绕过拦截；用户在 2026-11-11 明确授权将该分支推送至 surface-user/Flutter_liquid_glass 并创建草稿 PR 后，已完成推送并创建 [PR #3](https://github.com/surface-user/Flutter_liquid_glass/pull/3)。远程 CI 精确结果以 PR 当前提交的 Checks 为准；非作者审查和设备验收仍未完成。
