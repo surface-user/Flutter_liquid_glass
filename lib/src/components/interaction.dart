@@ -15,16 +15,20 @@ class _GlassInteraction extends StatefulWidget {
     required this.style,
     required this.onTap,
     required this.child,
-    this.constraints,
     this.autofocus = false,
     this.focusNode,
+    this.controlStyle,
+    this.materialControlStyle,
+    this.contentBuilder,
   });
   final GlassStyle style;
   final VoidCallback? onTap;
   final Widget child;
-  final BoxConstraints? constraints;
   final bool autofocus;
   final FocusNode? focusNode;
+  final ButtonStyle? controlStyle;
+  final ButtonStyle? materialControlStyle;
+  final Widget Function(Set<WidgetState> states)? contentBuilder;
 
   @override
   State<_GlassInteraction> createState() => _GlassInteractionState();
@@ -72,17 +76,44 @@ class _GlassInteractionState extends State<_GlassInteraction> {
     final focus = enabled && focused;
     final hover = enabled && hovered;
     final reduced = glassReduceMotion(context);
+    final theme = LiquidGlassTheme.of(context);
+    final control = widget.controlStyle;
+    final states = <WidgetState>{
+      if (!enabled) WidgetState.disabled,
+      if (down) WidgetState.pressed,
+      if (focus) WidgetState.focused,
+      if (hover) WidgetState.hovered,
+    };
     final s = widget.style;
+    final side = widget.materialControlStyle?.side?.resolve(states);
+    final overlay = control?.overlayColor?.resolve(states);
     final amount = down ? .05 : (focus ? .02 : (hover ? .03 : 0.0));
+    final tint =
+        widget.materialControlStyle?.backgroundColor?.resolve(states) ??
+        s.tintColor;
+    final blended = overlay == null
+        ? null
+        : Color.alphaBlend(
+            overlay,
+            tint.withValues(alpha: tint.a * s.tintOpacity),
+          );
     final style = s.copyWith(
-      tintOpacity: (s.tintOpacity + amount).clamp(0, 1),
+      tintColor: blended?.withValues(alpha: 1) ?? tint,
+      tintOpacity: blended?.a ?? (s.tintOpacity + amount).clamp(0, 1),
       highlightOpacity: (s.highlightOpacity + amount).clamp(0, 1),
-      borderWidth: focus ? s.borderWidth + 2 : s.borderWidth,
+      borderWidth: focus
+          ? math.max(2, side?.width ?? s.borderWidth + 2)
+          : side?.width ?? s.borderWidth,
       borderColor: focus
-          ? LiquidGlassTheme.of(context).accentColor
-          : s.borderColor,
-      borderOpacity: focus ? 1 : s.borderOpacity,
-      borderGradient: focus ? null : s.borderGradient,
+          ? (side == null ||
+                    side.style == BorderStyle.none ||
+                    side.width == 0 ||
+                    side.color.a == 0
+                ? theme.focusColor
+                : side.color)
+          : side?.color ?? s.borderColor,
+      borderOpacity: focus || side != null ? 1 : s.borderOpacity,
+      borderGradient: focus || side != null ? null : s.borderGradient,
       shadowOffset: down ? s.shadowOffset * .5 : s.shadowOffset,
     );
     // Transformed surfaces may overlap neighbours, so isolate their backdrop input.
@@ -90,7 +121,6 @@ class _GlassInteractionState extends State<_GlassInteraction> {
       overlapping: true,
       child: GlassSurface(
         style: style,
-        constraints: widget.constraints,
         child: MouseRegion(
           onHover: (event) {
             if (pointerEnabled) pointer.value = event.localPosition;
@@ -114,7 +144,7 @@ class _GlassInteractionState extends State<_GlassInteraction> {
               },
               onHover: (value) => setState(() => hovered = value),
               onFocusChange: (value) => setState(() => focused = value),
-              child: widget.child,
+              child: widget.contentBuilder?.call(states) ?? widget.child,
             ),
           ),
         ),
@@ -129,8 +159,13 @@ class _GlassInteractionState extends State<_GlassInteraction> {
       ),
       duration: reduced || !enabled
           ? Duration.zero
-          : Duration(milliseconds: down ? 90 : (hover ? 160 : 180)),
-      curve: Curves.easeOutCubic,
+          : control?.animationDuration ??
+                (down
+                    ? theme.motion.pressDuration
+                    : hover
+                    ? theme.motion.hoverDuration
+                    : theme.motion.releaseDuration),
+      curve: theme.motion.interactionCurve,
       child: surface,
       builder: (context, value, child) => Transform.translate(
         offset: Offset(0, value < 0 ? -value * 1.5 : 0),

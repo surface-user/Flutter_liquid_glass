@@ -13,50 +13,72 @@ class GlassDialog extends StatelessWidget {
     this.actions = const [],
     this.style,
     this.semanticLabel,
+    this.padding,
+    this.constraints,
   });
   final Widget? title;
   final Widget content;
   final List<Widget> actions;
   final GlassStyle? style;
   final String? semanticLabel;
+
+  /// Explicit values override the nearest geometry configuration.
+  final EdgeInsetsGeometry? padding;
+
+  /// Defaults to the themed maximum width, without a fixed height.
+  final BoxConstraints? constraints;
   @override
-  Widget build(BuildContext context) => Dialog(
-    backgroundColor: Colors.transparent,
-    surfaceTintColor: Colors.transparent,
-    elevation: 0,
-    child: Semantics(
-      namesRoute: true,
-      label: semanticLabel,
-      child: GlassSurface(
-        style: style ?? LiquidGlassTheme.of(context).dialogStyle,
-        constraints: const BoxConstraints(maxWidth: 480),
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (title != null) ...[
+  Widget build(BuildContext context) {
+    final theme = LiquidGlassTheme.of(context);
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      child: Semantics(
+        namesRoute: true,
+        label: semanticLabel,
+        child: GlassSurface(
+          style: style ?? theme.dialogStyle,
+          constraints:
+              constraints ??
+              BoxConstraints(maxWidth: theme.layout.dialogMaxWidth),
+          padding: padding ?? glassPadding(context, theme.layout.dialogPadding),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (title != null) ...[
+                  DefaultTextStyle.merge(
+                    style: Theme.of(context).textTheme.headlineSmall!.merge(
+                      glassTextStyle(context, theme.textTheme.headlineSmall),
+                    ),
+                    child: title!,
+                  ),
+                  SizedBox(height: theme.layout.titleSpacing),
+                ],
                 DefaultTextStyle.merge(
-                  style: Theme.of(context).textTheme.headlineSmall!,
-                  child: title!,
+                  style: glassTextStyle(context, theme.textTheme.bodyMedium),
+                  child: content,
                 ),
-                const SizedBox(height: 16),
+                if (actions.isNotEmpty) ...[
+                  SizedBox(height: theme.layout.actionSpacing),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Wrap(
+                      spacing: theme.layout.actionRunSpacing,
+                      runSpacing: theme.layout.actionRunSpacing,
+                      children: actions,
+                    ),
+                  ),
+                ],
               ],
-              content,
-              if (actions.isNotEmpty) ...[
-                const SizedBox(height: 24),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Wrap(spacing: 12, runSpacing: 12, children: actions),
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Captures inherited themes so local glass overrides survive the new route.

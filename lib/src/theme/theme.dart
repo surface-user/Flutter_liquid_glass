@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../core/config.dart';
 import '../core/motion_spec.dart';
 import '../core/style.dart';
+import 'layout.dart';
+
+const _unset = Object();
 
 @immutable
 class LiquidGlassThemeData extends ThemeExtension<LiquidGlassThemeData> {
@@ -16,6 +19,12 @@ class LiquidGlassThemeData extends ThemeExtension<LiquidGlassThemeData> {
     this.motion = const GlassMotionSpec(),
     this.performance = const GlassPerformanceConfig(),
     this.accessibility = const GlassAccessibilityConfig(),
+    this.colorScheme,
+    this.textTheme = const TextTheme(),
+    this.layout = const GlassLayout(),
+    this.controlStyle = const ButtonStyle(),
+    this.visualDensity = VisualDensity.standard,
+    this.tapTargetSize = MaterialTapTargetSize.padded,
   });
 
   factory LiquidGlassThemeData.dark({
@@ -46,6 +55,28 @@ class LiquidGlassThemeData extends ThemeExtension<LiquidGlassThemeData> {
   final GlassPerformanceConfig performance;
   final GlassAccessibilityConfig accessibility;
 
+  /// Null retains the legacy brightness-based colors.
+  final ColorScheme? colorScheme;
+
+  /// Partial typography merged into the inherited Flutter text styles.
+  final TextTheme textTheme;
+  final GlassLayout layout;
+
+  /// State-aware control overrides. See design-system.md for supported fields.
+  final ButtonStyle controlStyle;
+  final VisualDensity visualDensity;
+  final MaterialTapTargetSize tapTargetSize;
+
+  Color get foregroundColor =>
+      colorScheme?.onSurface ??
+      (brightness == Brightness.dark ? Colors.white : const Color(0xff17233b));
+  Color get surfaceColor =>
+      colorScheme?.surface ??
+      (brightness == Brightness.dark
+          ? const Color(0xff202a3c)
+          : const Color(0xffedf1f8));
+  Color get focusColor => colorScheme?.primary ?? accentColor;
+
   @override
   LiquidGlassThemeData copyWith({
     Brightness? brightness,
@@ -58,6 +89,12 @@ class LiquidGlassThemeData extends ThemeExtension<LiquidGlassThemeData> {
     GlassMotionSpec? motion,
     GlassPerformanceConfig? performance,
     GlassAccessibilityConfig? accessibility,
+    Object? colorScheme = _unset,
+    TextTheme? textTheme,
+    GlassLayout? layout,
+    ButtonStyle? controlStyle,
+    VisualDensity? visualDensity,
+    MaterialTapTargetSize? tapTargetSize,
   }) => LiquidGlassThemeData(
     brightness: brightness ?? this.brightness,
     accentColor: accentColor ?? this.accentColor,
@@ -69,22 +106,68 @@ class LiquidGlassThemeData extends ThemeExtension<LiquidGlassThemeData> {
     motion: motion ?? this.motion,
     performance: performance ?? this.performance,
     accessibility: accessibility ?? this.accessibility,
+    colorScheme: identical(colorScheme, _unset)
+        ? this.colorScheme
+        : colorScheme as ColorScheme?,
+    textTheme: textTheme ?? this.textTheme,
+    layout: layout ?? this.layout,
+    controlStyle: controlStyle ?? this.controlStyle,
+    visualDensity: visualDensity ?? this.visualDensity,
+    tapTargetSize: tapTargetSize ?? this.tapTargetSize,
   );
 
   @override
   LiquidGlassThemeData lerp(covariant LiquidGlassThemeData? other, double t) {
     if (other == null) return this;
+    if (t <= 0) return this;
+    if (t >= 1) return other;
     return LiquidGlassThemeData(
       brightness: t < .5 ? brightness : other.brightness,
       accentColor: Color.lerp(accentColor, other.accentColor, t)!,
-      defaultStyle: GlassStyle.lerp(defaultStyle, other.defaultStyle, t),
-      cardStyle: GlassStyle.lerp(cardStyle, other.cardStyle, t),
-      buttonStyle: GlassStyle.lerp(buttonStyle, other.buttonStyle, t),
-      dialogStyle: GlassStyle.lerp(dialogStyle, other.dialogStyle, t),
-      appBarStyle: GlassStyle.lerp(appBarStyle, other.appBarStyle, t),
+      defaultStyle: _materialLerp(defaultStyle, other.defaultStyle, t),
+      cardStyle: _materialLerp(cardStyle, other.cardStyle, t),
+      buttonStyle: _materialLerp(buttonStyle, other.buttonStyle, t),
+      dialogStyle: _materialLerp(dialogStyle, other.dialogStyle, t),
+      appBarStyle: _materialLerp(appBarStyle, other.appBarStyle, t),
       motion: t < .5 ? motion : other.motion,
-      performance: t < .5 ? performance : other.performance,
-      accessibility: t < .5 ? accessibility : other.accessibility,
+      performance: GlassPerformanceConfig(
+        quality:
+            performance.effectiveMaxBlurSigma <=
+                other.performance.effectiveMaxBlurSigma
+            ? performance.quality
+            : other.performance.quality,
+        maxBlurSigma:
+            performance.effectiveMaxBlurSigma <
+                other.performance.effectiveMaxBlurSigma
+            ? performance.effectiveMaxBlurSigma
+            : other.performance.effectiveMaxBlurSigma,
+        blurEnabled: performance.blurEnabled && other.performance.blurEnabled,
+        groupBackdropFilters:
+            performance.groupBackdropFilters &&
+            other.performance.groupBackdropFilters,
+        enableNoise: performance.enableNoise && other.performance.enableNoise,
+        enableShadows:
+            performance.enableShadows && other.performance.enableShadows,
+        enableAnimations:
+            performance.enableAnimations && other.performance.enableAnimations,
+      ),
+      accessibility: GlassAccessibilityConfig(
+        highContrast:
+            accessibility.highContrast || other.accessibility.highContrast,
+        reduceMotion:
+            accessibility.reduceMotion || other.accessibility.reduceMotion,
+        reduceTransparency:
+            accessibility.reduceTransparency ||
+            other.accessibility.reduceTransparency,
+      ),
+      colorScheme: colorScheme == null || other.colorScheme == null
+          ? (t < .5 ? colorScheme : other.colorScheme)
+          : ColorScheme.lerp(colorScheme!, other.colorScheme!, t),
+      textTheme: TextTheme.lerp(textTheme, other.textTheme, t),
+      layout: GlassLayout.lerp(layout, other.layout, t),
+      controlStyle: ButtonStyle.lerp(controlStyle, other.controlStyle, t)!,
+      visualDensity: VisualDensity.lerp(visualDensity, other.visualDensity, t),
+      tapTargetSize: t < .5 ? tapTargetSize : other.tapTargetSize,
     );
   }
 }
@@ -93,6 +176,17 @@ class LiquidGlassThemeData extends ThemeExtension<LiquidGlassThemeData> {
 class LiquidGlassTheme extends InheritedTheme {
   const LiquidGlassTheme({super.key, required this.data, required super.child});
   final LiquidGlassThemeData data;
+
+  /// Inherit the nearest theme and explicitly copy only the fields to override.
+  static Widget merge({
+    Key? key,
+    required LiquidGlassThemeData Function(LiquidGlassThemeData parent) data,
+    required Widget child,
+  }) => Builder(
+    key: key,
+    builder: (context) =>
+        LiquidGlassTheme(data: data(of(context)), child: child),
+  );
   static LiquidGlassThemeData of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<LiquidGlassTheme>()?.data ??
       Theme.of(context).extension<LiquidGlassThemeData>() ??
@@ -112,4 +206,78 @@ bool glassReduceMotion(BuildContext context) {
       MediaQuery.maybeOf(context)?.accessibleNavigation == true ||
       theme.accessibility.reduceMotion ||
       !theme.performance.enableAnimations;
+}
+
+GlassStyle _materialLerp(GlassStyle a, GlassStyle b, double t) =>
+    GlassStyle.lerp(a, b, t).copyWith(
+      blurSigmaX: b.blurSigmaX,
+      blurSigmaY: b.blurSigmaY,
+      blurEnabled: b.blurEnabled,
+    );
+
+// A state resolver returning null inherits the corresponding theme state.
+WidgetStateProperty<T?>? _mergeState<T>(
+  WidgetStateProperty<T?>? local,
+  WidgetStateProperty<T?>? inherited,
+) {
+  if (local == null) return inherited;
+  if (inherited == null) return local;
+  return WidgetStateProperty.resolveWith(
+    (states) => local.resolve(states) ?? inherited.resolve(states),
+  );
+}
+
+ButtonStyle glassControlStyle(BuildContext context, ButtonStyle? local) {
+  final inherited = LiquidGlassTheme.of(context).controlStyle;
+  if (local == null) return inherited;
+  return local
+      .merge(inherited)
+      .copyWith(
+        foregroundColor: _mergeState(
+          local.foregroundColor,
+          inherited.foregroundColor,
+        ),
+        backgroundColor: _mergeState(
+          local.backgroundColor,
+          inherited.backgroundColor,
+        ),
+        overlayColor: _mergeState(local.overlayColor, inherited.overlayColor),
+        textStyle: _mergeState(local.textStyle, inherited.textStyle),
+        iconSize: _mergeState(local.iconSize, inherited.iconSize),
+        padding: _mergeState(local.padding, inherited.padding),
+        minimumSize: _mergeState(local.minimumSize, inherited.minimumSize),
+        side: _mergeState(local.side, inherited.side),
+      );
+}
+
+// Keep legacy inherited text when no semantic or typography override was set.
+TextStyle glassTextStyle(BuildContext context, TextStyle? style) {
+  final theme = LiquidGlassTheme.of(context);
+  final mismatch = theme.brightness != Theme.of(context).brightness;
+  final color = style?.color ?? theme.colorScheme?.onSurface;
+  final highContrast =
+      theme.accessibility.highContrast ||
+      MediaQuery.maybeOf(context)?.highContrast == true;
+  final resolved = highContrast && (color != null || mismatch)
+      ? (theme.brightness == Brightness.dark
+            ? Colors.white
+            : const Color(0xff17233b))
+      : color ?? (mismatch ? theme.foregroundColor : null);
+  return (style ?? const TextStyle()).copyWith(color: resolved);
+}
+
+// Density changes padding; constraints separately enforce the touch target.
+EdgeInsets glassPadding(
+  BuildContext context,
+  EdgeInsetsGeometry padding, {
+  VisualDensity? density,
+}) {
+  final d = density ?? LiquidGlassTheme.of(context).visualDensity;
+  final p = padding.resolve(Directionality.of(context));
+  return EdgeInsets.fromLTRB(
+    (p.left + d.horizontal * 2).clamp(0, double.infinity),
+    (p.top + d.vertical * 2).clamp(0, double.infinity),
+    (p.right + d.horizontal * 2).clamp(0, double.infinity),
+    (p.bottom + d.vertical * 2).clamp(0, double.infinity),
+  );
 }

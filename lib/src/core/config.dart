@@ -22,6 +22,25 @@ class GlassPerformanceConfig {
   final bool enableShadows;
   final bool enableAnimations;
 
+  /// Copy selected fields while preserving all unspecified configuration.
+  GlassPerformanceConfig copyWith({
+    GlassQuality? quality,
+    bool? blurEnabled,
+    double? maxBlurSigma,
+    bool? groupBackdropFilters,
+    bool? enableNoise,
+    bool? enableShadows,
+    bool? enableAnimations,
+  }) => GlassPerformanceConfig(
+    quality: quality ?? this.quality,
+    blurEnabled: blurEnabled ?? this.blurEnabled,
+    maxBlurSigma: maxBlurSigma ?? this.maxBlurSigma,
+    groupBackdropFilters: groupBackdropFilters ?? this.groupBackdropFilters,
+    enableNoise: enableNoise ?? this.enableNoise,
+    enableShadows: enableShadows ?? this.enableShadows,
+    enableAnimations: enableAnimations ?? this.enableAnimations,
+  );
+
   double get effectiveMaxBlurSigma => switch (quality) {
     GlassQuality.low => 0,
     GlassQuality.balanced || GlassQuality.adaptive => maxBlurSigma.clamp(0, 16),
@@ -37,6 +56,18 @@ class GlassAccessibilityConfig {
     this.reduceMotion = false,
     this.reduceTransparency = false,
   });
+
+  /// Copy selected fields while preserving all unspecified configuration.
+  GlassAccessibilityConfig copyWith({
+    bool? highContrast,
+    bool? reduceMotion,
+    bool? reduceTransparency,
+  }) => GlassAccessibilityConfig(
+    highContrast: highContrast ?? this.highContrast,
+    reduceMotion: reduceMotion ?? this.reduceMotion,
+    reduceTransparency: reduceTransparency ?? this.reduceTransparency,
+  );
+
   final bool highContrast;
   final bool reduceMotion;
   final bool reduceTransparency;

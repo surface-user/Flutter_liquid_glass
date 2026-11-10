@@ -10,8 +10,8 @@ class AnimatedGlassSurface extends StatelessWidget {
     super.key,
     required this.child,
     required this.style,
-    this.duration = const Duration(milliseconds: 240),
-    this.curve = Curves.easeOutCubic,
+    Duration? duration,
+    Curve? curve,
     this.width,
     this.height,
     this.constraints,
@@ -21,11 +21,14 @@ class AnimatedGlassSurface extends StatelessWidget {
     this.clipBehavior = Clip.antiAlias,
     this.enabled = true,
     this.fallbackColor,
-  });
+  }) : _duration = duration,
+       _curve = curve;
   final Widget child;
   final GlassStyle style;
-  final Duration duration;
-  final Curve curve;
+  final Duration? _duration;
+  final Curve? _curve;
+  Duration get duration => _duration ?? const Duration(milliseconds: 240);
+  Curve get curve => _curve ?? Curves.easeOutCubic;
   final double? width, height;
   final BoxConstraints? constraints;
   final EdgeInsetsGeometry? padding, margin;
@@ -36,8 +39,10 @@ class AnimatedGlassSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<GlassStyle>(
     tween: _StyleTween(end: style),
-    duration: glassReduceMotion(context) ? Duration.zero : duration,
-    curve: curve,
+    duration: glassReduceMotion(context)
+        ? Duration.zero
+        : _duration ?? LiquidGlassTheme.of(context).motion.surfaceDuration,
+    curve: _curve ?? LiquidGlassTheme.of(context).motion.interactionCurve,
     child: child,
     builder: (context, value, child) => GlassSurface(
       style: value.copyWith(

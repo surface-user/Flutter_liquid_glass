@@ -7,6 +7,7 @@ export 'src/core/config.dart'
 export 'src/core/motion_spec.dart' show GlassTransition, GlassMotionSpec;
 export 'src/core/glass_group.dart' show GlassGroup;
 export 'src/theme/theme.dart' show LiquidGlassThemeData, LiquidGlassTheme;
+export 'src/theme/layout.dart' show GlassLayout;
 export 'src/components/surfaces/glass_surface.dart' show GlassSurface;
 export 'src/components/surfaces/animated_glass_surface.dart'
     show AnimatedGlassSurface;

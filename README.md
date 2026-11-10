@@ -323,6 +323,26 @@ final accent = glassTheme.accentColor;
 
 请保持 `ThemeData.brightness` 与玻璃主题一致，以便普通文字也能匹配背景。仅修改 `brightness` 不会自动重建已有样式，切换深色时应使用 `LiquidGlassThemeData.dark()`。单个组件传入的 `style` 优先于主题；`accentColor` 不会自动覆盖明确指定的着色颜色。
 
+### 主题字段继承与显式紧凑模式
+
+旧 `LiquidGlassTheme(data: …)` 继续整体替换。需要保留父配置时使用新增的合并入口：
+
+```dart
+LiquidGlassTheme.merge(
+  data: (parent) => parent.copyWith(
+    visualDensity: VisualDensity.compact,
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    layout: parent.layout.copyWith(iconSize: 18),
+    buttonStyle: parent.buttonStyle.copyWith(
+      borderRadius: BorderRadius.circular(8),
+    ),
+  ),
+  child: GlassButton(onPressed: () {}, child: const Text('打开资料')),
+)
+```
+
+默认保持原 48px 按钮和旧视觉。紧凑桌面模式最小 40px；保留 `padded` 时实际布局/命中区域仍至少 48px。`ColorScheme`、`TextTheme`、`ButtonStyle` 分别提供语义颜色、文字和状态配置，组件显式 padding/controlStyle 优先。配置规则与已支持字段见 [设计规范](doc/design-system.md)、[API](doc/api.md)。
+
 ### 6. GlassGroup：共享背景过滤
 
 内部使用 Flutter `BackdropGroup` 和 `BackdropFilter.grouped`，减少适合分组的玻璃元素重复处理同一背景的开销。
@@ -703,6 +723,8 @@ flutter test --update-goldens
 
 - [Agent 开发规范](doc/AGENTS.md)
 - [当前任务与验收标准](doc/task.md)
+- [接入与局部配置](doc/getting-started.md)
+- [设计参数与继承规则](doc/design-system.md)
 - [架构与依赖边界](doc/architecture.md)
 - [公开 API 与兼容契约](doc/api.md)
 - [真实组件与能力目录](doc/component-catalog.md)

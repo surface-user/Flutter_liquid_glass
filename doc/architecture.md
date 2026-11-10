@@ -63,6 +63,14 @@ GlassSurface 解析主题、系统高对比度、fallback 与性能配置，再�
 
 检查针对当前 Dart 单行/多行指令形式，不承担完整 Dart 语法分析；API 基线另用 SDK 自带 analyzer 对旧/新源码进行一次性签名对照，不新增项目依赖。Golden 和原有事件级测试负责默认视觉与行为，不用源码检查替代运行验证。
 
+## M2/M3 增量
+
+theme/layout.dart 新增纯几何配置 GlassLayout，仅依赖 dart:ui 与 Flutter；theme/theme.dart 增加对它的依赖。层级方向保持，core 不读取主题。公开入口新增且仅新增 GlassLayout 类型，原公开声明继续导出。
+
+主题层复用 SDK 的 ColorScheme/TextTheme/ButtonStyle/VisualDensity，提供 merge 的父主题复制契约；内部文字/padding 解析函数不导出。组件消费已解析的配置，core renderer 不增加主题依赖。Button/Card/AnimatedSurface 用私有 nullable 存储区分省略参数，同名公开 getter 保持旧非空默认值。
+
+原有声明与默认行为的兼容测试继续运行，新增 theme_contract_test、component_contract_test、design_golden_test 覆盖配置与组件实际接入。依赖检查的显式导出清单更新为原 20 项加 GlassLayout，没有删除旧断言或测试。
+
 ## 状态与兼容
 
 - core：样式值、纯配置、实际绘制、过滤分组和纯转场；接收主题已解析值。
