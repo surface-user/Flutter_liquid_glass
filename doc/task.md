@@ -2,7 +2,7 @@
 
 ## 当前目标与范围
 
-状态：REVIEW。M0 完成；M1 实现和本地自动化完成，待远程 CI 与非作者审查。当前授权仅实施 M0＋M1，后续阶段保持 TODO。
+状态：REVIEW。M0 完成；M1 实现和本地自动化完成，已提交草稿 PR，非作者审查待完成。当前授权仅实施 M0＋M1，后续阶段保持 TODO。
 目标：职责与依赖正确 → API/参数契约清晰 → 交互可靠 → 文档和测试可验证 → 视觉细节。
 本轮保持现有公开接口、默认布局、默认视觉、包名、SDK 与依赖；不扩建 example，不修改 StudyWorkbench，不新增 Tokens、密度或桌面组件。
 规则唯一来源：[AGENTS.md](AGENTS.md)。本轮优先 Windows 桌面验证；Android 性能与其他平台待验项继续保留。
@@ -341,6 +341,14 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 - 尚未只读核对 StudyWorkbench 真实调用；库侧缺口不等于应用问题根因。
 - M2 前先确定旧整体替换主题与新增部分覆盖的兼容方案；M4 前冻结必要组件和交互清单。
 - 非作者审查与合并单列；本轮不自动合并、不发布包。
+
+## 交付与审查
+
+- 分支：`codex/m0-m1-modularization`；实现提交 `c8817c0`。
+- [草稿 PR #2](https://github.com/surface-user/Flutter_liquid_glass/pull/2) 以 `codex/phase1-glass-interaction` 为基底，依赖未合并的 [PR #1](https://github.com/surface-user/Flutter_liquid_glass/pull/1)，本 PR 仅展示 M0/M1 差异。
+- 本地格式/分析、根 66/66、example 8/8、公开签名 20/20、Web release、发布预检 0 warnings、文档链接与原失败图片保全均通过。
+- GitHub Actions 在 PR 上执行静态/行为、Windows 视觉、标题与依赖审查；精确结果以 PR 当前提交的 Checks 为准，不能用旧提交通过覆盖新提交。
+- 非作者批准、Windows 实窗、Android 设备与性能仍未完成；M1 保持 REVIEW。没有合并或发布。
 
 ## 精简完成索引
 

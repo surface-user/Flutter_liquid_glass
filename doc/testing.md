@@ -45,6 +45,8 @@ flutter test --reporter expanded
 | const 修正后公开消费复验 | 1/1 通过 | build/m0-m1/final/public-api.log |
 | example 全量测试 | 8/8 通过，六张原有 Golden 精确比较 | build/m0-m1/final/example-test.log |
 | Web release 构建 | 通过；Wasm dry run 成功；仍有 CupertinoIcons 字体族提示，无新增图标或依赖 | build/m0-m1/final/web-build.log |
+| flutter pub publish --dry-run | 133 KB，0 warnings，未上传/发布 | build/m0-m1/final/publish-dry-run.log |
+| 文档与原产物 | 相对链接解析、Git diff 检查通过；原 8 张失败图片 SHA256 不变 | build/m0-m1/baseline/pre-existing-failures.sha256.json |
 
 API 对照使用 SDK 已安装的 analyzer 解析重构前备份与当前源码，校验公开签名，不修改项目依赖；首次临时比对脚本的 token 遍历报错，改用 AST 声明属性后完成对照。该工具错误与产品测试失败分开记录。
 
