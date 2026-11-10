@@ -2,7 +2,7 @@
 
 ## 工作流总览
 
-1. Issue 或 `doc/TASK.md` 定义目标和验收标准。
+1. Issue 或 `doc/task.md` 定义目标和验收标准。
 2. Agent 创建 `codex/<task-id>-<slug>` 分支。
 3. 实现最小完整改动，补测试、示例和文档。
 4. 本地执行与改动匹配的检查。

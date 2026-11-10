@@ -1,5 +1,7 @@
 # Verification record
 
+Historical record. Current M0/M1 evidence and module locations: [testing.md](testing.md), [architecture.md](architecture.md). Older results and paths below are retained as dated evidence, not current verification.
+
 Local validation: 2026-09-17, Windows 11, Flutter 3.44.4 stable, Dart 3.12.2.
 SDK: D:/computer_work/Tools_work/flutter. The SDK is not on the machine PATH.
 

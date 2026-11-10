@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Separate core rendering/configuration, themes and component modules; remove the theme/route dependency cycle. Preserve all twenty public declarations, defaults and visual baselines through the existing entry point.
+
 - Add pointer-following rim highlights with repaint-only tracking and accessibility/low-quality fallback.
 
 - Add an SDK-only example Android profile sampler with raw frame timings and tested percentile summaries. Hardware measurements remain required.

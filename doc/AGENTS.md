@@ -6,11 +6,11 @@
 
 ## 开始任务前
 
-1. 阅读根目录 `AGENTS.md`、本文件和 `doc/TASK.md`。
+1. 阅读根目录 `AGENTS.md`、本文件和 `doc/task.md`。
 2. 阅读任务会触及的实现、调用方、测试、示例和 README。
 3. 执行 `git status --short`，保留用户已有修改。
 4. 从 `codex/<task-id>-<slug>` 分支开展工作；不要直接向 `main` 提交。
-5. 在 `doc/TASK.md` 中确认任务范围和验收标准，不擅自扩大公开 API。
+5. 在 `doc/task.md` 中确认任务范围和验收标准，不擅自扩大公开 API。
 
 ## 不可破坏的约束
 
@@ -19,7 +19,7 @@
 - 不复制反编译代码；只允许参考公开行为、公开规范或许可证兼容的源码。
 - 不持续动画 `blurSigmaX` / `blurSigmaY`。交互动画优先使用透明度、位移、轻微缩放、边框和高光。
 - 所有动画必须遵循 `MediaQuery.disableAnimations`、`accessibleNavigation`、主题 `reduceMotion` 和 `enableAnimations`。
-- Android 是首要性能目标；空闲状态不得保留无意义的 ticker。
+- Android 是首要性能目标；空闲状态不得保留无意义的 ticker。本轮 M0/M1 以 Windows 桌面兼容验证为优先，Android 历史性能待验项保留，不以桌面/自动化代替真机。
 - `GlassGroup` 中重叠元素不得共享 backdrop key。
 - 高对比度、减少透明度和关闭模糊时必须保持内容可读、可操作。
 - 不加入具体业务类型、业务文案或业务状态。
@@ -31,6 +31,8 @@
 - 交互状态必须覆盖 idle、hover、focus、pressed、disabled 和 reduce-motion。
 - 动画绘制优先通过 `Listenable` 直接触发 repaint，避免每帧 build/layout。
 - 不为未来需求预留抽象、配置或依赖。
+- M0/M1 仅重组职责与依赖，保持 API/默认值/视觉；不扩建 example，不修改 StudyWorkbench，不提前实现 M2–M5。
+- core 不依赖 theme/components；theme 仅依赖 core 纯配置；内部共享声明不得因跨文件复用进入公开导出。
 - Golden 只在确认视觉变化正确后更新，不用更新基准掩盖失败。
 
 ## 最小验证矩阵
@@ -49,7 +51,7 @@
 
 Agent 完成任务后应：
 
-1. 更新 `doc/TASK.md` 的状态和验证记录。
+1. 更新 `doc/task.md` 的状态和验证记录。
 2. 提交小而完整的 commit，使用 Conventional Commits。
 3. 推送 `codex/**` 分支。
 4. 使用 `.github/pull_request_template.md` 填写 PR。

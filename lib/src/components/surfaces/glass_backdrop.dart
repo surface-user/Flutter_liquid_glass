@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import '../../core/bloom_painter.dart';
+import '../../theme/theme.dart';
 
 /// Procedural radial light blooms over a gradient. Requires bounded layout.
 /// Optional animation translates a cached background; blur is never animated.
@@ -86,7 +86,7 @@ class _GlassBackdropState extends State<GlassBackdrop>
             animation: _controller,
             child: RepaintBoundary(
               child: CustomPaint(
-                painter: _BloomPainter(
+                painter: GlassBloomPainter(
                   List<Color>.of(widget.colors),
                   widget.intensity * (dark ? .45 : .8),
                 ),
@@ -105,36 +105,4 @@ class _GlassBackdropState extends State<GlassBackdrop>
       ),
     );
   }
-}
-
-class _BloomPainter extends CustomPainter {
-  _BloomPainter(this.colors, this.intensity);
-  final List<Color> colors;
-  final double intensity;
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (var i = 0; i < colors.length; i++) {
-      final center = Offset(
-        size.width * (.12 + (i * .37) % .8),
-        size.height * (.18 + (i * .31) % .7),
-      );
-      final radius = size.longestSide * .52;
-      canvas.drawCircle(
-        center,
-        radius,
-        Paint()
-          ..shader = RadialGradient(
-            colors: [
-              colors[i].withValues(alpha: colors[i].a * intensity),
-              colors[i].withValues(alpha: 0),
-            ],
-          ).createShader(Rect.fromCircle(center: center, radius: radius)),
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_BloomPainter oldDelegate) =>
-      oldDelegate.intensity != intensity ||
-      !listEquals(oldDelegate.colors, colors);
 }

@@ -1,64 +1,45 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'config.dart';
+import 'glass_group.dart';
 import 'style.dart';
-import 'theme.dart';
 
-/// Share only among non-overlapping surfaces. Set overlapping to true for
-/// stacks, nested surfaces, or any layout whose painted bounds can intersect.
-class GlassGroup extends InheritedWidget {
-  GlassGroup({super.key, this.overlapping = false, required Widget child})
-    : super(child: BackdropGroup(child: child));
-  final bool overlapping;
-  @override
-  bool updateShouldNotify(GlassGroup oldWidget) =>
-      overlapping != oldWidget.overlapping;
-}
-
-/// Bounded backdrop filtering with crisp, unfiltered foreground content.
-class GlassSurface extends StatelessWidget {
-  const GlassSurface({
+/// Internal renderer. Theme and system constraints are resolved by the wrapper.
+class GlassSurfaceRenderer extends StatelessWidget {
+  const GlassSurfaceRenderer({
     super.key,
     required this.child,
+    required this.style,
+    required this.groupStyle,
+    required this.performance,
+    required this.highContrast,
+    required this.opaque,
+    required this.fallbackColor,
     this.width,
     this.height,
     this.constraints,
     this.padding,
     this.margin,
     this.alignment,
-    this.style,
     this.clipBehavior = Clip.antiAlias,
     this.enabled = true,
-    this.fallbackColor,
   });
   final Widget child;
+  final GlassStyle style, groupStyle;
+  final GlassPerformanceConfig performance;
+  final bool highContrast, opaque;
+  final Color fallbackColor;
   final double? width, height;
   final BoxConstraints? constraints;
   final EdgeInsetsGeometry? padding, margin;
   final AlignmentGeometry? alignment;
-  final GlassStyle? style;
   final Clip clipBehavior;
-
-  /// False disables decoration and filtering while preserving layout and clip.
   final bool enabled;
-  final Color? fallbackColor;
 
   @override
   Widget build(BuildContext context) {
-    final theme = LiquidGlassTheme.of(context);
-    final performance = theme.performance;
-    final highContrast =
-        theme.accessibility.highContrast ||
-        MediaQuery.maybeOf(context)?.highContrast == true;
-    final opaque = highContrast || theme.accessibility.reduceTransparency;
-    var s = style ?? theme.defaultStyle;
-    if (highContrast) {
-      s = s.copyWith(
-        borderColor: theme.brightness == Brightness.dark
-            ? Colors.white
-            : const Color(0xff17233b),
-      );
-    }
+    final s = style;
     final maxSigma = performance.effectiveMaxBlurSigma;
     final blur =
         enabled &&
@@ -67,12 +48,7 @@ class GlassSurface extends StatelessWidget {
         s.blurEnabled &&
         maxSigma > 0 &&
         (s.blurSigmaX > 0 || s.blurSigmaY > 0);
-    final fallback =
-        (fallbackColor ??
-                (theme.brightness == Brightness.dark
-                    ? const Color(0xff202a3c)
-                    : const Color(0xffedf1f8)))
-            .withValues(alpha: 1);
+    final fallback = fallbackColor.withValues(alpha: 1);
     final radius = s.shape == BoxShape.circle ? null : s.borderRadius;
     final shape = s.shape == BoxShape.circle
         ? const CircleBorder()
@@ -155,11 +131,11 @@ class GlassSurface extends StatelessWidget {
           !nested &&
           performance.groupBackdropFilters &&
           s.blurSigmaX.clamp(0, maxSigma) ==
-              theme.defaultStyle.blurSigmaX.clamp(0, maxSigma) &&
+              groupStyle.blurSigmaX.clamp(0, maxSigma) &&
           s.blurSigmaY.clamp(0, maxSigma) ==
-              theme.defaultStyle.blurSigmaY.clamp(0, maxSigma) &&
-          s.saturation == theme.defaultStyle.saturation &&
-          s.contrast == theme.defaultStyle.contrast;
+              groupStyle.blurSigmaY.clamp(0, maxSigma) &&
+          s.saturation == groupStyle.saturation &&
+          s.contrast == groupStyle.contrast;
       content = grouped
           ? BackdropFilter.grouped(filter: filter, child: content)
           : BackdropFilter(filter: filter, child: content);
@@ -282,66 +258,4 @@ class _GlassPainter extends CustomPainter {
       oldDelegate.style != style ||
       oldDelegate.highContrast != highContrast ||
       oldDelegate.noise != noise;
-}
-
-/// Interpolates visual style. Blur sigma is held at the target throughout the
-/// transition, avoiding an expensive changing blur kernel on every frame.
-class AnimatedGlassSurface extends StatelessWidget {
-  const AnimatedGlassSurface({
-    super.key,
-    required this.child,
-    required this.style,
-    this.duration = const Duration(milliseconds: 240),
-    this.curve = Curves.easeOutCubic,
-    this.width,
-    this.height,
-    this.constraints,
-    this.padding,
-    this.margin,
-    this.alignment,
-    this.clipBehavior = Clip.antiAlias,
-    this.enabled = true,
-    this.fallbackColor,
-  });
-  final Widget child;
-  final GlassStyle style;
-  final Duration duration;
-  final Curve curve;
-  final double? width, height;
-  final BoxConstraints? constraints;
-  final EdgeInsetsGeometry? padding, margin;
-  final AlignmentGeometry? alignment;
-  final Clip clipBehavior;
-  final bool enabled;
-  final Color? fallbackColor;
-  @override
-  Widget build(BuildContext context) => TweenAnimationBuilder<GlassStyle>(
-    tween: _StyleTween(end: style),
-    duration: glassReduceMotion(context) ? Duration.zero : duration,
-    curve: curve,
-    child: child,
-    builder: (context, value, child) => GlassSurface(
-      style: value.copyWith(
-        blurSigmaX: style.blurSigmaX,
-        blurSigmaY: style.blurSigmaY,
-        blurEnabled: style.blurEnabled,
-      ),
-      width: width,
-      height: height,
-      constraints: constraints,
-      padding: padding,
-      margin: margin,
-      alignment: alignment,
-      clipBehavior: clipBehavior,
-      enabled: enabled,
-      fallbackColor: fallbackColor,
-      child: child!,
-    ),
-  );
-}
-
-class _StyleTween extends Tween<GlassStyle> {
-  _StyleTween({required GlassStyle super.end});
-  @override
-  GlassStyle lerp(double t) => GlassStyle.lerp(begin ?? end!, end!, t);
 }

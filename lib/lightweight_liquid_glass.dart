@@ -1,9 +1,19 @@
 /// Pure Flutter glass UI. Import this library to access the complete public API.
 library;
 
-export 'src/style.dart';
-export 'src/theme.dart' hide glassReduceMotion;
-export 'src/surface.dart';
-export 'src/backdrop.dart';
-export 'src/components.dart';
-export 'src/motion.dart' hide glassTransition;
+export 'src/core/style.dart' show GlassStyle, GlassPresets;
+export 'src/core/config.dart'
+    show GlassQuality, GlassPerformanceConfig, GlassAccessibilityConfig;
+export 'src/core/motion_spec.dart' show GlassTransition, GlassMotionSpec;
+export 'src/core/glass_group.dart' show GlassGroup;
+export 'src/theme/theme.dart' show LiquidGlassThemeData, LiquidGlassTheme;
+export 'src/components/surfaces/glass_surface.dart' show GlassSurface;
+export 'src/components/surfaces/animated_glass_surface.dart'
+    show AnimatedGlassSurface;
+export 'src/components/surfaces/glass_backdrop.dart' show GlassBackdrop;
+export 'src/components/interaction.dart'
+    show GlassCard, GlassButton, GlassIconButton;
+export 'src/components/navigation/glass_app_bar.dart' show GlassAppBar;
+export 'src/components/navigation/glass_page_route.dart' show GlassPageRoute;
+export 'src/components/overlays/glass_dialog.dart'
+    show GlassDialog, showGlassDialog;
