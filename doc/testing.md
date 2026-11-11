@@ -128,3 +128,28 @@ flutter drive --profile -d windows --driver=test_driver/performance.dart --targe
 Windows 实窗：`flutter run --profile -d windows -t integration_test/fixtures/desktop_consumer.dart`（example 目录）启动成功，渲染日志报告 Impeller / OpenGLES；computer-use 应用授权超时，未执行人工键鼠、物理中文 IME 或剪贴板。复验时聚焦 Search / draft，输入拼音并检查 Composition 范围、候选与提交、选区粘贴；再用 Tab/Enter 打开 Actions、Esc 关闭检查焦点，缩窄窗口检查浮层边界。组件注入的 composing 与 native enterText 不能替代物理 IME。
 
 用户确认本轮无 Android 真机，完整 APK、Android/其他平台运行与性能、非作者审查仍待完成。StudyWorkbench 接入清单是库侧交付，不表示对该应用的修改或验收。
+
+## 2026-11-11：独立逐函数验证
+
+按用户要求新增三个子代理，基于 9e4daef，分支 codex/test-function-verification。AST 盘点 lib/ 的 103 个具名 callable，分成 core/theme 34、渲染/交互 46、桌面/浮层 23；三个代理均独立审查对应调用方与既有断言，并编写和实际运行测试。全清单、语义证据及未验边界见 [function-verification.md](function-verification.md)。
+
+| 检查 | 最终结果 | 日志（本地忽略产物 build/function-audit/） |
+| --- | --- | --- |
+| 原根基线 | 114/114，通过，含原视觉 | baseline-root.log、baseline-lcov.info |
+| 新增 core | 10 项：9 通过/1 失败 | core-retest.log、core-final-lcov.info |
+| 新增渲染/交互 | 9 项通过；与原63项组合72/72 | rendering-test.log、rendering-lcov.info |
+| 新增桌面/浮层 | 12 项：7 通过/5 失败；同轮原32项全部通过 | desktop-retest.log、desktop-final-lcov.info |
+| 最终全量根 | 145 项：139 通过/6 失败；原114项仍通过，失败全部来自新增正确预期回归 | final-root.log、final-lcov.info |
+| Windows 原生专项 | C++ Debug 宿主构建；直接运行同31项新增用例，25通过/6失败，复现同五类缺陷 | windows-native-final.log |
+| 原 example | 8/8，通过，六张原图精确比较 | example-test.log |
+| 格式 / 分析 | 55 文件0改动；flutter analyze 无问题 | format-final.log、analyze-final.log |
+
+六项失败对应 [task.md](task.md) 的五类 OPEN 缺陷：高对比度 Paint 深/浅两项、继承全局白字、selected shape、Dialog 最大宽度和菜单动态 FocusNode。没有修改生产代码、放宽产品预期、跳过失败或更新原 Golden；CI 已显式包含三个新增根文件，因此缺陷修复前不能把本分支检查标成全通过。
+
+Windows 原生入口为 example/integration_test/function_audit_test.dart；在 example 运行 `flutter test integration_test/function_audit_test.dart -d windows --reporter expanded`。它直接调用三个根专项测试的 main，复用已有宿主，example/lib 不变。结果与前一轮较小的 native consumer 1/1 分开：此前通过不覆盖这次新发现的边界。
+
+夹具与产品失败分开保留：core 首轮取错 padding 层、外层 DefaultTextStyle 被 Material 重置，改测真实几何和全局 Material bodyMedium 实际对比度；渲染首轮错误地包含 SDK painter，之后 PictureRecorder 被重复创建 Canvas，均已修正。Windows 原生首轮转场值约0.4987，与VM精确假时钟0.5不同；改用实际中段进度验证相同曲线，曲线误差断言仍为0.001，复跑后仅保留六项真实失败。首次日志分别保存在 core-first.log、rendering-test-initial.log、rendering-test-canvas-fixture.log、windows-native-audit.log。首次分析的一处 const 提示已修正并完整复验。
+
+覆盖复核：_SurfaceScope.updateShouldNotify 的入口计数在 @override 所在的184行，185行恒false表达式没有独立记录，不能据此判为函数未执行。R05另验外层表面只变着色时，稳定嵌套child不重建且过滤保持隔离；初次夹具未等待前一主题的性能限制过渡结束，修正后通过，保留 notify-test-initial.log / notify-test.log。const构造器可能在编译期构造，不能要求其运行期入口计数。逐项检查仍不等于穷尽所有输入。
+
+物理 Windows IME、剪贴板、屏幕阅读器、Release 无断言、Android/其他平台和真实 GPU 延迟仍不在此轮通过范围。本轮未重新跑 Web/发布预检，未推送、创建新 PR、合并或发布。

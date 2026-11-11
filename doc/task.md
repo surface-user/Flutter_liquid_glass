@@ -2,7 +2,7 @@
 
 ## 当前目标与范围
 
-状态：IN_PROGRESS。M0 完成；M1–M5 进入或保持 REVIEW。2026-11-11 按用户要求推进全部任务，M4/M5 实现、本地回归与 Windows 原生自动化/profile 已完成；人工实窗、非作者审查及设备项保留。
+状态：IN_PROGRESS。M0 完成、M1 保持 REVIEW。2026-11-11 的独立逐函数验证新增五类缺陷，M2–M5 重开 IN_PROGRESS；此前的实现与通过证据保留，不能代替新增失败的解决。人工实窗、非作者审查及设备项继续保留。
 目标：职责与依赖正确 → API/参数契约清晰 → 交互可靠 → 文档和测试可验证 → 视觉细节。
 本轮保持旧接口可调用、旧默认布局/视觉、包名、SDK 与依赖；以增量公开配置接入主题和密度，不扩建 example，不修改 StudyWorkbench。
 规则唯一来源：[AGENTS.md](AGENTS.md)。本轮优先 Windows 桌面验证；Android 性能与其他平台待验项继续保留。
@@ -13,12 +13,66 @@
 | --- | --- | --- |
 | M0 现状审计与基线 | DONE | 真实 API/依赖清单、单一账本、基线与限制可复核 |
 | M1 结构与依赖 | REVIEW | 无循环/反向依赖；公开 API 与原视觉兼容；适用测试通过 |
-| M2 主题、Tokens、Density | REVIEW | 字段继承、清空、密度及降级真正生效 |
-| M3 现有组件接入规范 | REVIEW | 配置与键鼠/动态状态覆盖各现有组件 |
-| M4 最小桌面能力 | REVIEW | 输入、导航、必要浮层与反馈可公开组合；待实窗与非作者审查 |
-| M5 回归与交付 | REVIEW | API、测试、文档一致；接入和未验边界明确；远程交付与审查单列 |
+| M2 主题、Tokens、Density | IN_PROGRESS | 高对比度最终覆盖缺陷 BUG-TEST-01/04 待修；原继承/密度证据保留 |
+| M3 现有组件接入规范 | IN_PROGRESS | 卡片高对比度/弹窗显式约束 BUG-TEST-03/04 待修 |
+| M4 最小桌面能力 | IN_PROGRESS | 输入、选中样式、动态菜单焦点 BUG-TEST-01/02/05 待修 |
+| M5 回归与交付 | IN_PROGRESS | 新专项失败须解决后完整复验；远程交付、人工与审查单列 |
 
 ## 活跃任务及后续验收条件
+
+### Windows / Flutter 函数专项验证（2026-11-11）
+
+用户要求新增测试任务，并由额外子代理独立验证每个函数。本轮基于 `9e4daef`，分支 `codex/test-function-verification`。验证范围为 lib/ 的构造器、方法、getter、顶层函数及其公开使用链；私有函数通过可观察行为验证。测试通过不等于穷尽所有输入；物理 IME、无 Android 真机和非作者审查的原待验项保留。
+
+| 编号 | 状态 | 任务与退出条件 |
+| --- | --- | --- |
+| TEST-01 | DONE | AST 清单 103/103 具名函数均已关联独立审查/测试证据及限制 |
+| TEST-02 | IN_PROGRESS | 34 函数核查完成；新增10项9通过/1失败，BUG-TEST-04 修复和复验待完成 |
+| TEST-03 | DONE | 子代理独立核查 46 函数，新增 9 项 + 原 63 项组合 72/72；主代理补核恒值通知入口与嵌套重绘行为 |
+| TEST-04 | IN_PROGRESS | 23 函数核查完成；新增12项7通过/5失败，BUG-TEST-01/02/03/05 待修复验 |
+| TEST-05 | IN_PROGRESS | 全量根139通过/6失败；Windows原生25通过/6失败，复现同五类缺陷；原示例8/8。全部缺陷解决后才可关闭 |
+
+发现的问题逐条追加到本节，包含复现、预期/实际、影响、证据与状态。此轮先验证并登记，不通过修改实现或更新视觉基准掩盖失败。逐函数证据汇总到 [function-verification.md](function-verification.md)。
+
+#### BUG-TEST-01：高对比度输入不能覆盖 Paint 前景
+
+状态：OPEN；优先级：P1。
+复现：高对比度主题下，GlassTextField.style 传入 TextStyle(foreground: Paint()..color=…)；深色用黑色 Paint，浅色用白色 Paint。
+预期/实际：无障碍最终限制应覆盖普通组件样式；实际 EditableText.style.foreground 仍保留传入 Paint，产生暗底黑字或浅底白字。两种 brightness 回归均失败。
+影响/位置：glassTextStyle 的 copyWith(color:…) 无法覆盖 TextStyle.foreground；GlassTextField.build 使用该返回值。不是 child 自行绘制不受控内容。
+证据：test/function_audit_desktop_test.dart 的 high contrast input overrides foreground Paint 两项；build/function-audit/desktop-test.log。修复后必须保留两项断言与高对比度优先级。
+
+#### BUG-TEST-02：选中状态未传给导航 shape 解析器
+
+状态：OPEN；优先级：P2。
+复现：GlassNavigationItem(selected:true)，controlStyle.shape 按 WidgetState.selected 返回 StadiumBorder，否则返回 RoundedRectangleBorder。
+预期/实际：主题约定的 selected 状态应生效；实际仍得到 RoundedRectangleBorder。独立前景/底色 selected 用例通过，问题在未包装的 SDK 状态属性。
+影响/位置：components/desktop_style.dart 的 shape 直接透传，selected 仅注入部分字段。需核对同类状态属性，不能破坏已工作的颜色路径。
+证据：test/function_audit_desktop_test.dart 的 selected navigation forwards selected state to shape resolver；desktop-test.log。
+
+#### BUG-TEST-03：弹窗显式最大宽度被外层最小宽度覆盖
+
+状态：OPEN；优先级：P2。
+复现：showGlassDialog 内创建 GlassDialog(constraints:BoxConstraints(maxWidth:230))，使用可容纳该宽度的正常窗口。
+预期/实际：显式约束应覆盖主题几何；实际 GlassSurface 宽度为 280，超过指定 maxWidth。外层 SDK Dialog 默认最小宽度未与内层约束统一。
+影响/位置：GlassDialog.build 只向 GlassSurface 传 constraints，影响桌面紧凑弹窗的明确布局契约。
+证据：test/function_audit_desktop_test.dart 的 nested navigator dialog returns local result and keeps parent route；desktop-retest.log，Expected 230 / Actual 280。完整关闭、返回值和父路由先验证通过，最后宽度断言失败。
+
+#### BUG-TEST-04：浅色高对比度卡片继承不可读的全局白字
+
+状态：OPEN；优先级：P1。
+复现：Material ThemeData.textTheme.bodyMedium 设置白字，LiquidGlassThemeData 开启浅色 highContrast；GlassCard.child 仅为无 style 的 Text。
+预期/实际：库侧高对比度表面应为普通继承文字提供可读前景；实际在 #edf1f8 不透明底上仍保留白字，对比度 1.1328，低于测试中的 4.5。此处不是调用方在 child 上写死 style。
+影响/位置：glassTextStyle 在 style 为空且主题 brightness 匹配时不解析强制高对比度前景，影响 GlassCard.build 的内容文字。这与 BUG-TEST-01 的 Paint 覆盖路径不同。
+证据：test/function_audit_core_test.dart 的 audit theme: high contrast card keeps inherited text readable；core-retest.log。保持可读性断言，不以要求完全相同的色值制造失败。
+
+#### BUG-TEST-05：菜单打开期间替换 FocusNode 后 Esc 失效
+
+状态：OPEN；优先级：P2。
+复现：聚焦并断言 firstFocus.hasFocus，Enter 打开 GlassMenu；保持打开状态，把外部 focusNode 从 firstFocus 换为 secondFocus，随后发送 Esc。
+预期/实际：动态重建后的菜单仍可用 Esc 关闭并恢复当前触发器焦点；实际菜单项仍在，未关闭。已先独立验证正常外点关闭、点击消费和再次点击动作均通过，排除“从未聚焦”的夹具问题。
+影响/位置：_GlassMenuState.build 的 MenuAnchor/childFocusNode 动态绑定链；不应通过释放外部节点或重建全部业务状态规避。
+证据：test/function_audit_desktop_test.dart 的 menu owner replacement restores new focus and consumes outside tap；desktop-retest.log，findsNothing / 实际仍有 Menu action。
 
 DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查、必要人工验收分别记录。阶段远程交付/审查未完成时保留 REVIEW；待验与测试失败分别列出。
 
@@ -154,7 +208,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M2-04：降级优先级
 
-状态：REVIEW
+状态：IN_PROGRESS（专项发现 BUG-TEST-01/04；此前通过记录保留）
 依赖：M2-02
 目标：统一最终生效限制。
 范围：性能、减少透明度、高对比度和减少动画。
@@ -167,7 +221,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M3-01：表面和卡片
 
-状态：REVIEW
+状态：IN_PROGRESS（BUG-TEST-04）
 依赖：M2-01 至 M2-04
 目标：接入统一样式与布局。
 范围：表面、卡片、交互边界和过滤分组。
@@ -193,7 +247,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M3-03：顶栏、弹窗与转场
 
-状态：REVIEW
+状态：IN_PROGRESS（BUG-TEST-03）
 依赖：M2-01 至 M2-04
 目标：统一间距和主题传播。
 范围：局部主题、Esc、焦点恢复和窄窗口。
@@ -219,7 +273,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M4-01：输入组件
 
-状态：REVIEW
+状态：IN_PROGRESS（BUG-TEST-01）
 依赖：M3-04
 目标：补齐通用输入/搜索外观接口。
 范围：文本、焦点、禁用、只读、错误和前后缀。
@@ -232,7 +286,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M4-02：导航条目
 
-状态：REVIEW
+状态：IN_PROGRESS（BUG-TEST-02）
 依赖：M3-04
 目标：提供最小导航表现组合。
 范围：Tab、侧栏/树条目表现和工具栏。
@@ -245,7 +299,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M4-03：菜单和浮层
 
-状态：REVIEW
+状态：IN_PROGRESS（BUG-TEST-05）
 依赖：M3-03、M3-04
 目标：补齐明确需要的菜单交互。
 范围：必要菜单、焦点、Esc、关闭回调和窗口边界。
@@ -271,7 +325,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M5-01：测试矩阵
 
-状态：REVIEW
+状态：IN_PROGRESS（新增六项失败保持启用，不能以原114项通过代替）
 依赖：M3、M4
 目标：覆盖设计与交互组合。
 范围：深浅、旧默认/紧凑、局部覆盖、降级与文字缩放。
@@ -344,7 +398,8 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ## 交付与审查
 
-- 当前开发分支：`codex/m4-m5-desktop-components`，基于 M2/M3 的 `d0a1954`。M4/M5 本地验证见 [testing.md](testing.md)；按 [WORKFLOW.md](WORKFLOW.md) 获取本分支 PR 授权，草稿 PR 以 `codex/m2-theme-density` 为基底。
+- 当前测试分支：`codex/test-function-verification`，基于 M4/M5 的 `9e4daef`。此轮仅本地测试/缺陷登记，不推送或创建 PR；五类新缺陷未修，完整检查仍失败。
+- M4/M5 分支：`codex/m4-m5-desktop-components`，基于 M2/M3 的 `d0a1954`。此前本地实现与验证见 [testing.md](testing.md)；新专项已发现边界缺陷，不能沿用此前全通过结论。本分支推送/草稿 PR 授权仍待确认，拟以 `codex/m2-theme-density` 为基底。
 - M2/M3 分支：`codex/m2-theme-density`，基于 M1 的 `17126f0`；实现提交 `e234943`。[草稿 PR #3](https://github.com/surface-user/Flutter_liquid_glass/pull/3) 以 `codex/m0-m1-modularization` 为基底，保留原 PR 与审查状态。
 - 此前自动审批拒绝推送；用户在 2026-11-11 明确批准将该分支推送至 `https://github.com/surface-user/Flutter_liquid_glass.git` 并创建草稿 PR，授权阻塞已解除。未合并、未发布。
 - M2/M3 本地根 86/86、example 8/8、格式/分析、旧/新 Golden、Web release 和发布预检 0 warnings 通过；远程精确结果以 PR #3 当前提交的 Checks 为准。非作者审查与必要实窗验收仍未完成，保持 REVIEW。
