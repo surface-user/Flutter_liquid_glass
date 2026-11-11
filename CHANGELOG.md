@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Fix high-contrast foreground Paint and inherited text/title readability without mutating caller Paints or changing readable legacy defaults.
+- Propagate selected state to SDK shape/icon/size/elevation/cursor properties; honor narrow dialog constraints and retain menu keyboard/focus behavior during FocusNode replacement.
+
 - Add SDK-backed GlassTextField, controlled GlassNavigationItem/GlassTab, wrapping GlassToolbar and a single-level GlassMenu. Preserve controller/focus ownership, keyboard behavior, density and accessibility policies without per-row blur.
 - Add public-consumer desktop regressions, four visual baselines and native Windows functional/profile fixtures; keep Android hardware validation and non-author review separate.
 

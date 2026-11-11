@@ -1,15 +1,16 @@
 # Windows / Flutter 逐函数验证
 
-基线 9e4daef；2026-11-11。三个子代理独立审查，主代理复核并合并测试。Windows 主机，Flutter 3.47.1 / Dart 3.13.1；新增组件测试显式使用 Windows Material 平台。此轮只增加测试和缺陷记录，lib/、原测试断言、原视觉基准均未修改。
+2026-11-11。原审计基线9e4daef、专项提交51054e9；本轮五个修复子Agent按任务分工实现，主Agent统一复核。Windows、Flutter 3.47.1 / Dart 3.13.1。
 
-## 范围和结果
+## 当前结果与历史
 
-- AST 清单：26 个 lib Dart 文件，103 个显式具名 callable（含构造器、getter、运算符、生命周期和具名局部 helper）。匿名回调归其宿主；字段隐式 getter、SDK 源码和测试工具函数不计入库函数。26 个公开声明及七个预设继续经公开入口消费。
-- 分工：core/theme 34；渲染/交互 46；桌面/浮层 23。下表每项均有关联证据，不以行命中冒充完整功能验证。
-- 基线根 114/114。新增 31 项（10+9+12）；全量根 139 通过、6 失败，共 145 项。6 项归为五类产品缺陷，详见 [task.md](task.md) BUG-TEST-01–05。不是“每个函数已证明无 bug”。
-- 渲染组最终组合 72/72；core 新增 9 通过/1 失败；桌面新增 7 通过/5 失败。全量原用例保持通过。
-- Windows 原生 C++ Debug 交叉验证与静态检查的最终结果见 [testing.md](testing.md)，不与 VM 组件测试混为一项。物理 IME、真实剪贴板与屏幕阅读器仍未验；Android 按用户决定保持待验。
-- 私有恒值通知方法 _SurfaceScope.updateShouldNotify 的方法入口计数在 @override 所在的184行，185行恒false表达式无独立记录；R05验证外层重绘后稳定嵌套子控件不重建、过滤继续隔离。不能将恒值表达式未计数误读为整个方法未调用。const构造器可通过编译期构造/挂载验证，但不统一声称有运行期入口计数；参数组合、GPU/驱动延迟、Release无断言模式未穷尽。
+- 当前 lib/ 共26个Dart文件、104个显式具名callable；原清单103项全部保留，新增局部 selectedProperty 解析器1项。匿名回调归宿主；字段隐式getter、SDK和测试工具函数不计入库函数。公开声明仍26个。
+- 原独立审计根145项中139通过/6失败，归为五类缺陷；历史日志和复现保留于 [testing.md](testing.md)、[task.md](task.md)。修复后主Agent根测试167/167通过，原六项回归仍启用；Windows原生、视觉及发布交付的最终状态单列于testing.md。
+- 新增22项修复回归：Paint 2、selected样式3、Dialog约束4、继承文字/标题10、Menu焦点3。没有新增运行时依赖、公开API或业务状态，也未更新原视觉基线。
+- Paint.color回读使用float32通道，原审计一处颜色断言改为精确ARGB32通道相等；目标色、可读性阈值和事件断言不变，没有放宽容差。原错误黑/白Paint仍不能通过该断言。
+- 104项逐项证据不代表穷尽输入。恒值通知方法的入口记录在注解行，const构造器可在编译期构造，不能简单以运行期行命中判定可用性。物理IME、真实剪贴板、屏幕阅读器、Release无断言、Android/其他平台设备和GPU延迟仍单列待验。
+
+修复回归：[BUG01](../test/bug_01_paint_test.dart)、[BUG02](../test/bug_02_selected_style_test.dart)、[BUG03](../test/bug_03_dialog_constraints_test.dart)、[BUG04](../test/bug_04_inherited_contrast_test.dart)、[BUG05](../test/bug_05_menu_focus_test.dart)。所有新旧用例均可由公开入口消费，Windows原生入口直接运行专项与修复两组。
 
 ## 证据索引
 
@@ -27,7 +28,7 @@ flutter test integration_test/function_audit_test.dart -d windows --reporter exp
 flutter test --reporter expanded
 ```
 
-已确认缺陷的正确预期断言保持启用，因此当前全量测试应返回失败。修复另开实现任务，禁止跳过/删除断言或更新旧图来获得绿灯。原始逐组报告、首次夹具失败和覆盖数据在本地忽略路径 build/function-audit/，CI 已包含三个新增根测试文件。
+原缺陷正确预期断言保持启用，修复后全量通过；禁止跳过/删除断言或更新旧图来获得绿灯。原始逐组报告、首次夹具失败和覆盖数据在本地忽略路径 build/function-audit/，CI 已包含三个新增根测试文件。
 
 ## 逐项清单
 
@@ -67,8 +68,8 @@ flutter test --reporter expanded
 | [_materialLerp](../lib/src/theme/theme.dart#L211) | helper经C7五槽和T实际filter检查，目标sigma离散 | PASS |
 | [_mergeState](../lib/src/theme/theme.dart#L219) | helper经T的null状态继承→press显式→release恢复 | PASS |
 | [glassControlStyle](../lib/src/theme/theme.dart#L230) | helper经T的全局/局部/状态配置与布局/图标真实解析 | PASS |
-| [glassTextStyle](../lib/src/theme/theme.dart#L254) | helper经C10测试继承的Material角色在HC下可读；C6/T普通角色 | BUG-TEST-01/04 OPEN；Paint 与继承文字均存在高对比度缺陷 |
-| [glassPadding](../lib/src/theme/theme.dart#L270) | helper经C9实际矩形检查RTL/LTR密度/0clamp；T显式padding优先 | 修正夹具后通过 |
+| [glassTextStyle](../lib/src/theme/theme.dart#L254) | helper经C10测试继承的Material角色在HC下可读；C6/T普通角色 | PASS；BUG01/04修复，Paint不变异、实际角色/颜色空间/可读旧默认有22项修复回归支撑 |
+| [glassPadding](../lib/src/theme/theme.dart#L305) | helper经C9实际矩形检查RTL/LTR密度/0clamp；T显式padding优先 | 修正夹具后通过 |
 
 ### 渲染与交互（46）
 
@@ -104,7 +105,7 @@ flutter test --reporter expanded
 | [_GlassBackdropState.build](../lib/src/components/surfaces/glass_backdrop.dart#L65) | bounded背景绘制；colors复制避免mutable列表漏更新 | PASS |
 | [GlassCard.new](../lib/src/components/surfaces/glass_card.dart#L4) | 卡片内容及外部所有权不变 | PASS |
 | [GlassCard.padding](../lib/src/components/surfaces/glass_card.dart#L17) | 省略返回旧20；显式padding可用 | PASS |
-| [GlassCard.build](../lib/src/components/surfaces/glass_card.dart#L24) | 静态卡不伪装按钮；onTap非空复用共享交互 | 渲染/交互 PASS；文字高对比度 BUG-TEST-04 OPEN |
+| [GlassCard.build](../lib/src/components/surfaces/glass_card.dart#L24) | 静态卡不伪装按钮；onTap非空复用共享交互 | PASS；原继承白字失败已通过BUG04及原core回归 |
 | [GlassSurface.new](../lib/src/components/surfaces/glass_surface.dart#L8) | 原布局/clip/enabled参数继续可用 | PASS |
 | [GlassSurface.build](../lib/src/components/surfaces/glass_surface.dart#L34) | 主题/媒体最终限制覆盖装饰，renderer只收解析值 | PASS |
 | [GlassBloomPainter.new](../lib/src/core/bloom_painter.dart#L5) | 创建颜色与强度快照的绘制器 | PASS |
@@ -121,30 +122,31 @@ flutter test --reporter expanded
 | [_GlassPainter.shouldRepaint](../lib/src/core/surface_renderer.dart#L256) | 样式、highContrast或noise变化触发paint | PASS |
 | [buildGlassTransition](../lib/src/core/transitions.dart#L4) | 五种转场与reduceMotion短路，前后向曲线独立 | PASS |
 
-### 桌面与浮层（23）
+### 桌面与浮层（24）
 
 | 函数 / 源码 | 契约与测试证据 | 结果或限制 |
 | --- | --- | --- |
-| [desktopControlStyle](../lib/src/components/desktop_style.dart#L5) | SDK state styling without per-row blur; selected colors, shape, focus and reduced motion; new `selected navigation resolves declared state colors`, `selected navigation forwards selected state to shape resolver`; old desktop matrix | Selected foreground/background PASS; selected shape FAIL. Ordinary high contrast/motion modes pass old matrix. |
-| [desktopControlStyle.states](../lib/src/components/desktop_style.dart#L22) | Adds selected to local/theme resolvers; new actual DefaultTextStyle=purple and Material background=yellow assertions | PASS for wrapped color properties; shape is not wrapped. |
+| [desktopControlStyle](../lib/src/components/desktop_style.dart#L5) | SDK state styling without per-row blur; selected colors, shape, focus and reduced motion; new `selected navigation resolves declared state colors`, `selected navigation forwards selected state to shape resolver`; old desktop matrix | PASS；BUG02覆盖全部SDK状态属性，保留颜色/焦点/降级 |
+| [desktopControlStyle.states](../lib/src/components/desktop_style.dart#L22) | Adds selected to local/theme resolvers; new actual DefaultTextStyle=purple and Material background=yellow assertions | PASS；selected颜色与新增属性均验证 |
+| [desktopControlStyle.selectedProperty](../lib/src/components/desktop_style.dart#L26) | 私有局部解析器为已有SDK属性注入selected；未选中原样传回，BUG02三项+原两项 | PASS |
 | [GlassTextField.new](../lib/src/components/inputs/glass_text_field.dart#L7) | Public controller/focus/enabled/readOnly/InputDecoration/action callbacks; new owner replacement + search callback test; old implicit/read-only/disabled/IME injection | Valid construction PASS; no custom editor/parser implemented. |
-| [GlassTextField.build](../lib/src/components/inputs/glass_text_field.dart#L29) | Material decoration defaults + glass geometry + enforced high contrast, SDK draft/selection ownership; new search/owner replacement and dark/light foreground Paint cases | Owner switch / enabled override / search callback PASS. Foreground Paint high contrast FAIL (2 cases). Physical OS IME and clipboard remain untested by agent. |
+| [GlassTextField.build](../lib/src/components/inputs/glass_text_field.dart#L29) | Material decoration defaults + glass geometry + enforced high contrast, SDK draft/selection ownership; new search/owner replacement and dark/light foreground Paint cases | PASS；原Paint深浅回归及外部对象/普通模式恢复通过 |
 | [GlassAppBar.new](../lib/src/components/navigation/glass_app_bar.dart#L8) | Title/leading/actions/style/bottom/toolbar options forward to SDK; new custom toolbar+bottom test, old public consumer | PASS for supplied options; automatic back button relies on reviewed SDK and gallery existing flow. |
 | [GlassAppBar.preferredSize](../lib/src/components/navigation/glass_app_bar.dart#L24) | toolbarHeight+bottom.preferredSize; custom 73+21=94 and actual Scaffold body top=94 | PASS. |
-| [GlassAppBar.build](../lib/src/components/navigation/glass_app_bar.dart#L27) | GlassSurface wrapper and transparent SDK AppBar; custom toolbar dimensions and automaticallyImplyLeading=false | PASS; theme text/spacing examined against implementation. No new visual baseline. |
+| [GlassAppBar.build](../lib/src/components/navigation/glass_app_bar.dart#L27) | GlassSurface wrapper and transparent SDK AppBar; custom toolbar dimensions and automaticallyImplyLeading=false | PASS；BUG04核对实际标题角色，普通模式和旧Golden保留 |
 | [GlassNavigationItem.new](../lib/src/components/navigation/glass_navigation_item.dart#L7) | Controlled label/selection/indent/leading/trailing/focus; invalid negative/infinite/NaN assert | PASS for valid and invalid declared geometry. |
-| [GlassNavigationItem.build](../lib/src/components/navigation/glass_navigation_item.dart#L26) | TextButton + selected semantics + directional indent + tooltip ellipsis; new selected colors/shape and old keyboard/LTR/RTL/narrow cases | Color, keyboard and indent PASS; selected shape FAIL. Widget child-owned hardcoded styles remain caller responsibility. |
+| [GlassNavigationItem.build](../lib/src/components/navigation/glass_navigation_item.dart#L26) | TextButton + selected semantics + directional indent + tooltip ellipsis; new selected colors/shape and old keyboard/LTR/RTL/narrow cases | PASS；原selected shape失败及动态状态回归通过 |
 | [GlassPageRoute.new](../lib/src/components/navigation/glass_page_route.dart#L8) | motion/context/reduceMotion/settings/fullscreenDialog; capture nearest local theme with Navigator | New reduceMotion=true, teal local theme, route arguments/result PASS; old route enum traversal assertions independently inspected. |
 | [GlassPageRoute._](../lib/src/components/navigation/glass_page_route.dart#L38) | SDK duration/reverse duration, page builder and transition builder; public factory invokes it | PASS via new push/pop and zero duration test. All transition kinds and source disableAnimations covered by inspected widget_test cases, root full-suite replay PASS. |
 | [GlassTab.new](../lib/src/components/navigation/glass_tab.dart#L7) | Public selected/onSelected/onClose/focus/style config; no page state | PASS via old keyboard selection/independent-close case and consumer matrix. |
-| [GlassTab.build](../lib/src/components/navigation/glass_tab.dart#L24) | Adjacent select and close buttons, localized tooltip, close only when callback supplied | PASS old close count=1, selection remains1, 本轮根复验PASS；此前同源码native consumer 1/1，未算作本轮Tab物理键鼠验收. Shared selected-shape limitation applies to select child. |
+| [GlassTab.build](../lib/src/components/navigation/glass_tab.dart#L24) | Adjacent select and close buttons, localized tooltip, close only when callback supplied | PASS；共享selected解析已修复，原选择/关闭回归保留 |
 | [GlassToolbar.new](../lib/src/components/navigation/glass_toolbar.dart#L6) | Children, nullable/finite nonnegative spacing, WrapAlignment | PASS invalid-geometry test and normal construction. |
 | [GlassToolbar.build](../lib/src/components/navigation/glass_toolbar.dart#L15) | Derived gap=12+compact.horizontal*2=8, explicit gap=20 overrides and wraps at width110 | PASS actual child rects; no overflow. |
 | [GlassDialog.new](../lib/src/components/overlays/glass_dialog.dart#L9) | Controlled content/title/actions/style/semantics/padding/constraints | PASS construction and callback/state flow; explicit maximum constraints do not work below 280 in wide parent. |
-| [GlassDialog.build](../lib/src/components/overlays/glass_dialog.dart#L30) | Scrollable transparent SDK Dialog with GlassSurface; local theme/copy styles; explicit padding/constraints | FAIL: maxWidth230 produces width280 because outer Dialog keeps SDK minWidth280. Existing narrow2x, local dark and width300 cases PASS. |
-| [showGlassDialog](../lib/src/components/overlays/glass_dialog.dart#L84) | Capture opening themes, root/local navigator, barrier/Esc, route settings, result, explicit no-transition | New local Navigator, captured maxWidth270, route name and string result are validated; width FAIL is in child layout. Existing Esc/non-dismissible/result cases PASS. |
+| [GlassDialog.build](../lib/src/components/overlays/glass_dialog.dart#L30) | Scrollable transparent SDK Dialog with GlassSurface; local theme/copy styles; explicit padding/constraints | PASS；原230宽度回归、新约束/标题角色及旧视觉通过 |
+| [showGlassDialog](../lib/src/components/overlays/glass_dialog.dart#L94) | Capture opening themes, root/local navigator, barrier/Esc, route settings, result, explicit no-transition | PASS；嵌套返回值、主题、Esc及显式宽度均通过 |
 | [GlassMenu.new](../lib/src/components/overlays/glass_menu.dart#L7) | Trigger/items/enabled/focus/onOpen/onClose/controlStyle | PASS normal/disabled options in old cases; external focus ownership checked; controller is internal SDK MenuController. |
 | [GlassMenu.createState](../lib/src/components/overlays/glass_menu.dart#L25) | Creates state retaining controller and own fallback FocusNode | PASS repeated rebuild/open/close and parent replacement in old/new cases. |
 | [_GlassMenuState.dispose](../lib/src/components/overlays/glass_menu.dart#L32) | Releases only self-owned fallback FocusNode; SDK child releases its own resources | Old caller focus survives unmount PASS; inspected explicit self-owned dispose only. Physical external focus reuse needs root native/manual distinction. |
-| [_GlassMenuState.didUpdateWidget](../lib/src/components/overlays/glass_menu.dart#L38) | Disable while open schedules guarded close after frame | Existing disables-open test PASS, single close callback. Dynamic external focus replacement FAIL: open menu stays visible after Esc, no reliable restore. Callback mounted guard reviewed statically. |
-| [_GlassMenuState.build](../lib/src/components/overlays/glass_menu.dart#L48) | MenuAnchor + MenuButtonTheme, window fit, Esc/focus, item callbacks, empty disabled trigger and outside-tap consumption | Normal close/focus/action/window modes PASS; new empty and disabled pointer/Enter rejection PASS; outside tap closes without activating underlying button PASS. External-owner replacement while open FAIL after explicitly verified keyboard focus. |
+| [_GlassMenuState.didUpdateWidget](../lib/src/components/overlays/glass_menu.dart#L38) | Disable while open schedules guarded close after frame | PASS；BUG05节点移交、菜单项保焦、禁用/空项/卸载通过 |
+| [_GlassMenuState.build](../lib/src/components/overlays/glass_menu.dart#L62) | MenuAnchor + MenuButtonTheme, window fit, Esc/focus, item callbacks, empty disabled trigger and outside-tap consumption | PASS；BUG05关闭恢复当前节点，回调一次，原边界/键鼠保留 |

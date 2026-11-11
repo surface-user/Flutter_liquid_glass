@@ -153,3 +153,23 @@ Windows 原生入口为 example/integration_test/function_audit_test.dart；在 
 覆盖复核：_SurfaceScope.updateShouldNotify 的入口计数在 @override 所在的184行，185行恒false表达式没有独立记录，不能据此判为函数未执行。R05另验外层表面只变着色时，稳定嵌套child不重建且过滤保持隔离；初次夹具未等待前一主题的性能限制过渡结束，修正后通过，保留 notify-test-initial.log / notify-test.log。const构造器可能在编译期构造，不能要求其运行期入口计数。逐项检查仍不等于穷尽所有输入。
 
 物理 Windows IME、剪贴板、屏幕阅读器、Release 无断言、Android/其他平台和真实 GPU 延迟仍不在此轮通过范围。本轮未重新跑 Web/发布预检，未推送、创建新 PR、合并或发布。
+
+## 2026-11-11：五个子Agent修复与主Agent验收
+
+修复基线51054e9、分支codex/fix-five-contract-bugs。按用户调度规范共创建五个修复子Agent，每个负责一类bug；平台上限为三个并发子Agent，分两批。BUG01和BUG04共享主题文件，前者REVIEW释放文件后才解除后者BLOCKED；其余文件独立并行。主Agent最终检查代码与验收结果，再将五项置DONE；原审计失败保留，不将历史记录抹成全通过。
+
+| 验证 | 本次结果 | 原始日志（本地忽略路径 build/five-bug-fixes/） |
+| --- | --- | --- |
+| 格式/分析 | 60文件0改动，flutter analyze无问题 | format.log、analyze.log |
+| 根全量 | 167/167：原145项及新增22项修复边界；原六项失败已通过 | root-test.log、lcov.info |
+| Windows原生 | C++ Debug宿主构建，原专项31项+新修复22项共53/53 | windows-native.log |
+| example | 8/8，原六张视觉比较通过 | example-test.log |
+| 所有旧视觉 | 根/示例基准未修改、未更新容差，精确比较通过 | root-test.log、example-test.log |
+| Web release | 原示例与Wasm dry run通过；保留已有CupertinoIcons字体提示 | web-build.log |
+| Android采样Dart入口 | kernel_snapshot_program退出0；未构建APK或测设备 | android-kernel.txt |
+
+修复边界：新建纯色Paint保留排版且不变异外部对象；颜色回读按精确ARGB32比较以区分float32/64表示。继承文字按实际正文/标题角色与不透明HC底判断可读性，保留可读旧默认，统一色空间，深浅/系统/主题/透明/Shader均有用例。选中状态补齐SDK shape/icon/size/elevation/cursor等原透传属性；Dialog外层/内层约束协调；菜单保持打开并迁移触发器焦点，已有菜单项焦点保留，关闭恢复当前节点，空项/禁用/卸载与回调次数验证通过。
+
+子Agent最初日志与主Agent统一结果分开：bug01日志保留浅色Paint精度假失败，目标色未改；bug05-initial保留首次夹具single定位和补充关闭恢复缺口。所有最终修复都经过原失败用例与新增用例，不跳过原断言。当前具名callable104（新增一个局部selectedProperty），公开声明26不变；清单/源码行号已更新。
+
+剩余边界：物理IME/剪贴板/屏幕阅读器、Android真机及完整APK、其他平台设备、非作者审查仍未完成；不得用上述自动化替代。统一PR及当前head的CI结果另记，未自动合并、未发布包。

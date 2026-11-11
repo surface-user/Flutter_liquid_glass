@@ -38,9 +38,23 @@ class _GlassMenuState extends State<GlassMenu> {
   @override
   void didUpdateWidget(GlassMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!widget.enabled && _controller.isOpen) {
+    if ((!widget.enabled || widget.items.isEmpty) && _controller.isOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !widget.enabled) _controller.close();
+        if (mounted && (!widget.enabled || widget.items.isEmpty)) {
+          _controller.close();
+        }
+      });
+    } else if (oldWidget.focusNode != widget.focusNode &&
+        _controller.isOpen &&
+        (oldWidget.focusNode ?? _focus).hasFocus) {
+      // Replacing the trigger node detaches its focus from the menu action chain.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted &&
+            _controller.isOpen &&
+            widget.enabled &&
+            widget.items.isNotEmpty) {
+          (widget.focusNode ?? _focus).requestFocus();
+        }
       });
     }
   }
@@ -69,7 +83,12 @@ class _GlassMenuState extends State<GlassMenu> {
         childFocusNode: widget.focusNode ?? _focus,
         consumeOutsideTap: true,
         onOpen: widget.onOpen,
-        onClose: widget.onClose,
+        onClose: () {
+          if (mounted && widget.enabled && widget.items.isNotEmpty) {
+            (widget.focusNode ?? _focus).requestFocus();
+          }
+          widget.onClose?.call();
+        },
         style: MenuStyle(
           backgroundColor: WidgetStatePropertyAll(surface),
           side: WidgetStatePropertyAll(

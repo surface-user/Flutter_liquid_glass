@@ -131,6 +131,11 @@ test/architecture_test.dart
 test/assets/LICENSE-Roboto.txt
 test/assets/Roboto-Regular.ttf
 test/black_box_interaction_test.dart
+test/bug_01_paint_test.dart
+test/bug_02_selected_style_test.dart
+test/bug_03_dialog_constraints_test.dart
+test/bug_04_inherited_contrast_test.dart
+test/bug_05_menu_focus_test.dart
 test/component_contract_test.dart
 test/design_golden_test.dart
 test/desktop_components_test.dart

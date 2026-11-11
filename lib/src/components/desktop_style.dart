@@ -23,6 +23,13 @@ ButtonStyle desktopControlStyle(
     ...value,
     if (selected) WidgetState.selected,
   };
+  WidgetStateProperty<T?>? selectedProperty<T>(
+    WidgetStateProperty<T?>? value,
+  ) => value == null || !selected
+      ? value
+      : WidgetStateProperty.resolveWith(
+          (current) => value.resolve(states(current)),
+        );
   return control.copyWith(
     alignment: control.alignment ?? AlignmentDirectional.centerStart,
     foregroundColor: WidgetStateProperty.resolveWith(
@@ -66,6 +73,15 @@ ButtonStyle desktopControlStyle(
           theme.layout.iconSize ??
           24,
     ),
+    iconColor: contrast
+        ? WidgetStatePropertyAll(foreground)
+        : selectedProperty(control.iconColor),
+    shadowColor: selectedProperty(control.shadowColor),
+    surfaceTintColor: selectedProperty(control.surfaceTintColor),
+    elevation: selectedProperty(control.elevation),
+    fixedSize: selectedProperty(control.fixedSize),
+    maximumSize: selectedProperty(control.maximumSize),
+    mouseCursor: selectedProperty(control.mouseCursor),
     padding: WidgetStateProperty.resolveWith(
       (value) =>
           control.padding?.resolve(states(value)) ??
@@ -89,7 +105,8 @@ ButtonStyle desktopControlStyle(
           : side ?? BorderSide(color: selected ? focus : Colors.transparent);
     }),
     shape:
-        control.shape ?? const WidgetStatePropertyAll(RoundedRectangleBorder()),
+        selectedProperty(control.shape) ??
+        const WidgetStatePropertyAll(RoundedRectangleBorder()),
     visualDensity: control.visualDensity ?? theme.visualDensity,
     tapTargetSize: control.tapTargetSize ?? theme.tapTargetSize,
     animationDuration: glassReduceMotion(context)

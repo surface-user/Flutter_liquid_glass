@@ -107,7 +107,10 @@ void main() {
         );
         final editable = tester.widget<EditableText>(find.byType(EditableText));
         final actual = editable.style.foreground?.color ?? editable.style.color;
-        expect(actual, dark ? Colors.white : const Color(0xff17233b));
+        expect(
+          actual!.toARGB32(),
+          (dark ? Colors.white : const Color(0xff17233b)).toARGB32(),
+        );
       },
     );
   }
