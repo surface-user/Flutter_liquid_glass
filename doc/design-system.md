@@ -36,3 +36,13 @@ ButtonStyle 的有效字段清单见 api.md；未接入字段不属于当前契�
 
 GlassAppBar 的 preferredSize 无 BuildContext，toolbarHeight 继续由显式参数控制，避免主题改变内部高度却不改变 Scaffold 预留空间。主题可调整其文字、前景和标题间隔。
 路由/弹窗沿用 Flutter InheritedTheme 捕获打开时的局部主题；浮层内部可继续合并主题。不能把打开时捕获称为持续订阅源局部主题。
+
+## M4/M5 最小范围
+
+- GlassTextField 复用 SDK TextField；输入/搜索共用一个 API，前后缀、错误和标签通过 InputDecoration，controller/FocusNode 外部所有权与 SDK 内部状态规则保持。
+- GlassNavigationItem 表现侧栏/树的一行；接收 label、leading/trailing、indent、selected 和回调，不保存页面/文件身份或展开树状态。
+- GlassTab 表现受控选中和独立关闭动作；不持有页面缓存，关闭按钮与选择按钮为相邻控件。
+- GlassToolbar 使用可换行组合；GlassMenu 使用 MenuAnchor 与 SDK MenuItemButton，包含焦点、Esc、禁用切换、关闭回调和窗口边界。本轮不增加多级菜单管理器。
+- 新桌面条目与菜单默认普通表面，不为每行创建 BackdropFilter。颜色、文字、间距、密度、交互状态复用现有主题。
+- 提示、加载、空状态优先用 Tooltip/CircularProgressIndicator/Text 组合验证，不新增占位反馈 API。
+- M5 采用公开入口夹具覆盖深浅/密度/降级/文字缩放组合。Windows 原生自动化和 profile 结果见 [testing.md](testing.md)；实窗人工与 Android 真机独立验收。审查不由作者自批。

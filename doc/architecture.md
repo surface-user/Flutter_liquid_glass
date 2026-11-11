@@ -73,6 +73,12 @@ theme/layout.dart 新增纯几何配置 GlassLayout，仅依赖 dart:ui 与 Flut
 
 ## 状态与兼容
 
+M4 在 components 新增 inputs/glass_text_field.dart、navigation/glass_navigation_item.dart、glass_tab.dart、glass_toolbar.dart 及 overlays/glass_menu.dart。输入直接依赖 theme 与 SDK；Tab 复用 NavigationItem；导航/菜单共用 components/desktop_style.dart 中的内部 ButtonStyle 解析，不导出该函数。core/theme 无反向依赖。入口显式导出五个新组件，架构清单检查现为 26 个声明。
+
+输入状态交给 SDK TextField，组件不复制文本编辑实现；导航状态交给调用方。菜单只管理 SDK MenuController 与自有备用 FocusNode；外部节点不释放。测试消费者位于 example/integration_test/fixtures，复用已有 Windows 宿主，未扩建 example/lib 或 Showcase；.pubignore 排除测试夹具与 driver。
+
+Windows 与 Android profile 复用 frame_sampler.dart 的同一 FrameTiming 采样和 frame_metrics.dart 的最近秩百分位算法；平台入口分别限制实际目标，桌面结果不代替 Android 校准。
+
 - core：样式值、纯配置、实际绘制、过滤分组和纯转场；接收主题已解析值。
 - theme：不可变主题数据、最近局部整体替换解析、减少动画；M1 不实现新的合并语义。
 - components：hover/pressed/focus、内部 controller 与 pointer 生命周期；子控件、业务数据和外部 FocusNode 由消费者持有。

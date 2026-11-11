@@ -2,7 +2,7 @@
 
 本清单对应 M0 的 `8504ca7`，M1 保留这些符号、参数含义和默认值。消费者仅导入 `package:lightweight_liquid_glass/lightweight_liquid_glass.dart`；`src/` 路径不属于兼容接口。版本仍为 0.1.0，运行时仅依赖 Flutter SDK。
 
-下列 20 项为历史基线；现行 M2/M3 增量见文末。原构造调用继续可编译，默认视觉不变。
+下列 20 项为历史基线；现行 M2–M4 增量见文末。原构造调用继续可编译，默认视觉不变。
 
 ## 导出清单
 
@@ -68,7 +68,7 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 
 ## M2/M3 增量接口
 
-公开类型增加 `GlassLayout`，当前共 21 个公开声明。保留原声明，入口仍使用逐项 show。
+该阶段增加 `GlassLayout`，合计 21 个公开声明。保留原声明，入口仍使用逐项 show。
 
 - `LiquidGlassTheme.merge({Key? key, required LiquidGlassThemeData Function(LiquidGlassThemeData parent) data, required Widget child})` 是返回 Widget 的静态方法。最近父配置传给同步更新函数；使用 parent.copyWith 继承未修改字段。旧构造函数仍完整替换。
 - `LiquidGlassThemeData` 新增 colorScheme=null、textTheme=空 TextTheme、layout=默认 GlassLayout、controlStyle=空 ButtonStyle、visualDensity=standard、tapTargetSize=padded。copyWith 中 colorScheme 未指定则保留、显式 null 清空。其他非空配置传空默认对象可重置。语义 getter：foregroundColor、surfaceColor、focusColor。
@@ -83,3 +83,25 @@ ButtonStyle 支持 foregroundColor、backgroundColor（着色颜色）、overlay
 主题 lerp 的数字/颜色仍插值，实际材质 sigma 采用目标值；过渡期间性能限制取交集、无障碍取并集，结束才解除旧限制。colorScheme 的 null 边界及离散 motion/tapTargetSize 在 .5 切换；layout 的 nullable 尺寸采用同样离散规则。
 
 密度、继承、无障碍优先级及窗口契约见 [design-system.md](design-system.md)。库控件使用语义色；调用方 child 自己写死的 TextStyle 仍属于应用负责的内容样式。
+
+## M4 桌面增量接口
+
+新增以下五个 Widget，现共 26 个公开声明。均保留 `key=null`，不增加依赖，不改变旧组件默认值。
+
+| 接口 | 必填 | 其余参数及默认值 |
+| --- | --- | --- |
+| GlassTextField | 无 | controller/focusNode/enabled/style/onChanged/onSubmitted/textInputAction=null；readOnly/autofocus=false；decoration=const InputDecoration() |
+| GlassNavigationItem | label: String | leading/trailing/onPressed/focusNode/controlStyle=null；selected=false；indent=0（有限非负数，沿文字起始方向） |
+| GlassTab | label: String | leading/onSelected/onClose/focusNode/controlStyle=null；selected=false |
+| GlassToolbar | children: List<Widget> | spacing=null（layout.actionRunSpacing 加密度偏移，最低 0）；alignment=WrapAlignment.start |
+| GlassMenu | trigger: Widget、items: List<Widget> | enabled=true；focusNode/onOpen/onClose/controlStyle=null |
+
+GlassTextField 委托 SDK TextField 管理输入会话、选择、组合和粘贴；同一位置与 key 下，未传 controller 的隐式草稿随 SDK State 保留。外部 controller/FocusNode 由调用方释放，不能在 build 中重新创建。enabled 优先于 decoration.enabled；InputDecoration 表达标签、搜索前缀、清除后缀及错误。普通样式先应用 Material inputDecorationTheme，再补库默认；显式 decoration 优先。高对比度最终覆盖前景、提示、图标、边框及底色。此最小输入不包装表单校验、多行编辑或编辑器业务。
+
+导航/Tab 的 selected 由调用方持有；回调为 null 时选择禁用。Tab 的关闭按钮仅在 onClose 非 null 时出现，关闭动作独立于选择；外部 focusNode 对应选择按钮。条目长标题单行省略并用 Tooltip 保留全文；工具栏自动换行。控件不自动创建页面缓存、树模型或 TabManager。
+
+导航、Tab 和菜单的 controlStyle 复用 SDK ButtonStyle；除前节共有字段外，shape/alignment 及其他 SDK ButtonStyleButton 支持字段直接交由 SDK 处理。selected 加入样式解析状态；高对比度前景/底色和 2px 焦点边框优先，减少动画将 animationDuration 置零。条目默认起始对齐，无逐项 BackdropFilter。
+
+GlassMenu 的 items 使用 SDK MenuItemButton；动作、禁用与语义由 SDK 项提供。SDK MenuAnchor 管理窗口内定位、键盘与 Esc；关闭恢复触发器焦点，onOpen/onClose 各按实际切换触发，外部 focusNode 不被释放。空 items 或 enabled=false 禁用触发；打开后禁用会关闭。外部点击用于关闭且被消费，不穿透激活底层控件。菜单使用普通表面；不承诺业务上下文菜单、多级菜单管理或实时跟随跨路由源状态。
+
+加载、提示、空状态使用 SDK CircularProgressIndicator、Tooltip、Text 与现有容器组合，不新增平行反馈 API。真实接入步骤见 [studyworkbench-integration.md](studyworkbench-integration.md)，可编译消费者见 example/integration_test/fixtures/desktop_consumer.dart。

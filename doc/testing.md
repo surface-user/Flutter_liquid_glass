@@ -78,3 +78,50 @@ API 对照使用 SDK 已安装的 analyzer 解析重构前备份与当前源码�
 M2/M3 自动化验证了字段/状态继承、显式覆盖/清空、密度与目标尺寸、实际过滤 sigma、动态主题/减少动画、Esc/焦点恢复、外部 FocusNode 复用和 2x 中英文文字。Windows 实窗、Android 真机/模拟器与硬件性能未执行；它们与非作者审查分别列为待验，不以 86 项通过替代。
 
 远程边界：此前 M2/M3 分支推送被自动审批拒绝，未绕过拦截；用户在 2026-11-11 明确授权将该分支推送至 surface-user/Flutter_liquid_glass 并创建草稿 PR 后，已完成推送并创建 [PR #3](https://github.com/surface-user/Flutter_liquid_glass/pull/3)。远程 CI 精确结果以 PR 当前提交的 Checks 为准；非作者审查和设备验收仍未完成。
+
+## M4/M5：2026-11-11 桌面能力与交付
+
+分支 codex/m4-m5-desktop-components，基于 d0a1954；Flutter 3.47.1 / Dart 3.13.1。仅新增公开桌面组件和测试消费者，example/lib 不变。
+
+| 检查 | 本次结果 | 原始日志（本地忽略产物） |
+| --- | --- | --- |
+| 格式 / 分析 | 51 文件、0 改动；无分析问题 | build/m4-m5/format.log、analyze.log |
+| 完整根测试 | 114/114：原 86 项 + 桌面行为 26 项 + 视觉 2 项 | build/m4-m5/root-test.log |
+| example 全量 | 8/8，原六张视觉比较通过 | build/m4-m5/example-test.log |
+| 新视觉 | 四张 desktop / desktop-menu 深浅图逐张目检（Agent），普通全量测试再次精确比较通过 | test/goldens/desktop-*.png、desktop-menu-*.png |
+| 原生 Windows 自动化 | 最终 C++ Debug 宿主构建，公开消费者输入/导航/菜单弹窗/Esc/Tab 关闭 1/1 | build/m4-m5/windows-native-final.log |
+| Windows profile | C++ Profile 宿主构建，四模式完整采样通过；详见下表 | build/m4-m5/windows-profile-final.log 及 windows-profile-final/integration_response_data.json |
+| Android profile Dart 编译 | kernel_snapshot_program 通过，未构建 APK；PowerShell 参数须完整加引号 | build/m4-m5/android-kernel.log（未加引号的首次失败）及 android-kernel-result.txt |
+| Web release | 原示例构建与 Wasm dry run 通过；保留已有 CupertinoIcons 提示 | build/m4-m5/web-build.log |
+| 文档 / 兼容 | 19 个 Markdown、102 个相对链接目标；README 桌面示例静态分析、库存清单与 Git diff 检查通过；旧图片与 example/lib 未改 | build/m4-m5/docs-check.log、readme-smoke.log |
+
+组件矩阵覆盖深浅 × 标准/紧凑 × 普通/无模糊/减少动画/高对比度的 16 个风险组合；另验 320px 窄窗口、2x 中英文、RTL/LTR 树缩进、输入组合/选择/模拟剪贴板、隐式草稿、只读/禁用、外部所有权、菜单关闭次数/边界/焦点、SDK 加载结束后无 ticker。旧视觉图及原断言未修改。
+
+失败保留：首次剪贴板测试等待真实平台通道，改为受控测试剪贴板后完成；平台/绘制调试变量改为测试函数结束前复原。新视觉初次暴露 SDK 按钮缺少完整字体角色继承，修正共享样式并增加回归；树行改用起始对齐并验证双向缩进。首次 Windows profile 在 SDK 测试键盘逻辑转物理键映射处失败，显式提供 physicalKey 后全程复验；windows-profile.log 保留该失败。均未通过删除/跳过测试或更新旧图规避。
+
+### Windows 实际引擎采样
+
+运行命令（example 目录，测试专用夹具）：
+
+```sh
+flutter drive --profile -d windows --driver=test_driver/performance.dart --target=integration_test/desktop_performance_test.dart
+```
+
+系统报告 Windows 10 Home China 10.0 Build 26200（Flutter doctor 识别为 Windows 11）；SDK display.refreshRate=200Hz，帧预算 5ms。GPU/渲染后端未独立确认。每模式预热 2s、空闲 10s、交互约 30–32s，最近秩百分位；交互重复导航、弹窗与菜单的打开/Esc 关闭。样本由真实 FrameTiming 回调采集，包含引擎批量报告；无重复运行统计或重构前同负载对照，不能推断因果提速、稳定 FPS 或应用最大负载表现。
+
+| 模式 | 空闲新帧 | 交互帧数 | build p95 ms | raster p95 / max ms | 超 5ms 帧数 |
+| --- | --- | --- | --- | --- | --- |
+| default | 0 | 6315 | 1.983 | 3.048 / 19.710 | 32 |
+| no_blur | 0 | 6277 | 2.155 | 2.895 / 16.403 | 19 |
+| high_contrast | 0 | 6247 | 2.187 | 2.296 / 4.033 | 0 |
+| reduce_motion | 0 | 6053 | 1.951 | 3.146 / 13.587 | 44 |
+
+空闲百分位为 null（没有帧），不是 0ms。超预算按 max(build,raster) 计；减少动画不会取消 SDK 焦点/菜单绘制或测试动作本身请求的帧。没有设定产品帧阈值，因此只记录数据和空闲边界通过，仍有长尾帧。SDK 提示 integration_test 原生插件未检测到；Windows 此次通过 VM driver 返回完整 result=true、failureDetails=[] 与四模式原始数组，JSON 已落盘，未把提示当作 Android 原生插件已校准。
+
+原始 JSON SHA256：`92C41D1F2CC7F68625319A2319B2DF2D8097A7AFB346E1EF8ABC7A993BB3BED2`。原始数据保留在上述 build 路径，不放入发布包。
+
+### 尚待验收
+
+Windows 实窗：`flutter run --profile -d windows -t integration_test/fixtures/desktop_consumer.dart`（example 目录）启动成功，渲染日志报告 Impeller / OpenGLES；computer-use 应用授权超时，未执行人工键鼠、物理中文 IME 或剪贴板。复验时聚焦 Search / draft，输入拼音并检查 Composition 范围、候选与提交、选区粘贴；再用 Tab/Enter 打开 Actions、Esc 关闭检查焦点，缩窄窗口检查浮层边界。组件注入的 composing 与 native enterText 不能替代物理 IME。
+
+用户确认本轮无 Android 真机，完整 APK、Android/其他平台运行与性能、非作者审查仍待完成。StudyWorkbench 接入清单是库侧交付，不表示对该应用的修改或验收。

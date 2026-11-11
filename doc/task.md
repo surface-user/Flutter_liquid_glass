@@ -2,7 +2,7 @@
 
 ## 当前目标与范围
 
-状态：REVIEW。M0 完成；M1 保持 REVIEW。2026-11-11 用户授权继续后，M2/M3 实现与本地回归完成；用户明确批准推送后已创建草稿 PR #3，非作者审查与必要实窗待验。
+状态：IN_PROGRESS。M0 完成；M1–M5 进入或保持 REVIEW。2026-11-11 按用户要求推进全部任务，M4/M5 实现、本地回归与 Windows 原生自动化/profile 已完成；人工实窗、非作者审查及设备项保留。
 目标：职责与依赖正确 → API/参数契约清晰 → 交互可靠 → 文档和测试可验证 → 视觉细节。
 本轮保持旧接口可调用、旧默认布局/视觉、包名、SDK 与依赖；以增量公开配置接入主题和密度，不扩建 example，不修改 StudyWorkbench。
 规则唯一来源：[AGENTS.md](AGENTS.md)。本轮优先 Windows 桌面验证；Android 性能与其他平台待验项继续保留。
@@ -15,8 +15,8 @@
 | M1 结构与依赖 | REVIEW | 无循环/反向依赖；公开 API 与原视觉兼容；适用测试通过 |
 | M2 主题、Tokens、Density | REVIEW | 字段继承、清空、密度及降级真正生效 |
 | M3 现有组件接入规范 | REVIEW | 配置与键鼠/动态状态覆盖各现有组件 |
-| M4 最小桌面能力 | TODO | 输入、导航、必要浮层与反馈可公开组合 |
-| M5 回归与交付 | TODO | API、测试、文档一致；接入和未验边界明确 |
+| M4 最小桌面能力 | REVIEW | 输入、导航、必要浮层与反馈可公开组合；待实窗与非作者审查 |
+| M5 回归与交付 | REVIEW | API、测试、文档一致；接入和未验边界明确；远程交付与审查单列 |
 
 ## 活跃任务及后续验收条件
 
@@ -219,132 +219,133 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ### M4-01：输入组件
 
-状态：TODO
+状态：REVIEW
 依赖：M3-04
 目标：补齐通用输入/搜索外观接口。
 范围：文本、焦点、禁用、只读、错误和前后缀。
 不包含：搜索引擎、数据查询或自造文本编辑器。
 验收：草稿稳定；受控文本与所有权明确；中文组合、选择和粘贴可用。
 验证：组件测试及 Windows 输入法人工验收。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：GlassTextField 已实现；组合范围跨 rebuild 保留、选择/粘贴、只读/禁用、外部所有权由组件测试覆盖；Windows 原生输入流程通过。
+证据：[api.md](api.md) 与 [testing.md](testing.md)；desktop_components_test、windows-native-final.log。
+遗留：物理中文 IME 与人工剪贴板验收待做：测试窗口已启动，computer-use 应用授权超时。非作者审查待进行。
 
 ### M4-02：导航条目
 
-状态：TODO
+状态：REVIEW
 依赖：M3-04
 目标：提供最小导航表现组合。
 范围：Tab、侧栏/树条目表现和工具栏。
 不包含：TabManager、文件系统或页面缓存。
 验收：标题/图标/状态/回调由调用方传入；公开 API 可组合。
 验证：键鼠、状态、长标题和最小组合夹具。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：GlassNavigationItem、GlassTab、GlassToolbar 已实现；选中/关闭独立、RTL/LTR 缩进、长标题、窄窗口换行、键盘和原生导航均通过。
+证据：[api.md](api.md)、[testing.md](testing.md)；公开消费者、desktop_components_test、Windows 原生测试。
+遗留：实窗人工键鼠与非作者审查待进行。
 
 ### M4-03：菜单和浮层
 
-状态：TODO
+状态：REVIEW
 依赖：M3-03、M3-04
 目标：补齐明确需要的菜单交互。
 范围：必要菜单、焦点、Esc、关闭回调和窗口边界。
 不包含：未经确认扩大多级菜单与业务路由。
 验收：先冻结最小清单；不遮挡关键内容；关闭和焦点行为明确。
 验证：浮层组件测试和 Windows 边界人工验收。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：单层 GlassMenu 已实现；SDK Esc、关闭/禁用、焦点恢复和 320×240 窗口边界回归通过；Windows 原生菜单→弹窗→Esc 通过。
+证据：[testing.md](testing.md)；desktop_components_test、四张新视觉图与原生功能日志。
+遗留：实窗人工边界与非作者审查待进行。
 
 ### M4-04：必要反馈组件
 
-状态：TODO
+状态：REVIEW
 依赖：M4-01 至 M4-03
 目标：仅补流程真实缺口。
 范围：必要加载、提示和空状态。
 不包含：占位 API、网络重试或业务状态机。
 验收：先证明组合不足；只交付真实需要并可用的反馈。
 验证：需求清单、语义和状态组件测试。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：Tooltip、CircularProgressIndicator、Text 组合覆盖提示、加载和空状态；语义与加载结束后无残留帧验证通过，无需新增公开类型。
+证据：[design-system.md](design-system.md)；desktop_components_test 的 SDK 反馈用例。
+遗留：非作者审查待进行。
 
 ### M5-01：测试矩阵
 
-状态：TODO
+状态：REVIEW
 依赖：M3、M4
 目标：覆盖设计与交互组合。
 范围：深浅、旧默认/紧凑、局部覆盖、降级与文字缩放。
 不包含：无意义全排列或降低断言。
 验收：风险组合和全部新增分支有验证；失败保留。
 验证：完整自动化与必要 Golden 人工检查。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：根 114/114，example 8/8；16 个桌面组合、窄窗 2x 中英文、RTL、原视觉与四张新增深浅/菜单视觉通过。新增图已逐张目检，保留首次失败和修复证据。
+证据：[testing.md](testing.md)；build/m4-m5/root-test.log、example-test.log。
+遗留：远程 CI 与非作者审查按本分支提交单列。
 
 ### M5-02：公共接口消费验证
 
-状态：TODO
+状态：REVIEW
 依赖：M4、M5-01
 目标：验证独立公开调用。
 范围：只导入唯一入口的最小消费者和原 example。
 不包含：新增 Showcase 或演示功能。
 验收：示例参数真实；仅公开入口即可完成组合。
 验证：消费者编译/组件测试及 example 兼容回归。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：独立消费者仅导入公开入口和 SDK；显式 26 个导出、架构和公开消费通过。example/lib 未改，原示例 8/8、Web release 与 Windows 消费通过。
+证据：[testing.md](testing.md)；example/integration_test/fixtures/desktop_consumer.dart。
+遗留：完整跨平台运行/人工验收与非作者审查待进行。
 
 ### M5-03：性能边界检查
 
-状态：TODO
+状态：REVIEW
 依赖：M3、M4
 目标：验证开销与资源边界。
 范围：ticker、模糊参数、重复过滤和监听器。
 不包含：伪造帧时间或以模拟器代替真机。
 验收：静态/自动化边界通过；测量仅记录真实目标环境。
 验证：静态检查、空闲测试、Windows/Android 实测（具备环境时）。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：静态/自动化的过滤、动画与生命周期边界通过。Windows 四模式引擎 profile 已落盘；每模式空闲 10s 无新帧，交互 raster p95 2.296–3.146ms；保留超预算长尾。
+证据：[testing.md](testing.md)；windows-profile-final/integration_response_data.json、Android profile kernel 编译。
+遗留：用户确认本轮无 Android 真机；真机 profile、设备校准与完整 APK 保留待验。无产品稳定 FPS 结论。
 
 ### M5-04：文档与迁移说明
 
-状态：TODO
+状态：REVIEW
 依赖：M5-01、M5-02
 目标：统一真实 API 与正式文档。
 范围：设计规范、API、组件目录、测试和 CHANGELOG。
 不包含：虚构可用接口或逐测试报告。
 验收：接口与示例一致；旧新参数映射和限制明确。
 验证：链接、代码示例编译与源码核对。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：公开 API、README 示例、设计/架构/组件目录、测试与 CHANGELOG 已更新；旧默认、包名、版本、SDK 和依赖保留。
+证据：[api.md](api.md)、[testing.md](testing.md)；相对链接、公开消费者与 Git 差异。
+遗留：非作者审查待进行。
 
 ### M5-05：StudyWorkbench 接入清单
 
-状态：TODO
+状态：REVIEW
 依赖：M5-04
 目标：划清组件库与应用责任。
 范围：紧凑主题、统一控件、TabManager/资源树/页面布局边界。
 不包含：修改 StudyWorkbench 或宣称其体验已验收。
 验收：接入步骤可执行；库侧能力、应用责任和未验证项分开。
 验证：公开 API 最小夹具与接入文档核对。
-结果：实现未开始；自动化未执行；审查未进行；人工待验（如适用）。
-证据：完成后填写本次命令、结果与日志/PR 引用。
-遗留：按实际填写，不提前勾选。
+结果：库侧接入顺序、参数映射、应用责任和验收步骤已交付；使用公开消费者核对。
+证据：[studyworkbench-integration.md](studyworkbench-integration.md)。
+遗留：未修改或验收 StudyWorkbench，实际接入与业务测试另行执行。
 
 ## 阻塞与待验项
 
-- Android 真机 profile、完整 APK/设备校准与模拟器实际运行仍待完成；不阻塞独立的 M0/M1 结构工作，不宣称跨平台性能通过。
-- 重构前已有 `example/test/failures/` 未跟踪图片，已备份至 `build/m0-m1/baseline/pre-existing-failures/`；保留原文件，不以图片存在判断当前仍失败。
+- 用户确认本轮无 Android 真机；真机 profile、完整 APK/设备校准与模拟器实际运行仍待完成。Dart kernel 编译与 Windows 数据不能代替。
+- 重构前已有 `example/test/failures/` 未跟踪图片，已备份至 `build/m0-m1/baseline/pre-existing-failures/`；本轮亦保留原 `test/failures/`。不以历史图片存在判断当前仍失败。
 - 尚未只读核对 StudyWorkbench 真实调用；库侧缺口不等于应用问题根因。
-- M2/M3 已按 [design-system.md](design-system.md) 实现：旧替换保留，新增显式 merge。M4 尚未实施，先冻结必要输入/导航/菜单清单；M3 实窗验收仍待完成。
+- M2/M3 的旧替换与显式 merge 均保留。M4 最小输入/导航/菜单已完成；Windows 实窗已启动，应用控制授权超时，人工键鼠/物理 IME 仍待验。功能自动化与 profile 分别记为已通过。
 - 非作者审查与合并单列；本轮不自动合并、不发布包。
 
 ## 交付与审查
 
-- 当前开发分支：`codex/m2-theme-density`，基于 M1 的 `17126f0`；实现提交 `e234943`。[草稿 PR #3](https://github.com/surface-user/Flutter_liquid_glass/pull/3) 以 `codex/m0-m1-modularization` 为基底，保留原 PR 与审查状态。
+- 当前开发分支：`codex/m4-m5-desktop-components`，基于 M2/M3 的 `d0a1954`。M4/M5 本地验证见 [testing.md](testing.md)；按 [WORKFLOW.md](WORKFLOW.md) 获取本分支 PR 授权，草稿 PR 以 `codex/m2-theme-density` 为基底。
+- M2/M3 分支：`codex/m2-theme-density`，基于 M1 的 `17126f0`；实现提交 `e234943`。[草稿 PR #3](https://github.com/surface-user/Flutter_liquid_glass/pull/3) 以 `codex/m0-m1-modularization` 为基底，保留原 PR 与审查状态。
 - 此前自动审批拒绝推送；用户在 2026-11-11 明确批准将该分支推送至 `https://github.com/surface-user/Flutter_liquid_glass.git` 并创建草稿 PR，授权阻塞已解除。未合并、未发布。
 - M2/M3 本地根 86/86、example 8/8、格式/分析、旧/新 Golden、Web release 和发布预检 0 warnings 通过；远程精确结果以 PR #3 当前提交的 Checks 为准。非作者审查与必要实窗验收仍未完成，保持 REVIEW。
 
