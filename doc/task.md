@@ -34,7 +34,7 @@
 | BUG-TEST-04 | BUG-TEST-01 REVIEW 后释放主题文件（已满足） | DONE | 新增10项+01两项+原core/desktop22项34/34；主Agent根167/167、原生53/53验收通过 |
 | BUG-TEST-05 | 专项失败回归（已具备） | DONE | 新增3项、原菜单3项及原owner切换回归均通过；主Agent根167/167、原生53/53验收通过 |
 
-子 Agent 实现完成置 REVIEW；主 Agent 检查代码、原断言及 Windows 回归，通过才置 DONE，失败退回 IN_PROGRESS。五项统一验收后提交一个草稿 PR；未完成的物理 IME、Android 真机和非作者审查不虚报 DONE，也不自动合并。
+子 Agent 实现完成置 REVIEW；主 Agent 检查代码、原断言及 Windows 回归，通过才置 DONE，失败退回 IN_PROGRESS。五项已验收，统一[草稿PR #4](https://github.com/surface-user/Flutter_liquid_glass/pull/4)已创建；最终head的CI待核对。物理IME、Android真机和非作者审查不虚报DONE，也不自动合并。
 
 ### Windows / Flutter 函数专项验证（2026-11-11）
 
@@ -419,7 +419,7 @@ DONE 仅表示该任务定义的验收条件满足；实现、自动化、审查
 
 ## 交付与审查
 
-- 当前修复分支：`codex/fix-five-contract-bugs`，基于专项提交51054e9。用户已明确授权五个bug完成后统一提交PR；拟以现有M2/M3分支为基底，包含未远程交付的M4/M5、审计和修复。本地验收通过，远程交付/CI以实际PR记录为准。
+- 当前修复分支：`codex/fix-five-contract-bugs`，基于专项提交51054e9，修复提交2776a50。用户已明确授权统一PR；已推送并创建[草稿PR #4](https://github.com/surface-user/Flutter_liquid_glass/pull/4)，以M2/M3分支为基底，包含此前本地的M4/M5、审计和五项修复。最终head的CI以PR Checks为准；未合并或发布。
 - 此前专项分支：`codex/test-function-verification`；51054e9记录首次六项失败，本轮已修复，原始失败证据保留。
 - M4/M5 分支：`codex/m4-m5-desktop-components`，基于 M2/M3 的 `d0a1954`。此前单独交付授权待确认；现已按用户最新指令纳入统一修复PR，不另开重复PR，最新验证见 [testing.md](testing.md)。
 - M2/M3 分支：`codex/m2-theme-density`，基于 M1 的 `17126f0`；实现提交 `e234943`。[草稿 PR #3](https://github.com/surface-user/Flutter_liquid_glass/pull/3) 以 `codex/m0-m1-modularization` 为基底，保留原 PR 与审查状态。
