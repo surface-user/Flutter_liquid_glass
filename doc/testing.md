@@ -93,11 +93,14 @@ M2/M3 自动化验证了字段/状态继承、显式覆盖/清空、密度与目
 | Windows profile | C++ Profile 宿主构建，四模式完整采样通过；详见下表 | build/m4-m5/windows-profile-final.log 及 windows-profile-final/integration_response_data.json |
 | Android profile Dart 编译 | kernel_snapshot_program 通过，未构建 APK；PowerShell 参数须完整加引号 | build/m4-m5/android-kernel.log（未加引号的首次失败）及 android-kernel-result.txt |
 | Web release | 原示例构建与 Wasm dry run 通过；保留已有 CupertinoIcons 提示 | build/m4-m5/web-build.log |
+| 发布预检 | 同 SDK、同参数直接调用 Dart pub（FLUTTER_ROOT 指向本机 SDK）通过，153 KB、0 warnings；未发布。Windows Flutter 转发层运行时分析器异常退出，远程 CI 标准命令待验证 | build/m4-m5/pub-forward-args-trace.log、publish-dry-run-wrapper.log |
 | 文档 / 兼容 | 19 个 Markdown、102 个相对链接目标；README 桌面示例静态分析、库存清单与 Git diff 检查通过；旧图片与 example/lib 未改 | build/m4-m5/docs-check.log、readme-smoke.log |
 
 组件矩阵覆盖深浅 × 标准/紧凑 × 普通/无模糊/减少动画/高对比度的 16 个风险组合；另验 320px 窄窗口、2x 中英文、RTL/LTR 树缩进、输入组合/选择/模拟剪贴板、隐式草稿、只读/禁用、外部所有权、菜单关闭次数/边界/焦点、SDK 加载结束后无 ticker。旧视觉图及原断言未修改。
 
 失败保留：首次剪贴板测试等待真实平台通道，改为受控测试剪贴板后完成；平台/绘制调试变量改为测试函数结束前复原。新视觉初次暴露 SDK 按钮缺少完整字体角色继承，修正共享样式并增加回归；树行改用起始对齐并验证双向缩进。首次 Windows profile 在 SDK 测试键盘逻辑转物理键映射处失败，显式提供 physicalKey 后全程复验；windows-profile.log 保留该失败。均未通过删除/跳过测试或更新旧图规避。
+
+标准 `flutter pub publish --dry-run` 在本机两种启动入口都返回 65，子进程只报告 `Please report this at dartbug.com.`，未给出源码诊断。以相同 `FLUTTER_ROOT`、`PUB_ENVIRONMENT=flutter_cli:forward` 执行 `dart pub --suppress-analytics --verbose publish --dry-run`，`dart analyze .\lib .\pubspec.yaml` 子进程退出 0，包清单确认测试夹具、旧失败图片与采样日志均排除。未修改 CI 命令或弱化发布检查。
 
 ### Windows 实际引擎采样
 
