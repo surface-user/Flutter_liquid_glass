@@ -119,6 +119,41 @@ class DemoApp extends StatelessWidget {
 
 以下代码片段均使用相同的两个 import；涉及 `context` 的片段应放在页面的 `build` 方法或事件回调中。
 
+## 桌面输入、导航与菜单
+
+在 MaterialApp 中可直接组合以下控件；`draft` 是页面 State 持有并在 dispose 释放的 TextEditingController，`selected` 和 `selectPage` 由应用管理：
+
+```dart
+GlassToolbar(children: [
+  GlassMenu(
+    trigger: const Text('操作'),
+    items: [MenuItemButton(onPressed: () {}, child: const Text('打开'))],
+  ),
+  GlassTab(label: '资料', selected: selected, onSelected: selectPage),
+])
+
+GlassTextField(
+  controller: draft,
+  textInputAction: TextInputAction.search,
+  decoration: const InputDecoration(
+    hintText: '搜索资料',
+    prefixIcon: Icon(Icons.search),
+  ),
+)
+
+GlassNavigationItem(
+  label: '资料目录',
+  leading: const Icon(Icons.folder_outlined),
+  indent: 12,
+  selected: selected,
+  onPressed: selectPage,
+)
+```
+
+搜索与普通输入共用 GlassTextField；错误、标签、前后缀使用 InputDecoration。导航/Tab 不持有页面缓存或树模型，关闭 Tab 使用独立 `onClose`；长标题省略并保留 Tooltip。菜单复用 SDK MenuItemButton，支持键盘、Esc 和关闭后的焦点恢复；工具栏窄时换行。加载、空状态与提示直接组合 SDK 控件。
+
+桌面紧凑模式显式设置 `visualDensity: VisualDensity.compact` 与 `tapTargetSize: MaterialTapTargetSize.shrinkWrap`；触屏保留 padded。API 默认值见 [公开接口契约](doc/api.md)，分工和步骤见 [StudyWorkbench 接入清单](doc/studyworkbench-integration.md)。当前实现/测试与未验边界见 [任务账本](doc/task.md)，在线示例尚未增加这些桌面组件。
+
 ## 第一版公开接口
 
 所有公开接口统一从以下入口导入：

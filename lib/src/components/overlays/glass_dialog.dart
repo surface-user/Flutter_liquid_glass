@@ -30,18 +30,23 @@ class GlassDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = LiquidGlassTheme.of(context);
+    final surfaceConstraints =
+        constraints ?? BoxConstraints(maxWidth: theme.layout.dialogMaxWidth);
     return Dialog(
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
+      constraints:
+          constraints ??
+          (DialogTheme.of(context).constraints ??
+                  const BoxConstraints(minWidth: 280))
+              .enforce(surfaceConstraints),
       child: Semantics(
         namesRoute: true,
         label: semanticLabel,
         child: GlassSurface(
           style: style ?? theme.dialogStyle,
-          constraints:
-              constraints ??
-              BoxConstraints(maxWidth: theme.layout.dialogMaxWidth),
+          constraints: surfaceConstraints,
           padding: padding ?? glassPadding(context, theme.layout.dialogPadding),
           child: SingleChildScrollView(
             child: Column(
@@ -51,7 +56,12 @@ class GlassDialog extends StatelessWidget {
                 if (title != null) ...[
                   DefaultTextStyle.merge(
                     style: Theme.of(context).textTheme.headlineSmall!.merge(
-                      glassTextStyle(context, theme.textTheme.headlineSmall),
+                      glassTextStyle(
+                        context,
+                        theme.textTheme.headlineSmall,
+                        inheritedStyle: Theme.of(context).textTheme.bodyMedium!
+                            .merge(Theme.of(context).textTheme.headlineSmall),
+                      ),
                     ),
                     child: title!,
                   ),

@@ -8,6 +8,8 @@ example/build/
 example/.dart_tool/
 example/.idea/
 example/test/
+example/integration_test/
+example/test_driver/
 test/
 doc/screenshots/
 *.iml

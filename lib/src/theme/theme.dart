@@ -251,18 +251,53 @@ ButtonStyle glassControlStyle(BuildContext context, ButtonStyle? local) {
 }
 
 // Keep legacy inherited text when no semantic or typography override was set.
-TextStyle glassTextStyle(BuildContext context, TextStyle? style) {
+TextStyle glassTextStyle(
+  BuildContext context,
+  TextStyle? style, {
+  TextStyle? inheritedStyle,
+}) {
   final theme = LiquidGlassTheme.of(context);
-  final mismatch = theme.brightness != Theme.of(context).brightness;
+  final material = Theme.of(context);
+  final mismatch = theme.brightness != material.brightness;
   final color = style?.color ?? theme.colorScheme?.onSurface;
   final highContrast =
       theme.accessibility.highContrast ||
       MediaQuery.maybeOf(context)?.highContrast == true;
-  final resolved = highContrast && (color != null || mismatch)
+  final hasForeground = style?.foreground != null;
+  final inherited = inheritedStyle ?? material.textTheme.bodyMedium;
+  var unreadableInherited = false;
+  if (highContrast && color == null && !mismatch && !hasForeground) {
+    final background = theme.brightness == Brightness.dark
+        ? const Color(0xff202a3c)
+        : const Color(0xffedf1f8);
+    final foreground = Color.alphaBlend(
+      (inherited?.color ?? theme.foregroundColor).withValues(
+        colorSpace: background.colorSpace,
+      ),
+      background,
+    ).computeLuminance();
+    final backdrop = background.computeLuminance();
+    final contrast = foreground > backdrop
+        ? (foreground + .05) / (backdrop + .05)
+        : (backdrop + .05) / (foreground + .05);
+    // Preserve readable legacy text; a Paint can contain an arbitrary shader.
+    unreadableInherited = inherited?.foreground != null || contrast < 4.5;
+  }
+  final resolved =
+      highContrast &&
+          (color != null || mismatch || hasForeground || unreadableInherited)
       ? (theme.brightness == Brightness.dark
             ? Colors.white
             : const Color(0xff17233b))
       : color ?? (mismatch ? theme.foregroundColor : null);
+  if (highContrast &&
+      resolved != null &&
+      (hasForeground || inherited?.foreground != null)) {
+    // copyWith(color:) cannot override Paint; never mutate the caller's Paint.
+    return (style ?? const TextStyle()).copyWith(
+      foreground: Paint()..color = resolved,
+    );
+  }
   return (style ?? const TextStyle()).copyWith(color: resolved);
 }
 

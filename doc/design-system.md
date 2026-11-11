@@ -25,6 +25,8 @@
 ## 最终限制
 
 性能限制与系统无障碍在装饰解析后执行。系统高对比度强制可读前景/边框；减少透明度和关闭模糊使用不透明 fallback；任一减少动画来源禁止位移和缩放。
+
+高对比度下，显式前景 Paint 用新建纯色 Paint 覆盖，保留排版字段且不修改调用方对象。普通继承文字以组件实际 Material 角色判断不透明降级底上的可读性；低于本库 4.5 对比度测试阈值或继承任意 Paint 时才补强，已有可读默认色保持。颜色空间先统一再计算，阈值测试不代表全部无障碍验收。
 主题插值只对可安全绘制的颜色/几何字段渐变，实际 blur sigma 直接采用目标值；性能上限和无障碍限制在过渡期间取更严格值，不能在过渡中暂时解除。
 Theme 中各离散字段的切换时机与 nullable 清空、局部并存和动态切换均需测试。控制器与 FocusNode 的原所有权契约保留。
 
@@ -36,3 +38,15 @@ ButtonStyle 的有效字段清单见 api.md；未接入字段不属于当前契�
 
 GlassAppBar 的 preferredSize 无 BuildContext，toolbarHeight 继续由显式参数控制，避免主题改变内部高度却不改变 Scaffold 预留空间。主题可调整其文字、前景和标题间隔。
 路由/弹窗沿用 Flutter InheritedTheme 捕获打开时的局部主题；浮层内部可继续合并主题。不能把打开时捕获称为持续订阅源局部主题。
+
+GlassDialog 显式 constraints 同时作用于外层 Dialog 和表面；省略时保留 SDK/Material 最小约束并受 GlassLayout.dialogMaxWidth 限制。GlassMenu 打开期间换节点时移交原触发器焦点，已聚焦菜单项不被抢占；关闭恢复当前有效触发器节点，空 items 与禁用均安全关闭，外部节点仍由调用方释放。
+
+## M4/M5 最小范围
+
+- GlassTextField 复用 SDK TextField；输入/搜索共用一个 API，前后缀、错误和标签通过 InputDecoration，controller/FocusNode 外部所有权与 SDK 内部状态规则保持。
+- GlassNavigationItem 表现侧栏/树的一行；接收 label、leading/trailing、indent、selected 和回调，不保存页面/文件身份或展开树状态。
+- GlassTab 表现受控选中和独立关闭动作；不持有页面缓存，关闭按钮与选择按钮为相邻控件。
+- GlassToolbar 使用可换行组合；GlassMenu 使用 MenuAnchor 与 SDK MenuItemButton，包含焦点、Esc、禁用切换、关闭回调和窗口边界。本轮不增加多级菜单管理器。
+- 新桌面条目与菜单默认普通表面，不为每行创建 BackdropFilter。颜色、文字、间距、密度、交互状态复用现有主题。
+- 提示、加载、空状态优先用 Tooltip/CircularProgressIndicator/Text 组合验证，不新增占位反馈 API。
+- M5 采用公开入口夹具覆盖深浅/密度/降级/文字缩放组合。Windows 原生自动化和 profile 结果见 [testing.md](testing.md)；实窗人工与 Android 真机独立验收。审查不由作者自批。

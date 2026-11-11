@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lightweight_liquid_glass/lightweight_liquid_glass.dart';
-import 'frame_metrics.dart';
+import 'frame_sampler.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -118,34 +117,4 @@ void main() {
       );
     }
   }, timeout: const Timeout(Duration(minutes: 8)));
-}
-
-Future<Map<String, Object?>> sample(
-  WidgetTester tester,
-  Future<void> Function() action,
-) async {
-  final build = <double>[], raster = <double>[];
-  void collect(List<FrameTiming> frames) {
-    for (final frame in frames) {
-      build.add(frame.buildDuration.inMicroseconds / 1000);
-      raster.add(frame.rasterDuration.inMicroseconds / 1000);
-    }
-  }
-
-  SchedulerBinding.instance.addTimingsCallback(collect);
-  final watch = Stopwatch()..start();
-  try {
-    await action();
-    watch.stop();
-    // Timings are batched; allow the last engine report without scheduling a frame.
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 1100)),
-    );
-    return {
-      'action_duration_ms': watch.elapsedMilliseconds,
-      ...summarizeFrames(build, raster, tester.view.display.refreshRate),
-    };
-  } finally {
-    SchedulerBinding.instance.removeTimingsCallback(collect);
-  }
 }
