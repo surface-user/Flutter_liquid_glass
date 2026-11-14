@@ -51,6 +51,7 @@ class _GlassLabState extends State<GlassLab> {
   String tab = '属性';
   final messenger = GlobalKey<ScaffoldMessengerState>();
   final navigator = GlobalKey<NavigatorState>();
+  final canvasBoard = GlobalKey();
   String? recoveryText;
   String saveStatus = '布局保存在当前浏览器';
   StateSetter? sheetSetter;
@@ -171,17 +172,16 @@ class _GlassLabState extends State<GlassLab> {
           36 + (modules.length % 3) * 45.0,
           32 + (modules.length % 6) * 55.0,
         );
-    final error = mutate(
-      (s) => (s['modules'] as List).add(
-        advancedMode
-            ? module(type, id, x: p.dx.clamp(0, 950), y: p.dy.clamp(0, 1050))
-            : createBasicModule(
-                type,
-                id,
-                at: Offset(p.dx.clamp(0, 950), p.dy.clamp(0, 1050)),
-              ),
-      ),
+    final next = advancedMode ? module(type, id) : createBasicModule(type, id);
+    next['x'] = (at != null && snap ? (p.dx / 8).round() * 8.0 : p.dx).clamp(
+      0,
+      1200 - number(next['w']),
     );
+    next['y'] = (at != null && snap ? (p.dy / 8).round() * 8.0 : p.dy).clamp(
+      0,
+      1200 - number(next['h']),
+    );
+    final error = mutate((s) => (s['modules'] as List).add(next));
     if (error != null) return;
     setState(() {
       selected = 'node-$id';
@@ -801,6 +801,7 @@ class _GlassLabState extends State<GlassLab> {
           borderRadius: BorderRadius.circular(16),
           child: GlassBackdrop(
             child: Stack(
+              key: canvasBoard,
               clipBehavior: Clip.hardEdge,
               children: [
                 Positioned.fill(
@@ -831,7 +832,11 @@ class _GlassLabState extends State<GlassLab> {
     return Container(
       color: const Color(0xff111722),
       child: DragTarget<String>(
-        onAcceptWithDetails: (d) => add(d.data),
+        onAcceptWithDetails: (d) {
+          final box =
+              canvasBoard.currentContext?.findRenderObject() as RenderBox?;
+          if (box != null) add(d.data, at: box.globalToLocal(d.offset));
+        },
         builder: (context, candidates, rejected) => SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SingleChildScrollView(

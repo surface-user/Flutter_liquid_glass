@@ -1533,7 +1533,7 @@ Json initialScene() => {
             textNode('灵感，随手成形'),
             {
               'type': 'Text',
-              'text': '拖动模块标题，或者在右侧修改每一个参数。',
+              'text': '从左侧添加组件，在右侧调整内容与外观。',
               'style': {'fontSize': 13},
             },
           ],

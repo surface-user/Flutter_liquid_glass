@@ -374,6 +374,7 @@ String chinesePath(String path) => path
 
 // Existing browser layouts may still contain the original sample copy.
 String sampleText(String value) => switch (value) {
+  '拖动模块标题，或者在右侧修改每一个参数。' => '从左侧添加组件，在右侧调整内容与外观。',
   'Pure Flutter · Glass Surface' => '原生渲染 · 玻璃表面',
   'Hello, Glass' => '你好，玻璃世界',
   '调用 showGlassDialog' => '打开玻璃弹窗',

@@ -92,12 +92,53 @@ void main() {
     final count = state.modules.length as int;
     final tile = find.byKey(const ValueKey('basic-add-GlassIconButton'));
     final start = tester.getCenter(tile);
+    final anchor = start - tester.getTopLeft(tile);
     await tester.dragFrom(start, const Offset(900, 500) - start);
     await tester.pumpAndSettle();
     expect(state.modules.length, count + 1);
     expect(state.modules.last['type'], 'GlassIconButton');
+    final position = tester.getTopLeft(
+      find.byKey(ValueKey(state.modules.last['id'] as String)),
+    );
+    expect(position.dx, closeTo(900 - anchor.dx, 8));
+    expect(position.dy, closeTo(500 - anchor.dy, 8));
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('drop positions follow canvas zoom and stay within the board', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1500, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final zoom in [.4, 1.25]) {
+      await tester.pumpWidget(const GlassLab());
+      await tester.pumpAndSettle();
+      final state = tester.state(find.byType(GlassLab)) as dynamic;
+      state.setState(() => state.zoom = zoom);
+      await tester.pumpAndSettle();
+      final tile = find.byKey(const ValueKey('basic-add-GlassButton'));
+      final start = tester.getCenter(tile);
+      final anchor = start - tester.getTopLeft(tile);
+      await tester.dragFrom(start, const Offset(600, 350) - start);
+      await tester.pumpAndSettle();
+      final position = tester.getTopLeft(
+        find.byKey(ValueKey(state.modules.last['id'] as String)),
+      );
+      expect(position.dx, closeTo(600 - anchor.dx, 8 * zoom + .1));
+      expect(position.dy, closeTo(350 - anchor.dy, 8 * zoom + .1));
+      final count = state.modules.length as int;
+      state.add('GlassButton', at: const Offset(3000, -20));
+      await tester.pumpAndSettle();
+      expect(state.modules.length, count + 1);
+      final last = state.modules.last;
+      expect(last['x'] + last['w'], 1200);
+      expect(last['y'], 0);
+      expect(tester.takeException(), isNull, reason: '$zoom');
+      await tester.pumpWidget(const SizedBox());
+    }
   });
 
   testWidgets(
