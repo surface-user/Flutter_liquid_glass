@@ -1,0 +1,17 @@
+analyzer:
+  errors:
+    unused_import: warning
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+linter:
+  rules:
+    - avoid_print
+    - prefer_const_constructors
+    - use_super_parameters
+    - unawaited_futures
