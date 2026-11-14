@@ -917,51 +917,13 @@ class _GlassLabState extends State<GlassLab> {
         },
         child: MouseRegion(
           cursor: SystemMouseCursors.move,
-          child: Container(
-            height: 28,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: chosen ? const Color(0xff696ad5) : const Color(0xcc20283a),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(7),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.drag_indicator,
-                  size: 13,
-                  color: Colors.white70,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    advancedMode
-                        ? chineseLabel(m['type'])
-                        : basicEntryFor(m['type'])?.title ?? '自定义内容',
-                    maxLines: 1,
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                ),
-                if (chosen && number(m['w']) >= 100) ...[
-                  InkWell(
-                    onTap: duplicate,
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.copy, size: 13, color: Colors.white),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: remove,
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.close, size: 13, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          child: advancedMode
+              ? const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: Icon(Icons.drag_indicator, size: 17, color: mint),
+                )
+              : const SizedBox.expand(),
         ),
       ),
     );
@@ -993,14 +955,22 @@ class _GlassLabState extends State<GlassLab> {
           onPanEnd: (_) => persist(),
           child: MouseRegion(
             cursor: SystemMouseCursors.resizeDownRight,
-            child: Container(
-              width: 18,
-              height: 18,
-              color: const Color(0xff696ad5),
-              child: const Icon(
-                Icons.south_east,
-                size: 12,
-                color: Colors.white,
+            child: SizedBox(
+              key: ValueKey('resize-$id'),
+              width: 24,
+              height: 24,
+              child: Center(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: mint,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: Icon(Icons.south_east, size: 10, color: ink),
+                  ),
+                ),
               ),
             ),
           ),
@@ -1013,78 +983,77 @@ class _GlassLabState extends State<GlassLab> {
       top: number(m['y']),
       width: number(m['w']),
       height: number(m['h']),
-      child: Column(
-        children: [
-          header,
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: chosen ? const Color(0xff8c8cff) : Colors.transparent,
-                  width: 1.5,
+      child: GestureDetector(
+        onTap: () => setState(() {
+          selected = id;
+          global = false;
+          tab = '属性';
+        }),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Align(
+              alignment: Alignment.topLeft,
+              child: ExcludeFocus(
+                excluding: !advancedMode,
+                child: IgnorePointer(
+                  ignoring: !advancedMode,
+                  child: Builder(
+                    builder: (context) {
+                      try {
+                        return runtime.build(
+                          {...m['props'] as Map, 'type': m['type']},
+                          context,
+                          '$id/root',
+                        );
+                      } catch (e) {
+                        return ColoredBox(
+                          color: const Color(0xff4b2333),
+                          child: Center(
+                            child: Text(
+                              '参数无法渲染\n$e',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: ExcludeFocus(
-                      excluding: !advancedMode,
-                      child: IgnorePointer(
-                        ignoring: !advancedMode,
-                        child: Builder(
-                          builder: (context) {
-                            try {
-                              return runtime.build(
-                                {...(m['props'] as Map), 'type': m['type']},
-                                context,
-                                '$id/root',
-                              );
-                            } catch (e) {
-                              return ColoredBox(
-                                color: const Color(0xff4b2333),
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Text(
-                                      '参数无法渲染\n$e',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ),
+            ),
+            if (chosen)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    key: ValueKey('selection-$id'),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: mint, width: 1),
                     ),
                   ),
-                  if (!advancedMode)
-                    Positioned.fill(
-                      child: Semantics(
-                        button: true,
-                        label:
-                            '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}',
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => setState(() {
-                            selected = id;
-                            global = false;
-                            tab = '属性';
-                          }),
-                        ),
-                      ),
-                    ),
-                  if (chosen) resize,
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
+            if (!advancedMode)
+              Positioned.fill(
+                child: Semantics(
+                  button: true,
+                  label:
+                      '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}，拖动可移动',
+                  child: header,
+                ),
+              )
+            else if (chosen)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Tooltip(message: '拖动组件', child: header),
+              ),
+            if (chosen) resize,
+          ],
+        ),
       ),
     );
   }
