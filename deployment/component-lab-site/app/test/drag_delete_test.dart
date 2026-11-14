@@ -49,7 +49,7 @@ void main() {
       expect(state.modules, isEmpty);
       expect(state.past.length, history + 1);
       expect(find.byKey(const ValueKey('delete-zone')), findsNothing);
-      expect(find.text('组件已删除'), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
       await tester.tap(find.byTooltip('撤销'));
       await tester.pumpAndSettle();
       expect(jsonEncode(state.scene), before);
@@ -91,7 +91,7 @@ void main() {
   });
 
   testWidgets(
-    'narrow large-text drag delete releases input resources and snackbar undo is available',
+    'narrow large-text deletion releases input resources and header undo remains available',
     (tester) async {
       final state = await mount(tester, width: 390, scale: 2, input: true);
       final before = jsonEncode(state.scene);
@@ -106,7 +106,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(state.modules, isEmpty);
       expect(state.runtime.controllers, isEmpty);
-      await tester.tap(find.text('撤销'));
+      expect(find.byType(SnackBar), findsNothing);
+      await tester.tap(find.byTooltip('撤销'));
       await tester.pumpAndSettle();
       expect(jsonEncode(state.scene), before);
       expect(state.runtime.controllers.length, 1);

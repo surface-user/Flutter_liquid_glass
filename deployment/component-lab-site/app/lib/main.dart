@@ -366,7 +366,7 @@ class _GlassLabState extends State<GlassLab> {
               ),
               child: Row(
                 children: [
-                  if (!small || textScale <= 1.3)
+                  if ((!small || c.maxWidth >= 390) && textScale <= 1.3)
                     Container(
                       width: 32,
                       height: 32,
@@ -376,7 +376,8 @@ class _GlassLabState extends State<GlassLab> {
                       ),
                       child: const Icon(Icons.blur_on, color: ink, size: 23),
                     ),
-                  if (!small || textScale <= 1.3) const SizedBox(width: 12),
+                  if ((!small || c.maxWidth >= 390) && textScale <= 1.3)
+                    const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       '玻璃实验台',
@@ -400,19 +401,23 @@ class _GlassLabState extends State<GlassLab> {
                     ),
                     const SizedBox(width: 20),
                   ],
-                  if (wide)
-                    tool(
-                      Icons.undo,
-                      '撤销',
-                      past.isEmpty ? null : () => undo(false),
-                    ),
-                  if (wide)
-                    tool(
-                      Icons.redo,
-                      '重做',
-                      future.isEmpty ? null : () => undo(true),
-                    ),
-                  const SizedBox(width: 8),
+                  Row(
+                    key: const ValueKey('history-controls'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      tool(
+                        Icons.undo,
+                        '撤销',
+                        past.isEmpty ? null : () => undo(false),
+                      ),
+                      tool(
+                        Icons.redo,
+                        '重做',
+                        future.isEmpty ? null : () => undo(true),
+                      ),
+                    ],
+                  ),
+                  if (!small) const SizedBox(width: 8),
                   KeyedSubtree(
                     key: const ValueKey('run-preview'),
                     child: wide && textScale <= 1.3
@@ -458,7 +463,7 @@ class _GlassLabState extends State<GlassLab> {
                       icon: const Icon(Icons.code, size: 16),
                       label: const Text('布局配置'),
                     ),
-                  const SizedBox(width: 8),
+                  if (!small) const SizedBox(width: 8),
                   if (!wide)
                     tool(
                       Icons.file_download_outlined,
@@ -1045,13 +1050,6 @@ class _GlassLabState extends State<GlassLab> {
       overDelete = false;
     });
     persist();
-    if (deleted)
-      messenger.currentState?.showSnackBar(
-        SnackBar(
-          content: const Text('组件已删除'),
-          action: SnackBarAction(label: '撤销', onPressed: () => undo(false)),
-        ),
-      );
   }
 
   Widget previewModule(Json m, BuildContext appContext) {

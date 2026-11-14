@@ -1,3 +1,5 @@
+> 2026-11-14 后续修正：标签/导航/菜单/文字等自然尺寸内容的选框贴合实际内容，普通模式不显示无效尺寸手柄；删除不再显示底部横幅，顶部运行预览旁统一提供撤销/重做。最新证据见 [selection-history-verification.md](../docs/selection-history-verification.md)。
+
 > 2026-11-14 尺寸/删除/灰屏的最新契约与证据见 [editor-controls-verification.md](../docs/editor-controls-verification.md)。下文2026-11-13记录为历史；当前画布没有标题条，w/h全部用于内容区域，顶层按钮填满该区域，四边短柄调整尺寸。
 
 # 实验台参数与交互修复验收
