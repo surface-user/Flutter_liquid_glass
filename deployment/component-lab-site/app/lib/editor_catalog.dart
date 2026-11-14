@@ -208,7 +208,9 @@ class _BasicPaletteState extends State<BasicPalette> {
               }.entries)
                 if (visible.any((entry) => entry.category == group.key))
                   ExpansionTile(
-                    key: ValueKey('catalog-${group.key}-${query.isNotEmpty}'),
+                    key: PageStorageKey(
+                      'catalog-${group.key}-${query.isNotEmpty}',
+                    ),
                     initiallyExpanded:
                         query.isNotEmpty || ['操作', '导航'].contains(group.key),
                     shape: const Border(),
