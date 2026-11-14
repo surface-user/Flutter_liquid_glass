@@ -984,6 +984,7 @@ class Runtime {
     BuildContext context,
     String path, [
     int depth = 0,
+    bool fillModule = false,
   ]) => _RuntimeNode(
     key: ValueKey('$path/${spec is Map ? spec['type'] : 'Text'}'),
     runtime: this,
@@ -991,6 +992,7 @@ class Runtime {
     spec: spec,
     path: path,
     depth: depth,
+    fillModule: fillModule,
   );
 
   Widget _dialogTrigger(
@@ -1039,6 +1041,7 @@ class Runtime {
     String path,
     int depth, {
     BuildContext? actionContext,
+    bool fillModule = false,
   }) {
     if (depth > 16) throw const FormatException('组件嵌套最多16层');
     if (spec == null) return const SizedBox.shrink();
@@ -1104,10 +1107,12 @@ class Runtime {
         focusNode: focusNode,
         autofocus: m['autofocus'] ?? false,
         onPressed: callback('onPressed'),
-        child: child(),
+        child: fillModule ? Center(child: child()) : child(),
       ),
       'GlassIconButton' => GlassIconButton(
-        icon: node(m['icon'], 'icon'),
+        icon: fillModule
+            ? Center(child: node(m['icon'], 'icon'))
+            : node(m['icon'], 'icon'),
         tooltip: m['tooltip'] ?? '',
         style: appearance(GlassPresets.button),
         controlStyle: control(m['controlStyle'], custom: true),
@@ -1444,12 +1449,14 @@ class _RuntimeNode extends StatefulWidget {
     required this.spec,
     required this.path,
     required this.depth,
+    this.fillModule = false,
   });
   final Runtime runtime;
   final BuildContext actionContext;
   final dynamic spec;
   final String path;
   final int depth;
+  final bool fillModule;
   @override
   State<_RuntimeNode> createState() => _RuntimeNodeState();
 }
@@ -1484,6 +1491,7 @@ class _RuntimeNodeState extends State<_RuntimeNode> {
         widget.path,
         widget.depth,
         actionContext: widget.actionContext,
+        fillModule: widget.fillModule,
       );
     } finally {
       widget.runtime._building = null;
@@ -1499,16 +1507,71 @@ class _RuntimeNodeState extends State<_RuntimeNode> {
   }
 }
 
+Widget moduleView(
+  Runtime runtime,
+  Json item,
+  BuildContext context,
+  String path,
+) {
+  final control = ['GlassButton', 'GlassIconButton'].contains(item['type']);
+  try {
+    final content = runtime.build(
+      {...item['props'] as Map, 'type': item['type']},
+      context,
+      path,
+      0,
+      control,
+    );
+    return control
+        ? SizedBox.expand(child: content)
+        : Align(alignment: Alignment.topLeft, child: content);
+  } catch (e) {
+    return ColoredBox(
+      color: const Color(0xff4b2333),
+      child: Center(
+        child: Text(
+          '参数无法渲染\n$e',
+          style: const TextStyle(color: Colors.white, fontSize: 11),
+        ),
+      ),
+    );
+  }
+}
+
+OutlinedBorder moduleOutline(Json item, LiquidGlassThemeData theme) {
+  final p = item['props'] as Map;
+  final fallback = switch (item['type']) {
+    'GlassButton' || 'GlassIconButton' => theme.buttonStyle,
+    'GlassCard' => theme.cardStyle,
+    _ => theme.defaultStyle,
+  };
+  final s = p['style'] is Map ? glassStyle(p['style'], fallback) : fallback;
+  if (![
+    'GlassButton',
+    'GlassIconButton',
+    'GlassCard',
+    'GlassSurface',
+    'AnimatedGlassSurface',
+  ].contains(item['type']))
+    return const RoundedRectangleBorder();
+  return s.shape == BoxShape.circle
+      ? const CircleBorder()
+      : RoundedRectangleBorder(borderRadius: s.borderRadius);
+}
+
 Json module(String type, int id, {double x = 40, double y = 40}) => {
   'id': 'node-$id',
   'type': type,
   'x': x,
   'y': y,
-  'w': type == 'GlassIconButton' ? 100 : 360,
+  'w': type == 'GlassIconButton'
+      ? 56
+      : type == 'GlassButton'
+      ? 160
+      : 360,
   'h': switch (type) {
     'GlassAppBar' => 90,
-    'GlassIconButton' => 100,
-    'GlassButton' ||
+    'GlassIconButton' || 'GlassButton' => 56,
     'GlassNavigationItem' ||
     'GlassTab' ||
     'GlassToolbar' ||
@@ -1601,9 +1664,9 @@ void validateScene(Json scene, {Json? previous, bool legacy = false}) {
     for (final k in ['x', 'y', 'w', 'h']) {
       final n = number(raw[k]);
       final min = k == 'w'
-          ? 70
+          ? 48
           : k == 'h'
-          ? 65
+          ? 48
           : 0;
       final max = (k == 'w' || k == 'h')
           ? 1100
@@ -1630,7 +1693,7 @@ void validateScene(Json scene, {Json? previous, bool legacy = false}) {
 
 Size requiredFrame(Map module) {
   final p = module['props'] as Map;
-  var w = 70.0, h = 65.0;
+  var w = 48.0, h = 48.0;
   if (['GlassSurface', 'AnimatedGlassSurface'].contains(module['type'])) {
     if (p['width'] is num) w = math.max(w, number(p['width']));
     if (p['height'] is num) h = math.max(h, number(p['height']));

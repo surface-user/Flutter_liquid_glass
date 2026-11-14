@@ -267,25 +267,18 @@ class _PreviewSessionState extends State<_PreviewSession> {
                                                           as List)
                                                     Positioned(
                                                       left: number(m['x']),
-                                                      top: number(m['y']) + 28,
+                                                      top: number(m['y']),
                                                       width: number(m['w']),
-                                                      height: math.max(
-                                                        0,
-                                                        number(m['h']) - 28,
-                                                      ),
+                                                      height: number(m['h']),
                                                       child: ClipRect(
-                                                        child: Align(
-                                                          alignment:
-                                                              Alignment.topLeft,
-                                                          child: runtime.build(
-                                                            {
-                                                              'type': m['type'],
-                                                              ...m['props']
-                                                                  as Map,
-                                                            },
-                                                            boardContext,
-                                                            '运行/${m['id']}/root',
-                                                          ),
+                                                        child: moduleView(
+                                                          runtime,
+                                                          Map<
+                                                            String,
+                                                            dynamic
+                                                          >.from(m),
+                                                          boardContext,
+                                                          '运行/${m['id']}/root',
                                                         ),
                                                       ),
                                                     ),

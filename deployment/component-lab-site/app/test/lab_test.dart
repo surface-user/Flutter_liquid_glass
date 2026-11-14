@@ -339,15 +339,29 @@ void main() {
         await tester.pumpAndSettle();
         final size = tester.getSize(module);
         await tester.drag(
-          find.byIcon(Icons.south_east),
-          const Offset(65, 39),
+          find.byKey(const ValueKey('resize-right-node-1')),
+          const Offset(65, 0),
           kind: ui.PointerDeviceKind.mouse,
         );
         await tester.pumpAndSettle();
         final resized = tester.getSize(module);
         // getSize reports canvas units; pointer movement is in screen units.
         expect((resized.width - size.width) * zoom, closeTo(65, 1));
-        expect((resized.height - size.height) * zoom, closeTo(39, 1));
+        expect(resized.height, size.height);
+        await tester.tap(find.byTooltip('撤销'));
+        await tester.pumpAndSettle();
+        expect(tester.getSize(module), size);
+        await tester.drag(
+          find.byKey(const ValueKey('resize-bottom-node-1')),
+          const Offset(0, 39),
+          kind: ui.PointerDeviceKind.mouse,
+        );
+        await tester.pumpAndSettle();
+        expect(
+          (tester.getSize(module).height - size.height) * zoom,
+          closeTo(39, 1),
+        );
+        expect(tester.getSize(module).width, size.width);
         await tester.tap(find.byTooltip('撤销'));
         await tester.pumpAndSettle();
         expect(tester.getSize(module), size);

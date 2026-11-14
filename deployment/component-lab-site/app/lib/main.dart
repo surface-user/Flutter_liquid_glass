@@ -45,6 +45,9 @@ class _GlassLabState extends State<GlassLab> {
   String? selected = 'node-1';
   bool global = false, snap = true;
   bool advancedMode = false;
+  String? transformingId, transformBefore, resizeSide;
+  Rect? transformRect;
+  Offset transformDelta = Offset.zero;
   bool sidebarOpen = true;
   String sidebarSection = 'components';
   double zoom = .85;
@@ -865,193 +868,268 @@ class _GlassLabState extends State<GlassLab> {
     );
   }
 
+  Json? itemById(String id) {
+    for (final item in modules) {
+      if (item['id'] == id) return item as Json;
+    }
+    return null;
+  }
+
+  void beginTransform(String id, {String? side}) {
+    if (transformingId != null) return;
+    final item = itemById(id);
+    if (item == null) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      transformingId = id;
+      transformBefore = jsonEncode(scene);
+      transformRect = Rect.fromLTWH(
+        number(item['x']),
+        number(item['y']),
+        number(item['w']),
+        number(item['h']),
+      );
+      transformDelta = Offset.zero;
+      resizeSide = side;
+      selected = id;
+      global = false;
+    });
+  }
+
+  void updateTransform(String id, DragUpdateDetails details) {
+    if (transformingId != id || transformRect == null) return;
+    final item = itemById(id);
+    if (item == null) return;
+    setState(() {
+      transformDelta += details.delta;
+      final r = transformRect!;
+      final min = requiredFrame(item);
+      switch (resizeSide) {
+        case 'left':
+          item['x'] = (r.left + transformDelta.dx).clamp(
+            (r.right - 1100).clamp(0, 1200),
+            r.right - min.width,
+          );
+          item['w'] = r.right - item['x'];
+        case 'right':
+          item['w'] = (r.width + transformDelta.dx).clamp(
+            min.width,
+            (1200 - r.left).clamp(min.width, 1100),
+          );
+        case 'top':
+          item['y'] = (r.top + transformDelta.dy).clamp(
+            (r.bottom - 1100).clamp(0, 1200),
+            r.bottom - min.height,
+          );
+          item['h'] = r.bottom - item['y'];
+        case 'bottom':
+          item['h'] = (r.height + transformDelta.dy).clamp(
+            min.height,
+            (1200 - r.top).clamp(min.height, 1100),
+          );
+        default:
+          item['x'] = (r.left + transformDelta.dx).clamp(0, 1200 - r.width);
+          item['y'] = (r.top + transformDelta.dy).clamp(0, 1200 - r.height);
+      }
+    });
+  }
+
+  void finishTransform(String id, {bool cancel = false}) {
+    if (transformingId != id) return;
+    final item = itemById(id);
+    final before = transformBefore;
+    setState(() {
+      if (cancel && item != null && transformRect != null) {
+        final original = (jsonDecode(before!)['modules'] as List).firstWhere(
+          (m) => m['id'] == id,
+        );
+        item.addAll({
+          for (final field in ['x', 'y', 'w', 'h']) field: original[field],
+        });
+      } else {
+        if (item != null && resizeSide == null && snap) {
+          item['x'] = ((number(item['x']) / 8).round() * 8.0).clamp(
+            0,
+            1200 - number(item['w']),
+          );
+          item['y'] = ((number(item['y']) / 8).round() * 8.0).clamp(
+            0,
+            1200 - number(item['h']),
+          );
+        }
+        if (before != null && before != jsonEncode(scene)) {
+          past.add(before);
+          if (past.length > 60) past.removeAt(0);
+          future.clear();
+        }
+      }
+      transformingId = transformBefore = resizeSide = null;
+      transformRect = null;
+    });
+    persist();
+  }
+
   Widget previewModule(Json m, BuildContext appContext) {
     final id = m['id'] as String;
     final chosen = selected == id && !global;
-    // Drag handles must win before the surrounding canvas scroll gestures.
-    final header = MediaQuery(
+    const selectionColor = Color(0xff7963b5);
+    final outline = moduleOutline(
+      m,
+      glassTheme(scene['theme']),
+    ).copyWith(side: const BorderSide(color: selectionColor, width: 1.5));
+    final move = MediaQuery(
       data: MediaQuery.of(
         appContext,
       ).copyWith(gestureSettings: const DeviceGestureSettings(touchSlop: 4)),
       child: GestureDetector(
+        key: ValueKey('header-$id'),
         dragStartBehavior: DragStartBehavior.down,
         behavior: HitTestBehavior.opaque,
-        key: ValueKey('header-$id'),
         onTap: () => setState(() {
           selected = id;
           global = false;
+          tab = '属性';
         }),
-        onPanStart: (_) {
-          past.add(jsonEncode(scene));
-          if (past.length > 60) past.removeAt(0);
-          future.clear();
-          setState(() {
-            selected = id;
-            global = false;
-          });
-        },
-        onPanUpdate: (d) => setState(() {
-          m['x'] = (number(m['x']) + d.delta.dx).clamp(
-            0,
-            (1200 - number(m['w'])).clamp(0, 1200),
-          );
-          m['y'] = (number(m['y']) + d.delta.dy).clamp(
-            0,
-            (1200 - number(m['h'])).clamp(0, 1200),
-          );
-        }),
-        onPanEnd: (_) {
-          setState(() {
-            if (snap) {
-              m['x'] = ((number(m['x']) / 8).round() * 8.0).clamp(
-                0,
-                1200 - number(m['w']),
-              );
-              m['y'] = ((number(m['y']) / 8).round() * 8.0).clamp(
-                0,
-                1200 - number(m['h']),
-              );
-            }
-          });
-          persist();
-        },
+        onPanStart: (_) => beginTransform(id),
+        onPanUpdate: (d) => updateTransform(id, d),
+        onPanEnd: (_) => finishTransform(id),
+        onPanCancel: () => finishTransform(id, cancel: true),
         child: MouseRegion(
           cursor: SystemMouseCursors.move,
           child: advancedMode
               ? const SizedBox(
                   width: 28,
                   height: 28,
-                  child: Icon(Icons.drag_indicator, size: 17, color: mint),
+                  child: Icon(
+                    Icons.drag_indicator,
+                    size: 17,
+                    color: selectionColor,
+                  ),
                 )
               : const SizedBox.expand(),
         ),
       ),
     );
-    final resize = Positioned(
-      right: 0,
-      bottom: 0,
-      child: MediaQuery(
-        data: MediaQuery.of(
-          appContext,
-        ).copyWith(gestureSettings: const DeviceGestureSettings(touchSlop: 4)),
-        child: GestureDetector(
-          dragStartBehavior: DragStartBehavior.down,
-          onPanStart: (_) {
-            past.add(jsonEncode(scene));
-            if (past.length > 60) past.removeAt(0);
-            future.clear();
-          },
-          onPanUpdate: (d) => setState(() {
-            final min = requiredFrame(m);
-            m['w'] = (number(m['w']) + d.delta.dx).clamp(
-              min.width,
-              (1200 - number(m['x'])).clamp(70, 1100),
-            );
-            m['h'] = (number(m['h']) + d.delta.dy).clamp(
-              min.height,
-              (1200 - number(m['y'])).clamp(65, 1100),
-            );
-          }),
-          onPanEnd: (_) => persist(),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.resizeDownRight,
-            child: SizedBox(
-              key: ValueKey('resize-$id'),
-              width: 24,
-              height: 24,
-              child: Center(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: mint,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: const SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: Icon(Icons.south_east, size: 10, color: ink),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
     return Positioned(
-      key: ValueKey(id),
-      left: number(m['x']),
-      top: number(m['y']),
-      width: number(m['w']),
-      height: number(m['h']),
-      child: GestureDetector(
-        onTap: () => setState(() {
-          selected = id;
-          global = false;
-          tab = '属性';
-        }),
+      key: ValueKey('shell-$id'),
+      left: number(m['x']) - 12,
+      top: number(m['y']) - 12,
+      width: number(m['w']) + 24,
+      height: number(m['h']) + 24,
+      child: Listener(
+        onPointerCancel: (_) => finishTransform(id, cancel: true),
         child: Stack(
-          fit: StackFit.expand,
           children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: ExcludeFocus(
-                excluding: !advancedMode,
-                child: IgnorePointer(
-                  ignoring: !advancedMode,
-                  child: Builder(
-                    builder: (context) {
-                      try {
-                        return runtime.build(
-                          {...m['props'] as Map, 'type': m['type']},
-                          context,
-                          '$id/root',
-                        );
-                      } catch (e) {
-                        return ColoredBox(
-                          color: const Color(0xff4b2333),
-                          child: Center(
-                            child: Text(
-                              '参数无法渲染\n$e',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                              ),
+            Positioned.fill(
+              left: 12,
+              right: 12,
+              top: 12,
+              bottom: 12,
+              child: SizedBox(
+                key: ValueKey(id),
+                child: GestureDetector(
+                  onTap: () => setState(() {
+                    selected = id;
+                    global = false;
+                    tab = '属性';
+                  }),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ExcludeFocus(
+                        excluding: !advancedMode,
+                        child: IgnorePointer(
+                          ignoring: !advancedMode,
+                          child: Builder(
+                            builder: (context) =>
+                                moduleView(runtime, m, context, '$id/root'),
+                          ),
+                        ),
+                      ),
+                      if (chosen)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              key: ValueKey('selection-$id'),
+                              decoration: ShapeDecoration(shape: outline),
                             ),
                           ),
-                        );
-                      }
-                    },
+                        ),
+                      if (!advancedMode)
+                        Positioned.fill(
+                          child: Semantics(
+                            button: true,
+                            label:
+                                '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}，拖动可移动',
+                            child: move,
+                          ),
+                        )
+                      else if (chosen)
+                        Positioned(top: 0, right: 0, child: move),
+                    ],
                   ),
                 ),
               ),
             ),
             if (chosen)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    key: ValueKey('selection-$id'),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: mint, width: 1),
+              for (final side in const {
+                'left': Alignment.centerLeft,
+                'right': Alignment.centerRight,
+                'top': Alignment.topCenter,
+                'bottom': Alignment.bottomCenter,
+              }.entries)
+                Align(
+                  alignment: side.value,
+                  child: MediaQuery(
+                    data: MediaQuery.of(appContext).copyWith(
+                      gestureSettings: const DeviceGestureSettings(
+                        touchSlop: 4,
+                      ),
+                    ),
+                    child: Semantics(
+                      label:
+                          '调整${switch (side.key) {
+                            'left' => '左',
+                            'right' => '右',
+                            'top' => '上',
+                            _ => '下',
+                          }}侧尺寸',
+                      child: MouseRegion(
+                        cursor: side.key == 'left' || side.key == 'right'
+                            ? SystemMouseCursors.resizeLeftRight
+                            : SystemMouseCursors.resizeUpDown,
+                        child: GestureDetector(
+                          key: ValueKey('resize-${side.key}-$id'),
+                          dragStartBehavior: DragStartBehavior.down,
+                          behavior: HitTestBehavior.opaque,
+                          onPanStart: (_) => beginTransform(id, side: side.key),
+                          onPanUpdate: (d) => updateTransform(id, d),
+                          onPanEnd: (_) => finishTransform(id),
+                          onPanCancel: () => finishTransform(id, cancel: true),
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Center(
+                              child: Container(
+                                width: side.key == 'left' || side.key == 'right'
+                                    ? 4
+                                    : 22,
+                                height:
+                                    side.key == 'left' || side.key == 'right'
+                                    ? 22
+                                    : 4,
+                                decoration: BoxDecoration(
+                                  color: selectionColor,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            if (!advancedMode)
-              Positioned.fill(
-                child: Semantics(
-                  button: true,
-                  label:
-                      '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}，拖动可移动',
-                  child: header,
-                ),
-              )
-            else if (chosen)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Tooltip(message: '拖动组件', child: header),
-              ),
-            if (chosen) resize,
           ],
         ),
       ),
