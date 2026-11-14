@@ -23,7 +23,7 @@
 
 ## 交付与边界
 
-- EDIT-A 独立PR：[#12](https://github.com/surface-user/Flutter_liquid_glass/pull/12)。EDIT-B独立PR：[#13](https://github.com/surface-user/Flutter_liquid_glass/pull/13)。其独立分支分析0问题、17项专项通过。EDIT-C等待独立交付。
+- EDIT-A 独立PR：[#12](https://github.com/surface-user/Flutter_liquid_glass/pull/12)。EDIT-B独立PR：[#13](https://github.com/surface-user/Flutter_liquid_glass/pull/13)。其独立分支分析0问题、17项专项通过。EDIT-C独立PR：[#14](https://github.com/surface-user/Flutter_liquid_glass/pull/14)，独立分支分析0问题、删除/侧栏4项通过。
 - 本地验收、CI、人工审查与Sites发布分别记录。源库的真机性能、物理IME及未检查浏览器不在本轮通过范围；不修改依赖、公共API、快照或现有视觉基准。
 
 ## 页面证据与已知检查边界
@@ -41,4 +41,10 @@
 
 ## Sites交付
 
-原项目及公开受众保留，发布状态待记录。
+原项目及公开受众保留。原站第**5**版于2026-11-14发布成功，返回终态`succeeded`。
+
+- [原站点](https://liquid-glass-component-workbench.marseille-cjh.chatgpt.site)
+- 推送且构建对应源码：`98304dca1077915aecc04c9e2724ee0b7724c083`。
+- 发布归档：deployment/editor-controls-verified.tar.gz，36文件，SHA256 `b3d1a85a094d0d2992b8a314b9462b07c3cd4e4ca336eb194019431210a5ddff`。
+- deployment ID：`appgdep_6af858f663ac81918cf757bc1c9fb4dc`。
+- #12 head ac3af517、#13 head 385934db的根视觉/格式/分析/库与示例行为/Android Dart编译/Web构建均通过；仅库包pub发布检查失败，沿用既有根忽略规则门槛。#14最终head CI另列。全部PR为草稿，未合并；非作者审查未完成。

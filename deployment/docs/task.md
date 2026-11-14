@@ -24,7 +24,7 @@
 | --- | --- | --- | --- | --- |
 | EDIT-A | DONE | UI-A/B DONE | 滚动、折叠、搜索、组件/图层/面板反复切换后无异常、灰屏或状态串用 | 已复现double被读为bool；八轮状态保持及导航6项通过；[PR #12](https://github.com/surface-user/Flutter_liquid_glass/pull/12)已交付，CI/人工审查另列 |
 | EDIT-B | DONE | UI-B DONE | 轮廓贴合真实控件、四边短柄改变实际宽高，左/上边保留对边；缩放/最小值/边界/撤销/运行预览一致 | 四边/取消/实际尺寸专项通过；独立分支17项通过；[PR #13](https://github.com/surface-user/Flutter_liquid_glass/pull/13)已交付 |
-| EDIT-C | REVIEW | EDIT-B REVIEW | 拖动时左侧显示删除区，释放才删除正确组件；取消不删，撤销回原位置与内容，资源释放和窄屏验证 | 释放/取消/撤销/资源/窄屏专项通过；140项集成回归及浏览器通过；独立PR待交付 |
+| EDIT-C | DONE | EDIT-B REVIEW | 拖动时左侧显示删除区，释放才删除正确组件；取消不删，撤销回原位置与内容，资源释放和窄屏验证 | 释放/取消/撤销/资源/窄屏专项通过；140项集成回归及浏览器通过；独立分支分析/4项通过；[PR #14](https://github.com/surface-user/Flutter_liquid_glass/pull/14)已交付 |
 
 以下为历史批次，验收结果不替代本轮。
 
@@ -97,3 +97,5 @@ PR是交付评审，不自动合并。CI、非作者审查与线上发布另列�
 - P0-V独立[PR #9](https://github.com/surface-user/Flutter_liquid_glass/pull/9)已交付，P0-A/B/C/V均DONE（按上方本地验收+PR定义），P1/P2未授权不推进。所有PR仍为草稿、未合并；#6/#7/#8精确head已核实仅库包发布检查失败，其余根CI步骤通过，#9最终head检查单独观察。
 
 - 简洁导航/无标题画布：UI-A、UI-B均按实现+本地验收+独立PR条件DONE。133项完整回归通过，随后单结果对齐的导航5项复验通过；Web/浏览器/ZIP56文件/64保护文件通过，原站第4版终态succeeded。PR #10/#11未合并，库包发布检查的既有忽略规则门槛不在本轮越界修复。
+
+- EDIT-A/B/C本地验收与独立PR交付完成：全量140/140、格式/分析、Web构建、Edge拖动尺寸/删除撤销/侧栏及390中文排版、ZIP61文件一致和64保护文件不变。2026-11-14原站第5版发布成功，源码98304dca1077915aecc04c9e2724ee0b7724c083；详见[editor-controls-verification.md](editor-controls-verification.md)。PR #12/#13根CI除库包发布检查外通过；#14新head检查与非作者审查另列，全部未合并。
