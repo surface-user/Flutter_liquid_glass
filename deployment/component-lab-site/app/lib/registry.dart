@@ -358,6 +358,8 @@ final componentDefaults = <String, Json>{
   },
   'showGlassDialog': {
     'child': textNode('打开玻璃弹窗'),
+    'triggerKind': 'button',
+    'triggerIcon': 'info',
     'builder': {
       'type': 'GlassDialog',
       'title': textNode('你好，玻璃世界'),
@@ -950,7 +952,13 @@ class Runtime {
               c,
               '$path/dialog',
             ),
-          );
+          ).then((result) {
+            if (!_disposed) {
+              log(
+                '${chinesePath(path)} · ${result == null ? '弹窗已关闭' : '返回 $result'}',
+              );
+            }
+          });
         case 'route':
           Navigator.of(context).push(
             GlassPageRoute(
@@ -984,6 +992,46 @@ class Runtime {
     path: path,
     depth: depth,
   );
+
+  Widget _dialogTrigger(
+    Json m,
+    BuildContext context,
+    String path,
+    Widget child,
+  ) {
+    Future<void> open() async {
+      final opener = FocusManager.instance.primaryFocus;
+      log('${chinesePath(path)} · 打开玻璃弹窗');
+      final result = await showGlassDialog(
+        context: context,
+        builder: (c) => build(m['builder'], c, '$path/dialog'),
+        barrierDismissible: m['barrierDismissible'] ?? true,
+        useRootNavigator: m['useRootNavigator'] ?? true,
+        routeSettings: RouteSettings(
+          name: m['routeSettings']?['name'],
+          arguments: m['routeSettings']?['arguments'],
+        ),
+        motion: m['motion'] == null ? null : motion(m['motion']),
+      );
+      if (opener?.context?.mounted == true && opener!.canRequestFocus) {
+        opener.requestFocus();
+      }
+      log('${chinesePath(path)} · ${result == null ? '弹窗已关闭' : '返回 $result'}');
+    }
+
+    return switch (m['triggerKind']) {
+      'iconButton' => GlassIconButton(
+        icon: Icon(icons[m['triggerIcon']] ?? Icons.info_outline),
+        tooltip: m['child'] is Map
+            ? (m['child']['text'] ?? '打开说明').toString()
+            : '打开说明',
+        onPressed: open,
+      ),
+      'textLink' => TextButton(onPressed: open, child: child),
+      'actionOnly' => const Text('无画布入口，请从编辑面板试用'),
+      _ => GlassButton(onPressed: open, child: child),
+    };
+  }
 
   Widget _build(
     dynamic spec,
@@ -1203,26 +1251,7 @@ class Runtime {
         padding: pad,
         constraints: constraints(m['constraints']),
       ),
-      'showGlassDialog' => GlassButton(
-        onPressed: () async {
-          log('${chinesePath(path)} · 打开玻璃弹窗');
-          final result = await showGlassDialog(
-            context: context,
-            builder: (c) => build(m['builder'], c, '$path/dialog'),
-            barrierDismissible: m['barrierDismissible'] ?? true,
-            useRootNavigator: m['useRootNavigator'] ?? true,
-            routeSettings: RouteSettings(
-              name: m['routeSettings']?['name'],
-              arguments: m['routeSettings']?['arguments'],
-            ),
-            motion: motion(m['motion']),
-          );
-          log(
-            '${chinesePath(path)} · ${result == null ? '弹窗已关闭' : '返回 $result'}',
-          );
-        },
-        child: child(),
-      ),
+      'showGlassDialog' => _dialogTrigger(m, context, path, child()),
       'GlassPageRoute' => GlassButton(
         onPressed: () {
           log('${chinesePath(path)} · 打开示例页面');

@@ -1,5 +1,11 @@
 // Display labels only; saved layouts keep the original component and field names.
 const chineseLabels = <String, String>{
+  'triggerKind': '入口形式',
+  'button': '按钮',
+  'triggerIcon': '入口图标',
+  'iconButton': '图标按钮',
+  'textLink': '文字链接',
+  'actionOnly': '仅动作调用',
   'LabSans': '中文字体',
   'Roboto': '默认拉丁字体（中文回退）',
   '_nodeId': '节点编号（自动）',
