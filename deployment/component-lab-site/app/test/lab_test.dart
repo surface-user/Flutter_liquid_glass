@@ -126,7 +126,10 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
-      const RepaintBoundary(key: ValueKey('capture'), child: GlassLab()),
+      const RepaintBoundary(
+        key: ValueKey('capture'),
+        child: GlassLab(initialAdvanced: true),
+      ),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('打开菜单'));
@@ -149,7 +152,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const GlassLab());
+    await tester.pumpWidget(const GlassLab(initialAdvanced: true));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     final module = find.byKey(const ValueKey('node-1'));
@@ -183,7 +186,10 @@ void main() {
     for (final width in [320.0, 390.0]) {
       tester.view.physicalSize = Size(width, 844);
       await tester.pumpWidget(
-        const RepaintBoundary(key: ValueKey('capture'), child: GlassLab()),
+        const RepaintBoundary(
+          key: ValueKey('capture'),
+          child: GlassLab(initialAdvanced: true),
+        ),
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -216,7 +222,7 @@ void main() {
     ]) {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
-      await tester.pumpWidget(const GlassLab());
+      await tester.pumpWidget(const GlassLab(initialAdvanced: true));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: '$size');
       await tester.pumpWidget(const SizedBox());
@@ -233,7 +239,10 @@ void main() {
       for (final width in [320.0, 390.0, 820.0, 1180.0, 1500.0]) {
         tester.view.physicalSize = Size(width, 1000);
         await tester.pumpWidget(
-          const RepaintBoundary(key: ValueKey('capture'), child: GlassLab()),
+          const RepaintBoundary(
+            key: ValueKey('capture'),
+            child: GlassLab(initialAdvanced: true),
+          ),
         );
         await tester.pumpAndSettle();
         expect(find.text('玻璃实验台'), findsOneWidget);
@@ -302,7 +311,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       for (final zoom in [.4, .65, .85, 1.25, 1.5]) {
-        await tester.pumpWidget(const GlassLab());
+        await tester.pumpWidget(const GlassLab(initialAdvanced: true));
         await tester.pumpAndSettle();
         final zoomIn = zoom > .85;
         final steps = ((zoom - .85).abs() / .1).ceil();
@@ -356,7 +365,10 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
-      const RepaintBoundary(key: ValueKey('capture'), child: GlassLab()),
+      const RepaintBoundary(
+        key: ValueKey('capture'),
+        child: GlassLab(initialAdvanced: true),
+      ),
     );
     await tester.pumpAndSettle();
     final boundary = tester.renderObject<RenderRepaintBoundary>(
