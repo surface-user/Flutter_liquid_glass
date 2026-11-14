@@ -1158,30 +1158,28 @@ class _GlassLabState extends State<GlassLab> {
       top: number(m['y']) - 12,
       width: number(m['w']) + 24,
       height: number(m['h']) + 24,
-      child: Listener(
-        onPointerCancel: (_) => finishTransform(id, cancel: true),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: SizedBox(
-                  key: ValueKey(id),
-                  child: GestureDetector(
-                    onTap: () => setState(() {
-                      selected = id;
-                      global = false;
-                      tab = '属性';
-                    }),
-                    child: Stack(
-                      fit: StackFit.loose,
-                      children: [
-                        Opacity(
-                          opacity: transformingId == id && resizeSide == null
-                              ? .2
-                              : 1,
-                          child: ExcludeFocus(
+      child: Opacity(
+        opacity: transformingId == id && resizeSide == null ? 0 : 1,
+        child: Listener(
+          onPointerCancel: (_) => finishTransform(id, cancel: true),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SizedBox(
+                    key: ValueKey(id),
+                    child: GestureDetector(
+                      onTap: () => setState(() {
+                        selected = id;
+                        global = false;
+                        tab = '属性';
+                      }),
+                      child: Stack(
+                        fit: StackFit.loose,
+                        children: [
+                          ExcludeFocus(
                             excluding: !advancedMode,
                             child: IgnorePointer(
                               ignoring: !advancedMode,
@@ -1191,88 +1189,88 @@ class _GlassLabState extends State<GlassLab> {
                               ),
                             ),
                           ),
-                        ),
-                        if (chosen)
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: DecoratedBox(
-                                key: ValueKey('selection-$id'),
-                                decoration: ShapeDecoration(shape: outline),
+                          if (chosen)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: DecoratedBox(
+                                  key: ValueKey('selection-$id'),
+                                  decoration: ShapeDecoration(shape: outline),
+                                ),
                               ),
                             ),
-                          ),
-                        if (!advancedMode)
-                          Positioned.fill(
-                            child: Semantics(
-                              button: true,
-                              label:
-                                  '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}，拖动可移动',
-                              child: move,
-                            ),
-                          )
-                        else if (chosen)
-                          Positioned(top: 0, right: 0, child: move),
-                      ],
+                          if (!advancedMode)
+                            Positioned.fill(
+                              child: Semantics(
+                                button: true,
+                                label:
+                                    '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}，拖动可移动',
+                                child: move,
+                              ),
+                            )
+                          else if (chosen)
+                            Positioned(top: 0, right: 0, child: move),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (chosen && !contentSizedModule(m['type']))
-                for (final side in const {
-                  'left': Alignment.centerLeft,
-                  'right': Alignment.centerRight,
-                  'top': Alignment.topCenter,
-                  'bottom': Alignment.bottomCenter,
-                }.entries)
-                  Positioned.fill(
-                    child: Align(
-                      alignment: side.value,
-                      child: MediaQuery(
-                        data: MediaQuery.of(appContext).copyWith(
-                          gestureSettings: const DeviceGestureSettings(
-                            touchSlop: 4,
+                if (chosen && !contentSizedModule(m['type']))
+                  for (final side in const {
+                    'left': Alignment.centerLeft,
+                    'right': Alignment.centerRight,
+                    'top': Alignment.topCenter,
+                    'bottom': Alignment.bottomCenter,
+                  }.entries)
+                    Positioned.fill(
+                      child: Align(
+                        alignment: side.value,
+                        child: MediaQuery(
+                          data: MediaQuery.of(appContext).copyWith(
+                            gestureSettings: const DeviceGestureSettings(
+                              touchSlop: 4,
+                            ),
                           ),
-                        ),
-                        child: Semantics(
-                          label:
-                              '调整${switch (side.key) {
-                                'left' => '左',
-                                'right' => '右',
-                                'top' => '上',
-                                _ => '下',
-                              }}侧尺寸',
-                          child: MouseRegion(
-                            cursor: side.key == 'left' || side.key == 'right'
-                                ? SystemMouseCursors.resizeLeftRight
-                                : SystemMouseCursors.resizeUpDown,
-                            child: GestureDetector(
-                              key: ValueKey('resize-${side.key}-$id'),
-                              dragStartBehavior: DragStartBehavior.down,
-                              behavior: HitTestBehavior.opaque,
-                              onPanStart: (_) =>
-                                  beginTransform(id, side: side.key),
-                              onPanUpdate: (d) => updateTransform(id, d),
-                              onPanEnd: (_) => finishTransform(id),
-                              onPanCancel: () =>
-                                  finishTransform(id, cancel: true),
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Center(
-                                  child: Container(
-                                    width:
-                                        side.key == 'left' ||
-                                            side.key == 'right'
-                                        ? 4
-                                        : 22,
-                                    height:
-                                        side.key == 'left' ||
-                                            side.key == 'right'
-                                        ? 22
-                                        : 4,
-                                    decoration: BoxDecoration(
-                                      color: selectionColor,
-                                      borderRadius: BorderRadius.circular(3),
+                          child: Semantics(
+                            label:
+                                '调整${switch (side.key) {
+                                  'left' => '左',
+                                  'right' => '右',
+                                  'top' => '上',
+                                  _ => '下',
+                                }}侧尺寸',
+                            child: MouseRegion(
+                              cursor: side.key == 'left' || side.key == 'right'
+                                  ? SystemMouseCursors.resizeLeftRight
+                                  : SystemMouseCursors.resizeUpDown,
+                              child: GestureDetector(
+                                key: ValueKey('resize-${side.key}-$id'),
+                                dragStartBehavior: DragStartBehavior.down,
+                                behavior: HitTestBehavior.opaque,
+                                onPanStart: (_) =>
+                                    beginTransform(id, side: side.key),
+                                onPanUpdate: (d) => updateTransform(id, d),
+                                onPanEnd: (_) => finishTransform(id),
+                                onPanCancel: () =>
+                                    finishTransform(id, cancel: true),
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Center(
+                                    child: Container(
+                                      width:
+                                          side.key == 'left' ||
+                                              side.key == 'right'
+                                          ? 4
+                                          : 22,
+                                      height:
+                                          side.key == 'left' ||
+                                              side.key == 'right'
+                                          ? 22
+                                          : 4,
+                                      decoration: BoxDecoration(
+                                        color: selectionColor,
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1282,8 +1280,8 @@ class _GlassLabState extends State<GlassLab> {
                         ),
                       ),
                     ),
-                  ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
