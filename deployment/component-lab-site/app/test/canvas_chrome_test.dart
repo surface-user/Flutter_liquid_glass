@@ -41,7 +41,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(state.selected, isNull);
         expect(find.byKey(const ValueKey('selection-node-1')), findsNothing);
-        expect(find.byKey(const ValueKey('resize-node-1')), findsNothing);
+        expect(find.byKey(const ValueKey('resize-right-node-1')), findsNothing);
         expect(find.byType(GlassToolbar), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox());
@@ -72,8 +72,8 @@ void main() {
       expect(jsonEncode(state.scene), original);
       final size = tester.getSize(frame);
       await tester.drag(
-        find.byKey(const ValueKey('resize-node-1')),
-        const Offset(68, 34),
+        find.byKey(const ValueKey('resize-right-node-1')),
+        const Offset(68, 0),
       );
       await tester.pumpAndSettle();
       expect(tester.getSize(frame).width, greaterThan(size.width + 60));
