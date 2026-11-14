@@ -1,0 +1,5 @@
+app/.dart_tool/
+app/build/
+packages/**/.dart_tool/
+*.log
+artifacts/

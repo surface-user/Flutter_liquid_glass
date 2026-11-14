@@ -1,0 +1,62 @@
+# P0 实验台任务与调度账本
+
+日期：2026-11-14。主 Agent：当前对话；子 Agent：A（组件与普通模式）、B（弹窗）、C（运行与动效）。
+
+依据：[差距分析](D:/computer_work/project/Flutter_liquid_glass/deployment/docs/liquid-glass-vs-m3e-canvas-gap-analysis.md)、[deployment 规范](D:/computer_work/project/Flutter_liquid_glass/deployment/agent.md)、[组件参考手册](D:/computer_work/project/Flutter_liquid_glass/doc/component-lab-reference.md)。用户已批准 P0 实现、3子 Agent 并行、每项任务独立 PR。
+
+## 范围与状态规则
+
+- 本轮只实施 P0-A/B/C 和最终 P0-V 验证；P1/P2留在下方未授权批次，不因本轮要求“全部DONE”擅自实现。
+- 所有代码、分支工作目录、文档、截图与构建产物仅位于 `deployment/`。不改根 lib/test/example、组件库快照、依赖或原有失败证据。
+- 普通模式不展示 Flutter 类型、builder/controller/FocusNode、递归原始参数和 JSON 编辑；高级模式保留原有22种类型、参数和旧复杂结构。
+- 不清空旧布局，不以简化表单覆盖未识别的高级内容。运行草稿与设计初值分离，动态减少动画、高对比度、过滤隔离与无闲置ticker契约保留。
+- READY → IN_PROGRESS → REVIEW → DONE。子 Agent 更新自己行的状态与证据；主 Agent 独立检查后才置 DONE，失败退回 IN_PROGRESS。依赖未满足为 BLOCKED，并明确原因。
+- 实现/本地验收/PR交付/CI/部署分别记录。DONE要求本项实现、主Agent验收及独立PR交付；PR/远程连接失败保留 REVIEW并记录交付阻塞，不虚报。
+- 每次开始执行先读本文件并检查未完成依赖。Flutter 命令由主 Agent 串行运行；子 Agent 不同时启动 Flutter。共享 main.dart 的集成由主 Agent负责。
+
+## 当前批次与依赖
+
+| 编号 | 所有者 | 状态 | 依赖 | 任务与退出条件 | 验证/PR |
+| --- | --- | --- | --- | --- | --- |
+| P0-A | 子A + 主集成 | IN_PROGRESS | 无；共同接口约定见下 | 用途分类、普通/高级模式、卡片默认静态；普通属性直接改常用内容/外观/动作；高级项明确提示且可访问，不丢旧结构；基础与窄屏入口均能真实操作 | 正在实现普通目录与属性表单；Flutter测试由主Agent排队 |
+| P0-B | 子B + 主集成 | IN_PROGRESS | 无；共同接口约定见下 | 说明/确认弹窗直编：入口形式与文案、标题正文、按钮条目、返回结果、大小/外观、真实试用；支持文字/按钮/图标入口；自定义内容明确进高级模式且不丢失；不开放未做好的多行/密码表单 | 子B已读取约定，正在实现普通表单/真实入口/回归；待主Agent串行测试与独立PR |
+| P0-C | 子C + 主集成 | IN_PROGRESS | 无；共同接口约定见下 | 独立运行/重置、不污染设计初值；按压/材质/弹窗或页面动效清楚试用、预设与重播；正常/减少动画均可观察，退出后无持续ticker | 正在实现独立运行会话、动效试用及回归；Flutter测试由主Agent串行执行 |
+| P0-V | 主Agent（子Agent交叉复核） | BLOCKED | P0-A/B/C实现进入REVIEW后可开始集成验收；最终DONE要求各项通过 | 接线完整、逐项功能/旧布局/中文排版回归、正式Web构建、截图目检与浏览器操作；记录限制并提交独立验证PR | 等待三个实现 |
+
+## 并行文件所有权与接线契约
+
+工作应用：`deployment/component-lab-site/app`，已有本地基线 `82e241b5ac2133aa7db99a0b19a30a83fca04957`。三个子 Agent 共用文件系统，禁止重置/回退其他人的修改，禁止擅自提交别人的文件。
+
+- A：新增 `lib/editor_catalog.dart`、`lib/basic_inspector.dart`、`test/p0_catalog_test.dart`。不改 main.dart/registry.dart/schema.dart。提供用途分类与普通表单 Widget；仅通过回调提交布局，需保留未编辑字段。入口弹窗统一映射 showGlassDialog，底层表面/主题/分组/路由不出现在普通目录或类型下拉。普通组件名采用用户用途名称。
+- B：新增 `lib/dialog_editor.dart`、`test/p0_dialog_test.dart`；负责必要的 `registry.dart`/`schema.dart` 小改动，仅用于真实入口样式/结果，不改库快照。提供 `DialogEditor`，入参当前完整模块 `Json module`、`String? Function(Json) onApply`、可选 `ValueChanged<String> onEvent`；模块替换仍由主Agent校验/历史/保存。支持识别 showGlassDialog、GlassDialog及按钮 dialog 动作；不能表达的自定义内容只读说明并提供高级入口回调。公开构造参数尽快与主Agent同步。
+- C：新增 `lib/motion_tryout.dart`、`lib/workbench_preview.dart`、`test/p0_motion_test.dart`。不改 main/registry/schema。提供 `MotionTryout`（当前 theme Json、通过回调提交 motion），`WorkbenchPreview`（传入克隆 scene，自有 Runtime、重置/退出/返回）。效果遵循现有库限制，销毁运行时资源，禁止以复制标签/假动画冒充真实控件。
+- 主：main.dart 的模式、普通目录/属性面板、弹窗与动效接线；build.ps1/README/验收记录；必要跨任务修复。若需改别人所有文件，先消息协商，不同时写同一文件。
+- 子 Agent提交前报告具体文件/回调签名/测试入口；测试由主Agent排队执行，主Agent负责独立PR。子 Agent可以阅读整个相关实现，但不得修改分配之外文件。
+
+## 验收矩阵
+
+| 分组 | 必验内容 |
+| --- | --- |
+| A 分类/模式 | 普通目录无底层项/原始类型；高级22项仍可用；旧复杂节点切换模式不丢失；普通常用参数、添加、复制删除、撤销重做；中文与窄屏模式切换 |
+| B 弹窗 | 说明/确认、标题可空、长正文、按钮/图标/文字入口；真实点击、遮罩/Esc/按钮关闭、返回值区分、重复打开、编辑后重开、焦点恢复；自定义内容安全保留 |
+| C 动效/运行 | 真按压反馈、材质前后切换、真浮层/路由；预设/重播；减少动画动态改变；重置临时文本/变量；退出不改设计JSON、不泄漏控制器/ticker |
+| V 排版/兼容 | 320/390/820/1180/1500宽 × 100/130/200%字体；短窗口与浮层；原有宽高/类型/资源生命周期测试保持；截图实际查看；正式浏览器尺寸/输入/弹窗/返回核对 |
+| V 构建/边界 | 格式、flutter analyze、完整app测试、build.ps1；下载源码一致性；根库和快照内容不变；既有失败产物保留；物理IME/真机与未验浏览器单列 |
+
+## PR与工作目录
+
+现有 Sites 源码是 deployment 内的独立Git仓库，没有 GitHub PR remote；外层 GitHub 仓库忽略 deployment。主Agent将先核对远程与权限，准备 deployment 内的隔离审查目录，把本轮必要源码显式纳入 GitHub 评审路径。不得上传 `.git`、缓存、旧artifacts、凭据、压缩发布包或无关外层文件；每项任务单独分支/PR，按实际依赖选择base。
+
+PR是交付评审，不自动合并。CI、非作者审查与线上发布另列；出现真实外部阻塞则记录具体操作/错误并继续可推进任务。旧 Sites 发布认证问题需本轮重新核对，不能依据历史失败直接虚报本轮无法发布。
+
+## 后续批次（未授权实施）
+
+| 批次 | 状态 | 内容 |
+| --- | --- | --- |
+| P1-A | 未排期 | 真实表单需求决定输入/选择的库接口及网站接入；本轮不得修改源库 |
+| P1-B | 未排期 | 显式页面/图层/目标、工程与当前设计代码交付 |
+| P2 | 未排期 | 经需求确认的方向/协同动效、Popover、底部面板等 |
+
+## 调度与验证记录
+
+- 初始化：只读核对根/独立站点仓库；根已有未跟踪 `doc/component-lab-reference.md`、`example/test/failures/`、`test/failures/`，保留。站点基线工作区干净。3个无实现依赖的P0任务可并行，最终验证等待集成。

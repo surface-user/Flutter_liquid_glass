@@ -1,0 +1,4 @@
+# The workbench is an independent package, checked from its own app directory.
+analyzer:
+  exclude:
+    - component-lab-site/**
