@@ -1522,17 +1522,21 @@ Widget moduleView(
   Runtime runtime,
   Json item,
   BuildContext context,
-  String path,
-) {
+  String path, {
+  Key? contentKey,
+}) {
   final control = ['GlassButton', 'GlassIconButton'].contains(item['type']);
   try {
-    final content = runtime.build(
+    final built = runtime.build(
       {...item['props'] as Map, 'type': item['type']},
       context,
       path,
       0,
       control,
     );
+    final content = contentKey == null
+        ? built
+        : KeyedSubtree(key: contentKey, child: built);
     return control
         ? SizedBox.expand(child: content)
         : Align(

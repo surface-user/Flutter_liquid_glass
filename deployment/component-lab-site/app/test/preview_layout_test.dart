@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lightweight_liquid_glass/lightweight_liquid_glass.dart';
 import 'package:glass_component_lab/registry.dart';
 import 'package:glass_component_lab/workbench_preview.dart';
 
@@ -26,6 +27,7 @@ void main() {
       for (final size in [
         const Size(1500, 900),
         const Size(390, 844),
+        const Size(320, 740),
         const Size(1180, 740),
       ]) {
         tester.view.physicalSize = size;
@@ -39,7 +41,17 @@ void main() {
         expect(backdrop, viewport);
         Rect? content;
         for (final id in ['node-1', 'node-2', 'node-3']) {
-          final rect = tester.getRect(find.byKey(ValueKey('preview-node-$id')));
+          final type = switch (id) {
+            'node-1' => GlassIconButton,
+            'node-2' => GlassMenu,
+            _ => GlassButton,
+          };
+          final rect = tester.getRect(
+            find.descendant(
+              of: find.byKey(ValueKey('preview-node-$id')),
+              matching: find.byType(type),
+            ),
+          );
           content = content == null ? rect : content.expandToInclude(rect);
         }
         expect((content!.center - viewport.center).distance, lessThan(1));
@@ -53,7 +65,7 @@ void main() {
         final scale = viewer.transformationController!.value
             .getMaxScaleOnAxis();
         expect(scale, lessThanOrEqualTo(1));
-        if (size.width == 390) {
+        if (size.width == 320) {
           expect(scale, lessThan(1));
           await tester.tap(find.byTooltip('原始大小'));
           await tester.pumpAndSettle();
@@ -121,9 +133,7 @@ void main() {
         draft,
       );
       final area = tester.getRect(canvas);
-      final content = tester.getRect(
-        find.byKey(const ValueKey('preview-node-node-1')),
-      );
+      final content = tester.getRect(find.byType(GlassTextField));
       expect((area.center - content.center).distance, lessThan(1));
       await tester.tap(find.byKey(const ValueKey('preview-reset')));
       await tester.pumpAndSettle();

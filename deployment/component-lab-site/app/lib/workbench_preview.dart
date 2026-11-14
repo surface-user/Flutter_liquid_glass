@@ -81,6 +81,7 @@ class _PreviewSessionState extends State<_PreviewSession> {
   final navigation = GlobalKey<NavigatorState>();
   final viewport = TransformationController();
   final revision = ValueNotifier(0);
+  final contentKeys = <String, GlobalKey>{};
   Size? fittedSize;
   String lastEvent = '运行已开始';
 
@@ -95,11 +96,15 @@ class _PreviewSessionState extends State<_PreviewSession> {
   Rect get contentBounds {
     Rect? bounds;
     for (final m in scene['modules'] as List) {
+      final box = contentKeys[m['id']]?.currentContext?.findRenderObject();
+      final size = box is RenderBox && box.hasSize
+          ? box.size
+          : Size(number(m['w']), number(m['h']));
       final rect = Rect.fromLTWH(
         number(m['x']),
         number(m['y']),
-        number(m['w']),
-        number(m['h']),
+        size.width,
+        size.height,
       );
       bounds = bounds == null ? rect : bounds.expandToInclude(rect);
     }
@@ -207,8 +212,15 @@ class _PreviewSessionState extends State<_PreviewSession> {
                             child: LayoutBuilder(
                               builder: (context, limits) {
                                 if (fittedSize != limits.biggest) {
-                                  fittedSize = limits.biggest;
-                                  fit(limits.biggest);
+                                  final available = limits.biggest;
+                                  fittedSize = available;
+                                  fit(available);
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    if (mounted && fittedSize == available)
+                                      fit(available);
+                                  });
                                 }
                                 final contrast = MediaQuery.highContrastOf(
                                   context,
@@ -252,6 +264,11 @@ class _PreviewSessionState extends State<_PreviewSession> {
                                                 Map<String, dynamic>.from(m),
                                                 boardContext,
                                                 '运行/${m['id']}/root',
+                                                contentKey: contentKeys
+                                                    .putIfAbsent(
+                                                      m['id'],
+                                                      () => GlobalKey(),
+                                                    ),
                                               ),
                                             ),
                                           ),
