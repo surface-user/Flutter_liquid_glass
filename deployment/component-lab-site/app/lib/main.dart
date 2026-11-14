@@ -11,6 +11,8 @@ import 'parameter_input.dart';
 import 'editor_catalog.dart';
 import 'basic_inspector.dart';
 import 'dialog_editor.dart';
+import 'motion_tryout.dart';
+import 'workbench_preview.dart';
 
 const ink = Color(0xff101420),
     panel = Color(0xff181e2b),
@@ -219,6 +221,15 @@ class _GlassLabState extends State<GlassLab> {
     return mutate((s) => s['modules'][index] = replacement, report: false);
   }
 
+  Future<void> runPreview(BuildContext context) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !context.mounted) return;
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => WorkbenchPreview(scene: clone(scene))),
+    );
+  }
+
   String? editPath(List<dynamic> path, dynamic value, {bool report = true}) {
     return mutate((s) {
       dynamic cur = s;
@@ -394,6 +405,20 @@ class _GlassLabState extends State<GlassLab> {
                       future.isEmpty ? null : () => undo(true),
                     ),
                   const SizedBox(width: 8),
+                  KeyedSubtree(
+                    key: const ValueKey('run-preview'),
+                    child: wide && textScale <= 1.3
+                        ? TextButton.icon(
+                            onPressed: () => runPreview(appContext),
+                            icon: const Icon(Icons.play_arrow, size: 18),
+                            label: const Text('运行预览'),
+                          )
+                        : tool(
+                            Icons.play_arrow,
+                            '运行预览',
+                            () => runPreview(appContext),
+                          ),
+                  ),
                   if (wide && textScale <= 1.3)
                     TextButton.icon(
                       key: const ValueKey('editor-mode'),
@@ -492,9 +517,11 @@ class _GlassLabState extends State<GlassLab> {
                               ),
                               const SizedBox(width: 8),
                               if (!compactCanvas || textScale <= 1.3)
-                                const Text(
-                                  '自由画布',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                Text(
+                                  advancedMode ? '自由画布' : '编辑画布',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               const SizedBox(width: 10),
                               if (!compactCanvas)
@@ -591,7 +618,7 @@ class _GlassLabState extends State<GlassLab> {
                                     if (!wide) showInspector(appContext);
                                   },
                                   child: Text(
-                                    '调用事件 ${events.length}',
+                                    '${advancedMode ? '调用事件' : '试用记录'} ${events.length}',
                                     style: const TextStyle(fontSize: 11),
                                   ),
                                 ),
@@ -809,6 +836,8 @@ class _GlassLabState extends State<GlassLab> {
       ),
       child: MediaQuery(
         data: MediaQuery.of(appContext).copyWith(
+          disableAnimations:
+              !advancedMode || MediaQuery.of(appContext).disableAnimations,
           highContrast:
               MediaQuery.of(appContext).highContrast ||
               theme.accessibility.highContrast,
@@ -1032,34 +1061,56 @@ class _GlassLabState extends State<GlassLab> {
                 children: [
                   Align(
                     alignment: Alignment.topLeft,
-                    child: Builder(
-                      builder: (context) {
-                        try {
-                          return runtime.build(
-                            {...(m['props'] as Map), 'type': m['type']},
-                            context,
-                            '$id/root',
-                          );
-                        } catch (e) {
-                          return ColoredBox(
-                            color: const Color(0xff4b2333),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(
-                                  '参数无法渲染\n$e',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
+                    child: ExcludeFocus(
+                      excluding: !advancedMode,
+                      child: IgnorePointer(
+                        ignoring: !advancedMode,
+                        child: Builder(
+                          builder: (context) {
+                            try {
+                              return runtime.build(
+                                {...(m['props'] as Map), 'type': m['type']},
+                                context,
+                                '$id/root',
+                              );
+                            } catch (e) {
+                              return ColoredBox(
+                                color: const Color(0xff4b2333),
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Text(
+                                      '参数无法渲染\n$e',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          );
-                        }
-                      },
+                              );
+                            }
+                          },
+                        ),
+                      ),
                     ),
                   ),
+                  if (!advancedMode)
+                    Positioned.fill(
+                      child: Semantics(
+                        button: true,
+                        label:
+                            '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}',
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => setState(() {
+                            selected = id;
+                            global = false;
+                            tab = '属性';
+                          }),
+                        ),
+                      ),
+                    ),
                   if (chosen) resize,
                 ],
               ),
@@ -1258,6 +1309,19 @@ class _GlassLabState extends State<GlassLab> {
                 scene['theme']['accessibility']['reduceTransparency'] == true,
             onChanged: (v) =>
                 editPath(['theme', 'accessibility', 'reduceTransparency'], v),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('减少动画'),
+            value: scene['theme']['accessibility']['reduceMotion'] == true,
+            onChanged: (v) =>
+                editPath(['theme', 'accessibility', 'reduceMotion'], v),
+          ),
+          const Divider(height: 28),
+          MotionTryout(
+            theme: Map<String, dynamic>.from(scene['theme']),
+            onApply: (motion) =>
+                editPath(['theme', 'motion'], motion, report: false),
           ),
         ] else if (current != null) ...[
           Wrap(
@@ -1518,7 +1582,10 @@ class _GlassLabState extends State<GlassLab> {
     children: [
       ListTile(
         dense: true,
-        title: const Text('真实组件调用日志', style: TextStyle(fontSize: 12)),
+        title: Text(
+          advancedMode ? '真实组件调用日志' : '试用结果记录',
+          style: const TextStyle(fontSize: 12),
+        ),
         trailing: tool(
           Icons.delete_outline,
           '清空日志',
@@ -1528,11 +1595,17 @@ class _GlassLabState extends State<GlassLab> {
       const Divider(height: 1),
       Expanded(
         child: events.isEmpty
-            ? const Center(
+            ? Center(
                 child: Text(
-                  '点击画布中的按钮、菜单或输入框\n事件会显示在这里',
+                  advancedMode
+                      ? '点击画布中的按钮、菜单或输入框\n事件会显示在这里'
+                      : '弹窗试用结果会显示在这里。\n运行预览的记录仅在本次会话内保留。',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: muted, height: 1.7, fontSize: 12),
+                  style: const TextStyle(
+                    color: muted,
+                    height: 1.7,
+                    fontSize: 12,
+                  ),
                 ),
               )
             : ListView.builder(
