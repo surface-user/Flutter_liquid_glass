@@ -55,6 +55,8 @@ class _GlassLabState extends State<GlassLab> {
   final messenger = GlobalKey<ScaffoldMessengerState>();
   final navigator = GlobalKey<NavigatorState>();
   final canvasBoard = GlobalKey();
+  final sidebarZone = GlobalKey();
+  bool overDelete = false;
   String? recoveryText;
   String saveStatus = '布局保存在当前浏览器';
   StateSetter? sheetSetter;
@@ -481,9 +483,7 @@ class _GlassLabState extends State<GlassLab> {
             Expanded(
               child: Row(
                 children: [
-                  workspaceRail(appContext, small: small, wide: wide),
-                  if (!small && sidebarOpen)
-                    SizedBox(width: 280, child: palette(appContext)),
+                  sidebarWorkspace(appContext, small: small, wide: wide),
                   Expanded(
                     child: Column(
                       children: [
@@ -623,6 +623,70 @@ class _GlassLabState extends State<GlassLab> {
       },
     ),
   );
+  Widget sidebarWorkspace(
+    BuildContext context, {
+    required bool small,
+    required bool wide,
+  }) => SizedBox(
+    width: small || !sidebarOpen ? 64 : 344,
+    child: Stack(
+      key: sidebarZone,
+      fit: StackFit.expand,
+      children: [
+        Row(
+          children: [
+            workspaceRail(context, small: small, wide: wide),
+            if (!small && sidebarOpen)
+              SizedBox(width: 280, child: palette(context)),
+          ],
+        ),
+        if (transformingId != null && resizeSide == null)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Semantics(
+                liveRegion: true,
+                label: overDelete ? '松开删除组件' : '拖到左侧删除组件，取消拖动可保留',
+                child: ColoredBox(
+                  key: const ValueKey('delete-zone'),
+                  color: overDelete
+                      ? const Color(0xffffc9cf)
+                      : const Color(0xf2f8e5e8),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          overDelete
+                              ? Icons.delete_forever_outlined
+                              : Icons.delete_outline,
+                          size: small || !sidebarOpen ? 28 : 48,
+                          color: const Color(0xff641523),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          small || !sidebarOpen
+                              ? '删除'
+                              : overDelete
+                              ? '松开即可删除'
+                              : '拖到这里删除',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xff641523),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+
   Widget workspaceRail(
     BuildContext context, {
     required bool small,
@@ -891,6 +955,7 @@ class _GlassLabState extends State<GlassLab> {
       );
       transformDelta = Offset.zero;
       resizeSide = side;
+      overDelete = false;
       selected = id;
       global = false;
     });
@@ -902,6 +967,13 @@ class _GlassLabState extends State<GlassLab> {
     if (item == null) return;
     setState(() {
       transformDelta += details.delta;
+      final box = sidebarZone.currentContext?.findRenderObject() as RenderBox?;
+      overDelete =
+          resizeSide == null &&
+          box != null &&
+          (box.localToGlobal(Offset.zero) & box.size).contains(
+            details.globalPosition,
+          );
       final r = transformRect!;
       final min = requiredFrame(item);
       switch (resizeSide) {
@@ -938,6 +1010,7 @@ class _GlassLabState extends State<GlassLab> {
     if (transformingId != id) return;
     final item = itemById(id);
     final before = transformBefore;
+    final deleted = !cancel && resizeSide == null && overDelete && item != null;
     setState(() {
       if (cancel && item != null && transformRect != null) {
         final original = (jsonDecode(before!)['modules'] as List).firstWhere(
@@ -947,7 +1020,11 @@ class _GlassLabState extends State<GlassLab> {
           for (final field in ['x', 'y', 'w', 'h']) field: original[field],
         });
       } else {
-        if (item != null && resizeSide == null && snap) {
+        if (deleted) {
+          modules.removeWhere((m) => m['id'] == id);
+          if (selected == id) selected = null;
+        }
+        if (!deleted && item != null && resizeSide == null && snap) {
           item['x'] = ((number(item['x']) / 8).round() * 8.0).clamp(
             0,
             1200 - number(item['w']),
@@ -965,8 +1042,16 @@ class _GlassLabState extends State<GlassLab> {
       }
       transformingId = transformBefore = resizeSide = null;
       transformRect = null;
+      overDelete = false;
     });
     persist();
+    if (deleted)
+      messenger.currentState?.showSnackBar(
+        SnackBar(
+          content: const Text('组件已删除'),
+          action: SnackBarAction(label: '撤销', onPressed: () => undo(false)),
+        ),
+      );
   }
 
   Widget previewModule(Json m, BuildContext appContext) {
