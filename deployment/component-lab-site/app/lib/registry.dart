@@ -1632,8 +1632,8 @@ Size requiredFrame(Map module) {
   final p = module['props'] as Map;
   var w = 70.0, h = 65.0;
   if (['GlassSurface', 'AnimatedGlassSurface'].contains(module['type'])) {
-    if (p['width'] is num) w = math.max(w, number(p['width']) + 3);
-    if (p['height'] is num) h = math.max(h, number(p['height']) + 31);
+    if (p['width'] is num) w = math.max(w, number(p['width']));
+    if (p['height'] is num) h = math.max(h, number(p['height']));
   }
   if ([
         'GlassSurface',
@@ -1641,15 +1641,14 @@ Size requiredFrame(Map module) {
         'GlassDialog',
       ].contains(module['type']) &&
       p['constraints'] is Map) {
-    w = math.max(w, number(p['constraints']['minWidth']) + 3);
-    h = math.max(h, number(p['constraints']['minHeight']) + 31);
+    w = math.max(w, number(p['constraints']['minWidth']));
+    h = math.max(h, number(p['constraints']['minHeight']));
   }
   if (module['type'] == 'GlassAppBar')
     h = math.max(
       h,
       number(p['toolbarHeight'], 56) +
-          (p['bottom'] == null ? 0 : number(p['bottomHeight'], 40)) +
-          31,
+          (p['bottom'] == null ? 0 : number(p['bottomHeight'], 40)),
     );
   return Size(w, h);
 }
