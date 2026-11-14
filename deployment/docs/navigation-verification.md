@@ -48,10 +48,17 @@ Windows Edge 从独立回环地址打开正式构建，避免改变原线上地�
 ## 独立PR与限制
 
 - UI-A：[PR #10](https://github.com/surface-user/Flutter_liquid_glass/pull/10)，base为原P0验收PR #9；拆分分支自身分析及5项导航专项通过。
-- UI-B：单独提交画布、尺寸契约与验收记录，链接由任务账本维护。
+- UI-B：[PR #11](https://github.com/surface-user/Flutter_liquid_glass/pull/11)，独立提交画布、尺寸契约与验收记录。
 - PR均不自动合并，等待非作者审查。根CI沿用已有门槛：库包dry-run会因根gitignore忽略已纳入评审的deployment文件而报警。本轮不修改用户禁止的根配置、不绕过CI；网页发布与Flutter库包发布分开。
 - 物理中文IME、真实手机/Android性能与其他浏览器未验；UI截图不替代全部参数组合检查。SDK仍提示未提供Cupertino字体，本网页使用Material图标，浏览器已核对，未添加无用依赖。
 
 ## 原站点
 
-保持原项目ID与受众；待精确源码同步、保存并发布后追加最终结果。
+**第4版已发布成功**：[原站点](https://liquid-glass-component-workbench.marseille-cjh.chatgpt.site)。原项目ID与当前public受众保持，没有改变分享权限。
+
+- 官方助手提交并推送的精确源码：`2650d25e3931895828aeb285819f32d45f22d9fc`。
+- 保存版本：`appgprj_6af48936adf081919aca29e5c9d758d4~appgver_15691156dd988191b2e7d9801badd719`。
+- 发布ID：`appgdep_6af849c3fff48191b4c1dce22c16632b`，服务终态`succeeded`，UTC 2026-11-14 11:45:24。
+- 产物SHA256：`9ac315771a3a359669aa3496c7115ceba22553e5f843071c7182979818d36a8c`。
+
+无凭据发布结果存于本地`artifacts/navigation/publication.json`。浏览器实操针对正式构建；线上发布由服务成功终态确认，不声称线上所有操作再次逐项手验。
