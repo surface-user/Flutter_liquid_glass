@@ -1,3 +1,5 @@
+> 2026-11-14 最新修正：拖动中仅显示一份浮动组件，原位组件/轮廓/手柄隐藏但保留状态；运行背景铺满视口，以真实控件边界居中，窗口变化后重新适配，保留运行草稿。最新记录见 [preview-visual-verification.md](../docs/preview-visual-verification.md)。下文为历史记录。
+
 > 2026-11-14 拖动反馈更新：组件库与画布组件使用全页真实预览，删除区仅在已有组件进入左栏时出现。最新逐项证据见 [free-drag-verification.md](../docs/free-drag-verification.md)。
 
 > 2026-11-14 后续修正：标签/导航/菜单/文字等自然尺寸内容的选框贴合实际内容，普通模式不显示无效尺寸手柄；删除不再显示底部横幅，顶部运行预览旁统一提供撤销/重做。最新证据见 [selection-history-verification.md](../docs/selection-history-verification.md)。
