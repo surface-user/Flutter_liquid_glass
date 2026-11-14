@@ -411,7 +411,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(const GlassLab());
+      await tester.pumpWidget(const GlassLab(initialAdvanced: true));
       await tester.pumpAndSettle();
       final state = tester.state(find.byType(GlassLab)) as dynamic;
       final input = find.byKey(const ValueKey('modules.0.w'));
@@ -460,7 +460,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(const GlassLab());
+      await tester.pumpWidget(const GlassLab(initialAdvanced: true));
       await tester.pumpAndSettle();
       final state = tester.state(find.byType(GlassLab)) as dynamic;
       final original = jsonEncode(state.scene['modules'][0]);
@@ -885,7 +885,7 @@ void main() {
       addTearDown(
         tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
       );
-      await tester.pumpWidget(const GlassLab());
+      await tester.pumpWidget(const GlassLab(initialAdvanced: true));
       await tester.pumpAndSettle();
       final state = tester.state(find.byType(GlassLab)) as dynamic;
       final scene = initialScene();
@@ -943,7 +943,10 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await tester.pumpWidget(
-        const RepaintBoundary(key: ValueKey('capture'), child: GlassLab()),
+        const RepaintBoundary(
+          key: ValueKey('capture'),
+          child: GlassLab(initialAdvanced: true),
+        ),
       );
       await tester.pumpAndSettle();
       final state = tester.state(find.byType(GlassLab)) as dynamic;
@@ -1048,7 +1051,7 @@ void main() {
             await tester.pumpWidget(
               const RepaintBoundary(
                 key: ValueKey('capture'),
-                child: GlassLab(),
+                child: GlassLab(initialAdvanced: true),
               ),
             );
             await tester.pumpAndSettle();

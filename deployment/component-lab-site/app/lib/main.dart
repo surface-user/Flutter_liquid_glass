@@ -8,6 +8,8 @@ import 'registry.dart';
 import 'storage.dart';
 import 'labels.dart';
 import 'parameter_input.dart';
+import 'editor_catalog.dart';
+import 'basic_inspector.dart';
 
 const ink = Color(0xff101420),
     panel = Color(0xff181e2b),
@@ -19,7 +21,8 @@ const encoder = JsonEncoder.withIndent('  ');
 void main() => runApp(const GlassLab());
 
 class GlassLab extends StatefulWidget {
-  const GlassLab({super.key});
+  const GlassLab({super.key, this.initialAdvanced = false});
+  final bool initialAdvanced;
   @override
   State<GlassLab> createState() => _GlassLabState();
 }
@@ -39,6 +42,7 @@ class _GlassLabState extends State<GlassLab> {
   String? selected = 'node-1';
   String query = '';
   bool global = false, snap = true;
+  bool advancedMode = false;
   double zoom = .85;
   String tab = '属性';
   final messenger = GlobalKey<ScaffoldMessengerState>();
@@ -52,6 +56,7 @@ class _GlassLabState extends State<GlassLab> {
   @override
   void initState() {
     super.initState();
+    advancedMode = widget.initialAdvanced;
     final saved = readSaved();
     try {
       if (saved != null) {
@@ -146,6 +151,10 @@ class _GlassLabState extends State<GlassLab> {
   }
 
   void add(String type, {Offset? at}) {
+    if (!advancedMode && basicEntryFor(type) == null) {
+      message('这种自定义内容请在高级模式添加');
+      return;
+    }
     var id = ++counter;
     while (modules.any((m) => m['id'] == 'node-$id')) {
       id = ++counter;
@@ -158,7 +167,13 @@ class _GlassLabState extends State<GlassLab> {
         );
     final error = mutate(
       (s) => (s['modules'] as List).add(
-        module(type, id, x: p.dx.clamp(0, 950), y: p.dy.clamp(0, 1050)),
+        advancedMode
+            ? module(type, id, x: p.dx.clamp(0, 950), y: p.dy.clamp(0, 1050))
+            : createBasicModule(
+                type,
+                id,
+                at: Offset(p.dx.clamp(0, 950), p.dy.clamp(0, 1050)),
+              ),
       ),
     );
     if (error != null) return;
@@ -188,6 +203,17 @@ class _GlassLabState extends State<GlassLab> {
     final id = selected;
     mutate((s) => (s['modules'] as List).removeWhere((m) => m['id'] == id));
     setState(() => selected = modules.isEmpty ? null : modules.last['id']);
+  }
+
+  void changeEditorMode(bool advanced) => setState(() {
+    advancedMode = advanced;
+    tab = '属性';
+  });
+
+  String? replaceModule(Json replacement) {
+    final index = modules.indexWhere((m) => m['id'] == replacement['id']);
+    if (index < 0) return '这个组件已被移除，请重新选择';
+    return mutate((s) => s['modules'][index] = replacement, report: false);
   }
 
   String? editPath(List<dynamic> path, dynamic value, {bool report = true}) {
@@ -318,21 +344,24 @@ class _GlassLabState extends State<GlassLab> {
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      gradient: const LinearGradient(colors: [violet, mint]),
+                  if (!small || textScale <= 1.3)
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: const LinearGradient(colors: [violet, mint]),
+                      ),
+                      child: const Icon(Icons.blur_on, color: ink, size: 23),
                     ),
-                    child: const Icon(Icons.blur_on, color: ink, size: 23),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  if (!small || textScale <= 1.3) const SizedBox(width: 12),
+                  Expanded(
                     child: Text(
                       '玻璃实验台',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 21,
+                        fontSize: small ? 18 : 21,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -.7,
                       ),
@@ -362,13 +391,32 @@ class _GlassLabState extends State<GlassLab> {
                       future.isEmpty ? null : () => undo(true),
                     ),
                   const SizedBox(width: 8),
-                  if (!wide)
+                  if (wide && textScale <= 1.3)
+                    TextButton.icon(
+                      key: const ValueKey('editor-mode'),
+                      onPressed: () => changeEditorMode(!advancedMode),
+                      icon: Icon(
+                        advancedMode ? Icons.code : Icons.widgets_outlined,
+                        size: 16,
+                      ),
+                      label: Text(advancedMode ? '高级模式' : '普通模式'),
+                    )
+                  else
+                    KeyedSubtree(
+                      key: const ValueKey('editor-mode'),
+                      child: tool(
+                        advancedMode ? Icons.code : Icons.widgets_outlined,
+                        advancedMode ? '切换到普通模式' : '切换到高级模式',
+                        () => changeEditorMode(!advancedMode),
+                      ),
+                    ),
+                  if (advancedMode && !wide)
                     tool(
                       Icons.code,
                       '布局配置',
                       () => showJson(appContext, whole: true),
                     )
-                  else
+                  else if (advancedMode)
                     OutlinedButton.icon(
                       onPressed: () => showJson(appContext, whole: true),
                       icon: const Icon(Icons.code, size: 16),
@@ -391,7 +439,7 @@ class _GlassLabState extends State<GlassLab> {
                         encoder.convert(scene),
                       ),
                       icon: const Icon(Icons.file_download_outlined, size: 16),
-                      label: Text(small ? '导出' : '导出布局'),
+                      label: Text(advancedMode ? '导出布局' : '保存布局'),
                     ),
                 ],
               ),
@@ -534,7 +582,9 @@ class _GlassLabState extends State<GlassLab> {
                               if (!small)
                                 TextButton(
                                   onPressed: () {
-                                    setState(() => tab = '事件');
+                                    setState(
+                                      () => tab = advancedMode ? '事件' : '试用记录',
+                                    );
                                     if (!wide) showInspector(appContext);
                                   },
                                   child: Text(
@@ -557,132 +607,173 @@ class _GlassLabState extends State<GlassLab> {
       },
     ),
   );
-  Widget palette(BuildContext appContext) => Material(
-    color: panel,
-    shape: const Border(right: BorderSide(color: line)),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 22, 20, 4),
-          child: Text(
-            '组件库',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            '点击添加 · 或拖入画布',
-            style: TextStyle(color: muted, fontSize: 11),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(14),
-          child: TextField(
-            onChanged: (v) => setState(() => query = v),
-            decoration: const InputDecoration(
-              hintText: '搜索组件…',
-              prefixIcon: Icon(Icons.search, size: 17),
-            ),
-          ),
-        ),
-        Expanded(
-          child: ListView(
+  Widget palette(BuildContext appContext) => !advancedMode
+      ? Material(
+          color: panel,
+          child: Column(
             children: [
-              for (final section in {
-                '表面与材质': [
-                  'GlassCard',
-                  'GlassSurface',
-                  'AnimatedGlassSurface',
-                  'GlassBackdrop',
-                  'GlassGroup',
-                ],
-                '交互与导航': [
-                  'GlassButton',
-                  'GlassIconButton',
-                  'GlassTextField',
-                  'GlassNavigationItem',
-                  'GlassTab',
-                  'GlassToolbar',
-                  'GlassMenu',
-                  'GlassAppBar',
-                ],
-                '浮层与主题': [
-                  'GlassDialog',
-                  'showGlassDialog',
-                  'GlassPageRoute',
-                  'LiquidGlassTheme',
-                ],
-                '基础组合': ['Text', 'Icon', 'Row', 'Column', 'MenuItemButton'],
-              }.entries) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
-                  child: Text(
-                    section.key.toUpperCase(),
-                    style: const TextStyle(
-                      color: muted,
-                      fontSize: 10,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
+              Expanded(child: BasicPalette(onAdd: (type) => add(type))),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() => global = true);
+                    if (MediaQuery.sizeOf(appContext).width < 1180) {
+                      Navigator.of(appContext).maybePop().then((_) {
+                        if (mounted) showInspector(appContext);
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.palette_outlined, size: 16),
+                  label: const Text('整体外观与动效'),
                 ),
-                for (final type in section.value.where(
-                  (t) => '${chineseLabel(t)} $t'.toLowerCase().contains(
-                    query.toLowerCase(),
-                  ),
-                ))
-                  Draggable<String>(
-                    data: type,
-                    feedback: Material(
-                      color: panel,
-                      elevation: 8,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Text(
-                          chineseLabel(type),
-                          style: const TextStyle(color: mint, fontSize: 12),
-                        ),
-                      ),
-                    ),
-                    child: ListTile(
-                      dense: true,
-                      minTileHeight: 38,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                      ),
-                      leading: Icon(_typeIcon(type), size: 17, color: muted),
-                      title: Text(
-                        chineseLabel(type),
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                      trailing: const Icon(Icons.add, size: 13, color: muted),
-                      onTap: () => add(type),
-                    ),
-                  ),
-              ],
+              ),
             ],
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: OutlinedButton.icon(
-            onPressed: () {
-              setState(() => global = true);
-              if (MediaQuery.sizeOf(appContext).width < 1180) {
-                Navigator.of(appContext).maybePop().then((_) {
-                  if (mounted) showInspector(appContext);
-                });
-              }
-            },
-            icon: const Icon(Icons.palette_outlined, size: 16),
-            label: const Text('全局主题与样式'),
+        )
+      : Material(
+          color: panel,
+          shape: const Border(right: BorderSide(color: line)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 22, 20, 4),
+                child: Text(
+                  '组件库',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  '点击添加 · 或拖入画布',
+                  style: TextStyle(color: muted, fontSize: 11),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: TextField(
+                  onChanged: (v) => setState(() => query = v),
+                  decoration: const InputDecoration(
+                    hintText: '搜索组件…',
+                    prefixIcon: Icon(Icons.search, size: 17),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final section in {
+                      '表面与材质': [
+                        'GlassCard',
+                        'GlassSurface',
+                        'AnimatedGlassSurface',
+                        'GlassBackdrop',
+                        'GlassGroup',
+                      ],
+                      '交互与导航': [
+                        'GlassButton',
+                        'GlassIconButton',
+                        'GlassTextField',
+                        'GlassNavigationItem',
+                        'GlassTab',
+                        'GlassToolbar',
+                        'GlassMenu',
+                        'GlassAppBar',
+                      ],
+                      '浮层与主题': [
+                        'GlassDialog',
+                        'showGlassDialog',
+                        'GlassPageRoute',
+                        'LiquidGlassTheme',
+                      ],
+                      '基础组合': [
+                        'Text',
+                        'Icon',
+                        'Row',
+                        'Column',
+                        'MenuItemButton',
+                      ],
+                    }.entries) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
+                        child: Text(
+                          section.key.toUpperCase(),
+                          style: const TextStyle(
+                            color: muted,
+                            fontSize: 10,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      for (final type in section.value.where(
+                        (t) => '${chineseLabel(t)} $t'.toLowerCase().contains(
+                          query.toLowerCase(),
+                        ),
+                      ))
+                        Draggable<String>(
+                          data: type,
+                          feedback: Material(
+                            color: panel,
+                            elevation: 8,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Text(
+                                chineseLabel(type),
+                                style: const TextStyle(
+                                  color: mint,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: ListTile(
+                            dense: true,
+                            minTileHeight: 38,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            leading: Icon(
+                              _typeIcon(type),
+                              size: 17,
+                              color: muted,
+                            ),
+                            title: Text(
+                              chineseLabel(type),
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            trailing: const Icon(
+                              Icons.add,
+                              size: 13,
+                              color: muted,
+                            ),
+                            onTap: () => add(type),
+                          ),
+                        ),
+                    ],
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() => global = true);
+                    if (MediaQuery.sizeOf(appContext).width < 1180) {
+                      Navigator.of(appContext).maybePop().then((_) {
+                        if (mounted) showInspector(appContext);
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.palette_outlined, size: 16),
+                  label: const Text('全局主题与样式'),
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
-    ),
-  );
+        );
   IconData _typeIcon(String t) => switch (t) {
     'GlassButton' || 'GlassIconButton' => Icons.touch_app_outlined,
     'GlassTextField' => Icons.text_fields,
@@ -845,7 +936,9 @@ class _GlassLabState extends State<GlassLab> {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    chineseLabel(m['type']),
+                    advancedMode
+                        ? chineseLabel(m['type'])
+                        : basicEntryFor(m['type'])?.title ?? '自定义内容',
                     maxLines: 1,
                     style: const TextStyle(fontSize: 10, color: Colors.white),
                   ),
@@ -984,7 +1077,8 @@ class _GlassLabState extends State<GlassLab> {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
             children: [
-              for (final label in ['属性', '配置', '事件'])
+              for (final label
+                  in advancedMode ? ['属性', '配置', '事件'] : ['属性', '试用记录'])
                 TextButton(
                   onPressed: () => setState(() => tab = label),
                   child: Text(
@@ -1006,7 +1100,7 @@ class _GlassLabState extends State<GlassLab> {
         ),
         const Divider(height: 1),
         Expanded(
-          child: tab == '事件'
+          child: tab == '事件' || tab == '试用记录'
               ? eventPanel()
               : tab == '配置'
               ? jsonPanel(appContext)
@@ -1016,6 +1110,7 @@ class _GlassLabState extends State<GlassLab> {
     ),
   );
   Widget propertyPanel(BuildContext appContext) {
+    if (!advancedMode) return basicPropertyPanel(appContext);
     final m = active;
     final idx = modules.indexOf(m);
     return ListView(
@@ -1118,6 +1213,87 @@ class _GlassLabState extends State<GlassLab> {
           style: TextStyle(color: muted, fontSize: 10, height: 1.7),
         ),
         const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget basicPropertyPanel(BuildContext appContext) {
+    final current = active;
+    final index = modules.indexOf(current);
+    return ListView(
+      key: const ValueKey('properties'),
+      padding: const EdgeInsets.all(18),
+      children: [
+        Text(
+          global
+              ? '整体外观'
+              : basicEntryFor(current?['type'] ?? '')?.title ?? '自定义内容',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 10),
+        if (global) ...[
+          const Text('影响整个画布；已单独设置的外观会继续保留。'),
+          const SizedBox(height: 14),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('深色外观'),
+            value: scene['theme']['brightness'] == 'dark',
+            onChanged: (v) =>
+                editPath(['theme', 'brightness'], v ? 'dark' : 'light'),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('高对比度'),
+            value: scene['theme']['accessibility']['highContrast'] == true,
+            onChanged: (v) =>
+                editPath(['theme', 'accessibility', 'highContrast'], v),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('减少透明效果'),
+            value:
+                scene['theme']['accessibility']['reduceTransparency'] == true,
+            onChanged: (v) =>
+                editPath(['theme', 'accessibility', 'reduceTransparency'], v),
+          ),
+        ] else if (current != null) ...[
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton.icon(
+                onPressed: duplicate,
+                icon: const Icon(Icons.copy, size: 16),
+                label: const Text('复制组件'),
+              ),
+              TextButton.icon(
+                onPressed: remove,
+                icon: const Icon(Icons.delete_outline, size: 16),
+                label: const Text('删除组件'),
+              ),
+            ],
+          ),
+          BasicInspector(
+            key: ValueKey('basic-${current['id']}'),
+            module: current,
+            onApply: replaceModule,
+            onAdvanced: () => changeEditorMode(true),
+          ),
+          const Divider(height: 28),
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            title: const Text('编辑器中的位置与大小'),
+            children: [
+              for (final k in ['x', 'y', 'w', 'h'])
+                field(k, current[k], ['modules', index, k], appContext, 0),
+            ],
+          ),
+        ] else
+          const Text('从左侧添加内容，或选择一个组件。'),
+        const SizedBox(height: 16),
+        TextButton(
+          onPressed: () => changeEditorMode(true),
+          child: const Text('切换高级模式'),
+        ),
       ],
     );
   }
