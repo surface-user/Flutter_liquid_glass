@@ -22,6 +22,7 @@ void main() {
       await tester.pumpAndSettle();
       final button = find.byKey(const ValueKey('basic-add-GlassButton'));
       final icon = find.byKey(const ValueKey('basic-add-GlassIconButton'));
+      final left = tester.getTopLeft(button).dx;
       expect(tester.getTopLeft(button).dy, tester.getTopLeft(icon).dy);
       expect(
         tester.getTopLeft(icon).dx,
@@ -35,6 +36,10 @@ void main() {
         '卡片',
       );
       await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('basic-add-GlassCard'))).dx,
+        left,
+      );
       await tester.tap(find.byKey(const ValueKey('basic-add-GlassCard')));
       expect(added, 'GlassCard');
       await tester.enterText(

@@ -234,73 +234,79 @@ class _BasicPaletteState extends State<BasicPalette> {
                               : 2;
                           final width =
                               (size.maxWidth - (columns - 1) * 10) / columns;
-                          return Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: [
-                              for (final entry in visible.where(
-                                (entry) => entry.category == group.key,
-                              ))
-                                SizedBox(
-                                  width: width,
-                                  height: 96 * scale.clamp(1, 1.7),
-                                  child: Draggable<String>(
-                                    data: entry.type,
-                                    feedback: Material(
-                                      elevation: 6,
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Text(entry.title),
+                          return SizedBox(
+                            width: size.maxWidth,
+                            child: Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                for (final entry in visible.where(
+                                  (entry) => entry.category == group.key,
+                                ))
+                                  SizedBox(
+                                    width: width,
+                                    height: 96 * scale.clamp(1, 1.7),
+                                    child: Draggable<String>(
+                                      data: entry.type,
+                                      feedback: Material(
+                                        elevation: 6,
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Text(entry.title),
+                                        ),
                                       ),
-                                    ),
-                                    child: Tooltip(
-                                      message:
-                                          '${entry.description} 点击添加，或拖入画布。',
-                                      child: Material(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surfaceContainerHighest
-                                            .withValues(alpha: .4),
-                                        borderRadius: BorderRadius.circular(18),
-                                        child: InkWell(
-                                          key: ValueKey(
-                                            'basic-add-${entry.type}',
-                                          ),
+                                      child: Tooltip(
+                                        message:
+                                            '${entry.description} 点击添加，或拖入画布。',
+                                        child: Material(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surfaceContainerHighest
+                                              .withValues(alpha: .4),
                                           borderRadius: BorderRadius.circular(
                                             18,
                                           ),
-                                          onTap: () => widget.onAdd(entry.type),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(12),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  entry.icon,
-                                                  size: 26,
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                ),
-                                                const SizedBox(height: 10),
-                                                Text(
-                                                  entry.title,
-                                                  textAlign: TextAlign.center,
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
+                                          child: InkWell(
+                                            key: ValueKey(
+                                              'basic-add-${entry.type}',
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              18,
+                                            ),
+                                            onTap: () =>
+                                                widget.onAdd(entry.type),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    entry.icon,
+                                                    size: 26,
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                                   ),
-                                                ),
-                                              ],
+                                                  const SizedBox(height: 10),
+                                                  Text(
+                                                    entry.title,
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           );
                         },
                       ),
