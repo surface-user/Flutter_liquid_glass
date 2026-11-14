@@ -1103,109 +1103,116 @@ class _GlassLabState extends State<GlassLab> {
       height: number(m['h']) + 24,
       child: Listener(
         onPointerCancel: (_) => finishTransform(id, cancel: true),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              left: 12,
-              right: 12,
-              top: 12,
-              bottom: 12,
-              child: SizedBox(
-                key: ValueKey(id),
-                child: GestureDetector(
-                  onTap: () => setState(() {
-                    selected = id;
-                    global = false;
-                    tab = '属性';
-                  }),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ExcludeFocus(
-                        excluding: !advancedMode,
-                        child: IgnorePointer(
-                          ignoring: !advancedMode,
-                          child: Builder(
-                            builder: (context) =>
-                                moduleView(runtime, m, context, '$id/root'),
-                          ),
-                        ),
-                      ),
-                      if (chosen)
-                        Positioned.fill(
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SizedBox(
+                  key: ValueKey(id),
+                  child: GestureDetector(
+                    onTap: () => setState(() {
+                      selected = id;
+                      global = false;
+                      tab = '属性';
+                    }),
+                    child: Stack(
+                      fit: StackFit.loose,
+                      children: [
+                        ExcludeFocus(
+                          excluding: !advancedMode,
                           child: IgnorePointer(
-                            child: DecoratedBox(
-                              key: ValueKey('selection-$id'),
-                              decoration: ShapeDecoration(shape: outline),
+                            ignoring: !advancedMode,
+                            child: Builder(
+                              builder: (context) =>
+                                  moduleView(runtime, m, context, '$id/root'),
                             ),
                           ),
                         ),
-                      if (!advancedMode)
-                        Positioned.fill(
-                          child: Semantics(
-                            button: true,
-                            label:
-                                '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}，拖动可移动',
-                            child: move,
+                        if (chosen)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: DecoratedBox(
+                                key: ValueKey('selection-$id'),
+                                decoration: ShapeDecoration(shape: outline),
+                              ),
+                            ),
                           ),
-                        )
-                      else if (chosen)
-                        Positioned(top: 0, right: 0, child: move),
-                    ],
+                        if (!advancedMode)
+                          Positioned.fill(
+                            child: Semantics(
+                              button: true,
+                              label:
+                                  '选择${basicEntryFor(m['type'])?.title ?? '自定义内容'}，拖动可移动',
+                              child: move,
+                            ),
+                          )
+                        else if (chosen)
+                          Positioned(top: 0, right: 0, child: move),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            if (chosen)
-              for (final side in const {
-                'left': Alignment.centerLeft,
-                'right': Alignment.centerRight,
-                'top': Alignment.topCenter,
-                'bottom': Alignment.bottomCenter,
-              }.entries)
-                Align(
-                  alignment: side.value,
-                  child: MediaQuery(
-                    data: MediaQuery.of(appContext).copyWith(
-                      gestureSettings: const DeviceGestureSettings(
-                        touchSlop: 4,
-                      ),
-                    ),
-                    child: Semantics(
-                      label:
-                          '调整${switch (side.key) {
-                            'left' => '左',
-                            'right' => '右',
-                            'top' => '上',
-                            _ => '下',
-                          }}侧尺寸',
-                      child: MouseRegion(
-                        cursor: side.key == 'left' || side.key == 'right'
-                            ? SystemMouseCursors.resizeLeftRight
-                            : SystemMouseCursors.resizeUpDown,
-                        child: GestureDetector(
-                          key: ValueKey('resize-${side.key}-$id'),
-                          dragStartBehavior: DragStartBehavior.down,
-                          behavior: HitTestBehavior.opaque,
-                          onPanStart: (_) => beginTransform(id, side: side.key),
-                          onPanUpdate: (d) => updateTransform(id, d),
-                          onPanEnd: (_) => finishTransform(id),
-                          onPanCancel: () => finishTransform(id, cancel: true),
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: Center(
-                              child: Container(
-                                width: side.key == 'left' || side.key == 'right'
-                                    ? 4
-                                    : 22,
-                                height:
-                                    side.key == 'left' || side.key == 'right'
-                                    ? 22
-                                    : 4,
-                                decoration: BoxDecoration(
-                                  color: selectionColor,
-                                  borderRadius: BorderRadius.circular(3),
+              if (chosen && !contentSizedModule(m['type']))
+                for (final side in const {
+                  'left': Alignment.centerLeft,
+                  'right': Alignment.centerRight,
+                  'top': Alignment.topCenter,
+                  'bottom': Alignment.bottomCenter,
+                }.entries)
+                  Positioned.fill(
+                    child: Align(
+                      alignment: side.value,
+                      child: MediaQuery(
+                        data: MediaQuery.of(appContext).copyWith(
+                          gestureSettings: const DeviceGestureSettings(
+                            touchSlop: 4,
+                          ),
+                        ),
+                        child: Semantics(
+                          label:
+                              '调整${switch (side.key) {
+                                'left' => '左',
+                                'right' => '右',
+                                'top' => '上',
+                                _ => '下',
+                              }}侧尺寸',
+                          child: MouseRegion(
+                            cursor: side.key == 'left' || side.key == 'right'
+                                ? SystemMouseCursors.resizeLeftRight
+                                : SystemMouseCursors.resizeUpDown,
+                            child: GestureDetector(
+                              key: ValueKey('resize-${side.key}-$id'),
+                              dragStartBehavior: DragStartBehavior.down,
+                              behavior: HitTestBehavior.opaque,
+                              onPanStart: (_) =>
+                                  beginTransform(id, side: side.key),
+                              onPanUpdate: (d) => updateTransform(id, d),
+                              onPanEnd: (_) => finishTransform(id),
+                              onPanCancel: () =>
+                                  finishTransform(id, cancel: true),
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Center(
+                                  child: Container(
+                                    width:
+                                        side.key == 'left' ||
+                                            side.key == 'right'
+                                        ? 4
+                                        : 22,
+                                    height:
+                                        side.key == 'left' ||
+                                            side.key == 'right'
+                                        ? 22
+                                        : 4,
+                                    decoration: BoxDecoration(
+                                      color: selectionColor,
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -1214,8 +1221,8 @@ class _GlassLabState extends State<GlassLab> {
                       ),
                     ),
                   ),
-                ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1468,9 +1475,15 @@ class _GlassLabState extends State<GlassLab> {
           const Divider(height: 28),
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
-            title: const Text('编辑器中的位置与大小'),
+            title: Text(
+              contentSizedModule(current['type']) ? '编辑器中的位置' : '编辑器中的位置与大小',
+            ),
             children: [
-              for (final k in ['x', 'y', 'w', 'h'])
+              if (contentSizedModule(current['type'])) const Text('尺寸随内容自动调整。'),
+              for (final k
+                  in contentSizedModule(current['type'])
+                      ? ['x', 'y']
+                      : ['x', 'y', 'w', 'h'])
                 field(k, current[k], ['modules', index, k], appContext, 0),
             ],
           ),

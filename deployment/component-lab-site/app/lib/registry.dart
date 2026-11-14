@@ -1507,6 +1507,17 @@ class _RuntimeNodeState extends State<_RuntimeNode> {
   }
 }
 
+bool contentSizedModule(String type) => const [
+  'GlassTab',
+  'GlassNavigationItem',
+  'GlassMenu',
+  'showGlassDialog',
+  'GlassPageRoute',
+  'Text',
+  'Icon',
+  'MenuItemButton',
+].contains(type);
+
 Widget moduleView(
   Runtime runtime,
   Json item,
@@ -1524,7 +1535,12 @@ Widget moduleView(
     );
     return control
         ? SizedBox.expand(child: content)
-        : Align(alignment: Alignment.topLeft, child: content);
+        : Align(
+            alignment: Alignment.topLeft,
+            widthFactor: 1,
+            heightFactor: 1,
+            child: content,
+          );
   } catch (e) {
     return ColoredBox(
       color: const Color(0xff4b2333),
