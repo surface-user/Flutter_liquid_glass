@@ -1537,8 +1537,8 @@ Widget moduleView(
         ? SizedBox.expand(child: content)
         : Align(
             alignment: Alignment.topLeft,
-            widthFactor: 1,
-            heightFactor: 1,
+            widthFactor: contentSizedModule(item['type']) ? 1 : null,
+            heightFactor: contentSizedModule(item['type']) ? 1 : null,
             child: content,
           );
   } catch (e) {
