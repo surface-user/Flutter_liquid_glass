@@ -81,7 +81,8 @@ class _PreviewSessionState extends State<_PreviewSession> {
   final navigation = GlobalKey<NavigatorState>();
   final viewport = TransformationController();
   final revision = ValueNotifier(0);
-  bool fitted = false;
+  final contentKeys = <String, GlobalKey>{};
+  Size? fittedSize;
   String lastEvent = '运行已开始';
 
   @override
@@ -92,22 +93,46 @@ class _PreviewSessionState extends State<_PreviewSession> {
     super.dispose();
   }
 
-  Size get boardSize {
-    double width = 300, height = 200;
+  Rect get contentBounds {
+    Rect? bounds;
     for (final m in scene['modules'] as List) {
-      width = math.max(width, number(m['x']) + number(m['w']) + 24);
-      height = math.max(height, number(m['y']) + number(m['h']) + 24);
+      final box = contentKeys[m['id']]?.currentContext?.findRenderObject();
+      final size = box is RenderBox && box.hasSize
+          ? box.size
+          : Size(number(m['w']), number(m['h']));
+      final rect = Rect.fromLTWH(
+        number(m['x']),
+        number(m['y']),
+        size.width,
+        size.height,
+      );
+      bounds = bounds == null ? rect : bounds.expandToInclude(rect);
     }
-    return Size(width, height);
+    return bounds ?? const Rect.fromLTWH(0, 0, 300, 200);
   }
 
-  void fit(Size available) {
-    final size = boardSize;
-    final scale = math
-        .min(available.width / size.width, available.height / size.height)
-        .clamp(.1, 1.0)
-        .toDouble();
-    viewport.value = Matrix4.diagonal3Values(scale, scale, 1);
+  void fit(Size available, {bool original = false}) {
+    final bounds = contentBounds;
+    final scale = original
+        ? 1.0
+        : math
+              .min(
+                math.max(1, available.width - 48) / bounds.width,
+                math.max(1, available.height - 48) / bounds.height,
+              )
+              .clamp(.1, 1.0)
+              .toDouble();
+    viewport.value = Matrix4.diagonal3Values(scale, scale, scale)
+      ..setEntry(
+        0,
+        3,
+        (available.width - bounds.width * scale) / 2 - bounds.left * scale,
+      )
+      ..setEntry(
+        1,
+        3,
+        (available.height - bounds.height * scale) / 2 - bounds.top * scale,
+      );
   }
 
   Widget readableBoard(
@@ -186,108 +211,92 @@ class _PreviewSessionState extends State<_PreviewSession> {
                           Expanded(
                             child: LayoutBuilder(
                               builder: (context, limits) {
-                                if (!fitted) {
-                                  fitted = true;
-                                  fit(limits.biggest);
+                                if (fittedSize != limits.biggest) {
+                                  final available = limits.biggest;
+                                  fittedSize = available;
+                                  fit(available);
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    if (mounted && fittedSize == available)
+                                      fit(available);
+                                  });
                                 }
                                 final contrast = MediaQuery.highContrastOf(
                                   context,
                                 );
-                                final size = boardSize;
-                                return Stack(
-                                  children: [
-                                    Positioned.fill(
-                                      child: ColoredBox(
-                                        color: contrast
-                                            ? theme.brightness ==
-                                                      Brightness.dark
-                                                  ? const Color(0xff202a3c)
-                                                  : const Color(0xffedf1f8)
-                                            : theme.surfaceColor,
-                                        child: InteractiveViewer(
-                                          key: const ValueKey('preview-canvas'),
-                                          transformationController: viewport,
-                                          constrained: false,
-                                          minScale: .1,
-                                          maxScale: 2,
-                                          boundaryMargin: const EdgeInsets.all(
-                                            40,
-                                          ),
-                                          child: DecoratedBox(
-                                            decoration: BoxDecoration(
-                                              color: contrast
-                                                  ? theme.brightness ==
-                                                            Brightness.dark
-                                                        ? const Color(
-                                                            0xff202a3c,
-                                                          )
-                                                        : const Color(
-                                                            0xffedf1f8,
-                                                          )
-                                                  : null,
-                                              gradient: contrast
-                                                  ? null
-                                                  : LinearGradient(
-                                                      colors:
-                                                          theme.brightness ==
-                                                              Brightness.dark
-                                                          ? [
-                                                              colors
-                                                                  .primaryContainer,
-                                                              colors
-                                                                  .tertiaryContainer,
-                                                              colors
-                                                                  .secondaryContainer,
-                                                            ]
-                                                          : const [
-                                                              Color(0xffb4c5ff),
-                                                              Color(0xffd8bbed),
-                                                              Color(0xffb0e0df),
-                                                            ],
-                                                      begin: Alignment.topLeft,
-                                                      end:
-                                                          Alignment.bottomRight,
-                                                    ),
+                                final viewer = InteractiveViewer(
+                                  key: const ValueKey('preview-canvas'),
+                                  transformationController: viewport,
+                                  alignment: Alignment.topLeft,
+                                  constrained: false,
+                                  minScale: .1,
+                                  maxScale: 2,
+                                  boundaryMargin: const EdgeInsets.all(
+                                    double.infinity,
+                                  ),
+                                  child: SizedBox(
+                                    width: 1200,
+                                    height: 1200,
+                                    child: Stack(
+                                      clipBehavior: Clip.hardEdge,
+                                      children: [
+                                        if ((scene['modules'] as List).isEmpty)
+                                          Positioned.fromRect(
+                                            rect: contentBounds,
+                                            child: const Center(
+                                              child: Text('画布中还没有可运行的内容'),
                                             ),
-                                            child: SizedBox(
-                                              width: size.width,
-                                              height: size.height,
-                                              child: Stack(
-                                                clipBehavior: Clip.hardEdge,
-                                                children: [
-                                                  if ((scene['modules'] as List)
-                                                      .isEmpty)
-                                                    const Center(
-                                                      child: Text(
-                                                        '画布中还没有可运行的内容',
-                                                      ),
+                                          ),
+                                        for (final m
+                                            in scene['modules'] as List)
+                                          Positioned(
+                                            left: number(m['x']),
+                                            top: number(m['y']),
+                                            width: number(m['w']),
+                                            height: number(m['h']),
+                                            child: ClipRect(
+                                              key: ValueKey(
+                                                'preview-node-${m['id']}',
+                                              ),
+                                              child: moduleView(
+                                                runtime,
+                                                Map<String, dynamic>.from(m),
+                                                boardContext,
+                                                '运行/${m['id']}/root',
+                                                contentKey: contentKeys
+                                                    .putIfAbsent(
+                                                      m['id'],
+                                                      () => GlobalKey(),
                                                     ),
-                                                  for (final m
-                                                      in scene['modules']
-                                                          as List)
-                                                    Positioned(
-                                                      left: number(m['x']),
-                                                      top: number(m['y']),
-                                                      width: number(m['w']),
-                                                      height: number(m['h']),
-                                                      child: ClipRect(
-                                                        child: moduleView(
-                                                          runtime,
-                                                          Map<
-                                                            String,
-                                                            dynamic
-                                                          >.from(m),
-                                                          boardContext,
-                                                          '运行/${m['id']}/root',
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                                return Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: contrast
+                                          ? ColoredBox(
+                                              key: const ValueKey(
+                                                'preview-backdrop',
+                                              ),
+                                              color:
+                                                  theme.brightness ==
+                                                      Brightness.dark
+                                                  ? const Color(0xff202a3c)
+                                                  : const Color(0xffedf1f8),
+                                              child: viewer,
+                                            )
+                                          : GlassBackdrop(
+                                              key: const ValueKey(
+                                                'preview-backdrop',
+                                              ),
+                                              child: viewer,
+                                            ),
                                     ),
                                     Positioned(
                                       right: 8,
@@ -295,8 +304,24 @@ class _PreviewSessionState extends State<_PreviewSession> {
                                       child: Material(
                                         color: colors.surface,
                                         borderRadius: BorderRadius.circular(24),
-                                        child: Wrap(
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 12,
+                                                right: 4,
+                                              ),
+                                              child: ValueListenableBuilder<Matrix4>(
+                                                valueListenable: viewport,
+                                                builder: (_, matrix, _) => Text(
+                                                  '${(matrix.getMaxScaleOnAxis() * 100).round()}%',
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                             IconButton(
                                               tooltip: '适应画面',
                                               onPressed: () =>
@@ -307,8 +332,10 @@ class _PreviewSessionState extends State<_PreviewSession> {
                                             ),
                                             IconButton(
                                               tooltip: '原始大小',
-                                              onPressed: () => viewport.value =
-                                                  Matrix4.identity(),
+                                              onPressed: () => fit(
+                                                limits.biggest,
+                                                original: true,
+                                              ),
                                               icon: const Icon(
                                                 Icons.center_focus_strong,
                                               ),
@@ -326,11 +353,17 @@ class _PreviewSessionState extends State<_PreviewSession> {
                             padding: const EdgeInsets.all(10),
                             child: Semantics(
                               liveRegion: true,
-                              child: Text(
-                                lastEvent,
-                                key: const ValueKey('preview-event'),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Tooltip(
+                                  message: lastEvent,
+                                  child: Text(
+                                    lastEvent,
+                                    key: const ValueKey('preview-event'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
