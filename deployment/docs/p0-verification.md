@@ -10,7 +10,7 @@
 | P0-A | 普通模式按用途提供14项，隐藏底层类型；高级模式保留22项；直接编辑常用内容/外观；新卡片默认静态；复杂旧结构保留 | [PR #6](https://github.com/surface-user/Flutter_liquid_glass/pull/6) |
 | P0-B | 普通弹窗直接编辑入口、用途、标题正文、按钮/返回结果、尺寸/外观，提供只读预览和真实试用 | [PR #7](https://github.com/surface-user/Flutter_liquid_glass/pull/7) |
 | P0-C | 独立运行、重置/退出/返回；标准/轻柔/快速真实动效试用；减少动画与高对比继承 | [PR #8](https://github.com/surface-user/Flutter_liquid_glass/pull/8) |
-| P0-V | 最终接线、完整回归、中文矩阵、浏览器、正式构建与本记录 | 另列于任务账本 |
+| P0-V | 最终接线、完整回归、中文矩阵、浏览器、正式构建与本记录 | [PR #9](https://github.com/surface-user/Flutter_liquid_glass/pull/9) |
 
 各 PR 按依赖堆叠，分别评审各自增量，不自动合并。任务 DONE 表示实现、主 Agent 本地验收和 PR 交付完成；CI、非作者审查、站点发布分别记录。
 
