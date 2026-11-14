@@ -7,11 +7,13 @@ class ParameterInput extends StatefulWidget {
     required this.numeric,
     required this.onApply,
     this.allowNull = false,
-  });
+    this.maxLines = 1,
+  }) : assert(maxLines > 0);
   final dynamic value;
   final bool numeric;
   final String? Function(dynamic) onApply;
   final bool allowNull;
+  final int maxLines;
   @override
   State<ParameterInput> createState() => _ParameterInputState();
 }
@@ -69,6 +71,7 @@ class _ParameterInputState extends State<ParameterInput> {
     groupId: focus,
     controller: controller,
     focusNode: focus,
+    maxLines: widget.maxLines,
     style: const TextStyle(fontSize: 12),
     keyboardType: widget.numeric
         ? const TextInputType.numberWithOptions(decimal: true, signed: true)

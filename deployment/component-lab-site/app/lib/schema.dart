@@ -268,6 +268,8 @@ Map<String, String> schemaFor(String kind) {
 }
 
 String componentField(String type, String key) => switch (key) {
+  'triggerKind' => 'enum:dialogTrigger',
+  'triggerIcon' => 'enum:icon',
   'child' =>
     ['GlassButton', 'MenuItemButton'].contains(type)
         ? 'slot:trigger'
@@ -326,6 +328,7 @@ String componentField(String type, String key) => switch (key) {
 };
 
 List<String>? enumValues(String kind) => switch (kind) {
+  'dialogTrigger' => ['button', 'iconButton', 'textLink', 'actionOnly'],
   'component' => componentDefaults.keys.toList(),
   'icon' => icons.keys.toList(),
   'axis' => MainAxisAlignment.values.map((v) => v.name).toList(),

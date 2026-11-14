@@ -10,6 +10,7 @@ import 'labels.dart';
 import 'parameter_input.dart';
 import 'editor_catalog.dart';
 import 'basic_inspector.dart';
+import 'dialog_editor.dart';
 
 const ink = Color(0xff101420),
     panel = Color(0xff181e2b),
@@ -70,13 +71,7 @@ class _GlassLabState extends State<GlassLab> {
     } catch (_) {
       recoveryText = saved;
     }
-    runtime = Runtime(() => setState(() {}), (message) {
-      if (mounted)
-        setState(() {
-          events.insert(0, message);
-          if (events.length > 60) events.removeLast();
-        });
-    });
+    runtime = Runtime(() => setState(() {}), recordEvent);
   }
 
   @override
@@ -141,6 +136,14 @@ class _GlassLabState extends State<GlassLab> {
   void message(String text) => messenger.currentState?.showSnackBar(
     SnackBar(content: Text(text), behavior: SnackBarBehavior.floating),
   );
+  void recordEvent(String value) {
+    if (!mounted) return;
+    setState(() {
+      events.insert(0, value);
+      if (events.length > 60) events.removeLast();
+    });
+  }
+
   void undo(bool redo) {
     final from = redo ? future : past, to = redo ? past : future;
     if (from.isEmpty) return;
@@ -1272,12 +1275,32 @@ class _GlassLabState extends State<GlassLab> {
               ),
             ],
           ),
-          BasicInspector(
-            key: ValueKey('basic-${current['id']}'),
-            module: current,
-            onApply: replaceModule,
-            onAdvanced: () => changeEditorMode(true),
-          ),
+          if (DialogEditor.supports(current)) ...[
+            if (current['type'] != 'showGlassDialog' &&
+                current['type'] != 'GlassDialog')
+              TextButton(
+                onPressed: () {
+                  final next = clone(current);
+                  next['props']['onPressed'] = 'log';
+                  replaceModule(next);
+                },
+                child: const Text('改为普通点击操作'),
+              ),
+            DialogEditor(
+              key: ValueKey('dialog-${current['id']}'),
+              module: current,
+              theme: Map<String, dynamic>.from(scene['theme']),
+              onApply: replaceModule,
+              onAdvanced: () => changeEditorMode(true),
+              onEvent: recordEvent,
+            ),
+          ] else
+            BasicInspector(
+              key: ValueKey('basic-${current['id']}'),
+              module: current,
+              onApply: replaceModule,
+              onAdvanced: () => changeEditorMode(true),
+            ),
           const Divider(height: 28),
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
