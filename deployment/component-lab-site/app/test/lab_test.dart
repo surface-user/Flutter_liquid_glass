@@ -65,6 +65,7 @@ void main() {
     expect(saved, contains('onPressed'));
     expect(sampleText('我的自定义文字'), '我的自定义文字');
     expect(sampleText('Hello, Glass'), '你好，玻璃世界');
+    expect(sampleText('拖动模块标题，或者在右侧修改每一个参数。'), '从左侧添加组件，在右侧调整内容与外观。');
     expect(chinesePath('node-4/root/items/1'), '模块4 / 主组件 / 菜单项列表 / 1');
   });
   test('all material fields and all geometry/motion policies resolve', () {
@@ -251,11 +252,7 @@ void main() {
           tester.element(find.byType(Scaffold).first),
         );
         expect(locale.backButtonTooltip, '返回');
-        if (width < 820) {
-          await tester.tap(find.byTooltip('全局主题'));
-        } else {
-          await tester.tap(find.text('全局主题与样式'));
-        }
+        await tester.tap(find.byKey(const ValueKey('nav-appearance')));
         await tester.pumpAndSettle();
         for (final section in ['动画设置', '性能设置', '无障碍设置']) {
           expect(
