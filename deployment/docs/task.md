@@ -16,6 +16,13 @@
 
 ## 当前批次与依赖
 
+### 2026-11-14 全页拖动反馈与按区域删除（追加授权）
+
+| 编号 | 状态 | 依赖 | 退出条件 | 证据/PR |
+| --- | --- | --- | --- | --- |
+| DRAG-A | DONE | FIT-A/B DONE | 从左库拖出真实组件预览，已有组件也可全页跟随；点击/画布内移动不显示删除，进入左栏才显示、移出隐藏；缩放/落点/取消/撤销/资源/减少动画/中文完整验证后更新原站；独立PR交付 | 146项完整回归、独立分支12项、正式Web、桌面及390宽Edge拖动/删除/撤销与中文通过；[PR #17](https://github.com/surface-user/Flutter_liquid_glass/pull/17)已交付，CI/发布另列 |
+
+
 ### 2026-11-14 内容选框与轻量历史操作（追加授权）
 
 只改deployment，不改库/快照，不清空旧布局。上一轮按钮修复未覆盖标签等自然尺寸组件，本轮补齐。
@@ -23,7 +30,7 @@
 | 编号 | 状态 | 依赖 | 退出条件 | 证据/PR |
 | --- | --- | --- | --- | --- |
 | FIT-A | DONE | EDIT-A/B/C DONE | 标签/导航/菜单/文字等自然尺寸内容的选框贴合实际区域；不提供无效尺寸手柄；按钮/容器保持四边手柄、运行与旧布局兼容 | 内容尺寸专项通过；独立[PR #15](https://github.com/surface-user/Flutter_liquid_glass/pull/15)已交付；Edge实际验收通过 |
-| FIT-B | DONE | FIT-A REVIEW | 去掉删除底部横幅，在运行预览旁统一显示紧凑撤销/重做图标；320/390宽与200%中文可用，禁用/撤销/重做/删除资源回归通过 | 142项通过；独立[PR #16](https://github.com/surface-user/Flutter_liquid_glass/pull/16)已交付；Edge实际验收通过，PR |
+| FIT-B | DONE | FIT-A REVIEW | 去掉删除底部横幅，在运行预览旁统一显示紧凑撤销/重做图标；320/390宽与200%中文可用，禁用/撤销/重做/删除资源回归通过 | 142项通过；独立[PR #16](https://github.com/surface-user/Flutter_liquid_glass/pull/16)已交付；Edge实际验收通过 |
 
 
 ### 2026-11-14 贴合尺寸手柄、拖动删除与侧栏灰屏（追加授权）
@@ -111,3 +118,9 @@ PR是交付评审，不自动合并。CI、非作者审查与线上发布另列�
 - EDIT-A/B/C本地验收与独立PR交付完成：全量140/140、格式/分析、Web构建、Edge拖动尺寸/删除撤销/侧栏及390中文排版、ZIP61文件一致和64保护文件不变。2026-11-14原站第5版发布成功，源码98304dca1077915aecc04c9e2724ee0b7724c083；详见[editor-controls-verification.md](editor-controls-verification.md)。PR #12/#13根CI除库包发布检查外通过；#14最终head 3895e7b的检查同样仅库包发布失败，视觉/分析/测试/Web等通过；非作者审查未完成，全部未合并。
 
 - FIT-A/B本地与独立PR验收完成：142/142（66+76两个互斥测试集合覆盖全部文件）、格式/分析、正式Web、Edge内容选框/删除无横幅/顶部撤销重做/390宽、ZIP63文件与64保护文件一致通过。PR #15/#16未合并，CI与Sites发布终态分别记录在[selection-history-verification.md](selection-history-verification.md)。
+
+- FIT-A/B原站第6版已发布成功，权限保持public；源码8b9f5d6e06d47527e527d968b0d65397877a33e2，Sites终态succeeded。本地142项与浏览器验收通过，最终head CI和非作者审查仍与发布分开记录。
+
+- FIT-B最终head b254966的CI已完成：格式/分析/库与示例测试/Android Dart编译/Web/视觉通过，仅库包发布退出65（既有忽略规则）；#15同样仅该门槛未通过。PR仍未合并、非作者审查待完成，原站第6版已发布。
+
+- DRAG-A中断后续验完成：未改代码，146项/独立12项/构建记录与现有源码核对一致，ZIP65文件、保护64文件相同。390宽真实拖入、删除、撤销/重做正常，截图见[free-drag-verification.md](free-drag-verification.md)。按本地验收+独立PR交付定义DONE；最终CI、非作者审查和原站发布分别记录，不自动合并。

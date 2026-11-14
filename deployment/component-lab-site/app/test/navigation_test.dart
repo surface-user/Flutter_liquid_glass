@@ -97,7 +97,7 @@ void main() {
     final count = state.modules.length as int;
     final tile = find.byKey(const ValueKey('basic-add-GlassIconButton'));
     final start = tester.getCenter(tile);
-    final anchor = start - tester.getTopLeft(tile);
+    const anchor = Offset(16, 16);
     await tester.dragFrom(start, const Offset(900, 500) - start);
     await tester.pumpAndSettle();
     expect(state.modules.length, count + 1);
@@ -126,7 +126,7 @@ void main() {
       await tester.pumpAndSettle();
       final tile = find.byKey(const ValueKey('basic-add-GlassButton'));
       final start = tester.getCenter(tile);
-      final anchor = start - tester.getTopLeft(tile);
+      const anchor = Offset(16, 16);
       await tester.dragFrom(start, const Offset(600, 350) - start);
       await tester.pumpAndSettle();
       final position = tester.getTopLeft(

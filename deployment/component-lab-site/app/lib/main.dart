@@ -13,6 +13,7 @@ import 'basic_inspector.dart';
 import 'dialog_editor.dart';
 import 'motion_tryout.dart';
 import 'workbench_preview.dart';
+import 'drag_preview.dart';
 
 const ink = Color(0xff101420),
     panel = Color(0xff181e2b),
@@ -48,6 +49,8 @@ class _GlassLabState extends State<GlassLab> {
   String? transformingId, transformBefore, resizeSide;
   Rect? transformRect;
   Offset transformDelta = Offset.zero;
+  OverlayEntry? dragOverlay;
+  Offset dragPointer = Offset.zero, dragGrab = Offset.zero;
   bool sidebarOpen = true;
   String sidebarSection = 'components';
   double zoom = .85;
@@ -55,6 +58,9 @@ class _GlassLabState extends State<GlassLab> {
   final messenger = GlobalKey<ScaffoldMessengerState>();
   final navigator = GlobalKey<NavigatorState>();
   final canvasBoard = GlobalKey();
+  final canvasDropZone = GlobalKey();
+  StateSetter? paletteSetter;
+  bool catalogDragging = false, catalogCanceled = false;
   final sidebarZone = GlobalKey();
   bool overDelete = false;
   String? recoveryText;
@@ -85,6 +91,8 @@ class _GlassLabState extends State<GlassLab> {
 
   @override
   void dispose() {
+    dragOverlay?.remove();
+    dragOverlay?.dispose();
     runtime.dispose();
     super.dispose();
   }
@@ -645,35 +653,27 @@ class _GlassLabState extends State<GlassLab> {
               SizedBox(width: 280, child: palette(context)),
           ],
         ),
-        if (transformingId != null && resizeSide == null)
+        if (transformingId != null && resizeSide == null && overDelete)
           Positioned.fill(
             child: IgnorePointer(
               child: Semantics(
                 liveRegion: true,
-                label: overDelete ? '松开删除组件' : '拖到左侧删除组件，取消拖动可保留',
+                label: '松开删除组件',
                 child: ColoredBox(
                   key: const ValueKey('delete-zone'),
-                  color: overDelete
-                      ? const Color(0xffffc9cf)
-                      : const Color(0xf2f8e5e8),
+                  color: const Color(0xffffc9cf),
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          overDelete
-                              ? Icons.delete_forever_outlined
-                              : Icons.delete_outline,
+                          Icons.delete_forever_outlined,
                           size: small || !sidebarOpen ? 28 : 48,
                           color: const Color(0xff641523),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          small || !sidebarOpen
-                              ? '删除'
-                              : overDelete
-                              ? '松开即可删除'
-                              : '拖到这里删除',
+                          small || !sidebarOpen ? '删除' : '松开即可删除',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: Color(0xff641523),
@@ -768,6 +768,38 @@ class _GlassLabState extends State<GlassLab> {
       child: sidebarSection == 'components'
           ? BasicPalette(
               onCollapse: close,
+              onDragStarted: small
+                  ? () {
+                      catalogCanceled = false;
+                      paletteSetter?.call(() => catalogDragging = true);
+                    }
+                  : null,
+              onDragEnd: small
+                  ? (type, details) {
+                      final target =
+                          canvasDropZone.currentContext?.findRenderObject()
+                              as RenderBox?;
+                      final board =
+                          canvasBoard.currentContext?.findRenderObject()
+                              as RenderBox?;
+                      if (!catalogCanceled &&
+                          target != null &&
+                          board != null &&
+                          (target.localToGlobal(Offset.zero) & target.size)
+                              .contains(
+                                details.offset + const Offset(16, 16),
+                              )) {
+                        add(type, at: board.globalToLocal(details.offset));
+                      }
+                      close();
+                    }
+                  : null,
+              dragFeedback: (type) => DragPreview(
+                key: const ValueKey('catalog-drag-feedback'),
+                item: module(type, 0),
+                theme: clone(scene['theme']),
+                scale: zoom,
+              ),
               onAdd: (type) {
                 add(type);
                 if (small) close();
@@ -904,6 +936,7 @@ class _GlassLabState extends State<GlassLab> {
     return Container(
       color: const Color(0xff111722),
       child: DragTarget<String>(
+        key: canvasDropZone,
         onAcceptWithDetails: (d) {
           final box =
               canvasBoard.currentContext?.findRenderObject() as RenderBox?;
@@ -944,7 +977,7 @@ class _GlassLabState extends State<GlassLab> {
     return null;
   }
 
-  void beginTransform(String id, {String? side}) {
+  void beginTransform(String id, {String? side, Offset? globalPosition}) {
     if (transformingId != null) return;
     final item = itemById(id);
     if (item == null) return;
@@ -964,12 +997,35 @@ class _GlassLabState extends State<GlassLab> {
       selected = id;
       global = false;
     });
+    if (side == null && globalPosition != null) {
+      final board = canvasBoard.currentContext!.findRenderObject() as RenderBox;
+      dragPointer = globalPosition;
+      dragGrab =
+          globalPosition -
+          board.localToGlobal(Offset(number(item['x']), number(item['y'])));
+      final feedback = DragPreview(
+        key: const ValueKey('canvas-drag-feedback'),
+        item: clone(item),
+        theme: clone(scene['theme']),
+        scale: zoom,
+      );
+      dragOverlay = OverlayEntry(
+        builder: (_) => Positioned(
+          left: dragPointer.dx - dragGrab.dx,
+          top: dragPointer.dy - dragGrab.dy,
+          child: feedback,
+        ),
+      );
+      navigator.currentState!.overlay!.insert(dragOverlay!);
+    }
   }
 
   void updateTransform(String id, DragUpdateDetails details) {
     if (transformingId != id || transformRect == null) return;
     final item = itemById(id);
     if (item == null) return;
+    dragPointer = details.globalPosition;
+    dragOverlay?.markNeedsBuild();
     setState(() {
       transformDelta += details.delta;
       final box = sidebarZone.currentContext?.findRenderObject() as RenderBox?;
@@ -1013,6 +1069,9 @@ class _GlassLabState extends State<GlassLab> {
 
   void finishTransform(String id, {bool cancel = false}) {
     if (transformingId != id) return;
+    dragOverlay?.remove();
+    dragOverlay?.dispose();
+    dragOverlay = null;
     final item = itemById(id);
     final before = transformBefore;
     final deleted = !cancel && resizeSide == null && overDelete && item != null;
@@ -1073,7 +1132,7 @@ class _GlassLabState extends State<GlassLab> {
           global = false;
           tab = '属性';
         }),
-        onPanStart: (_) => beginTransform(id),
+        onPanStart: (d) => beginTransform(id, globalPosition: d.globalPosition),
         onPanUpdate: (d) => updateTransform(id, d),
         onPanEnd: (_) => finishTransform(id),
         onPanCancel: () => finishTransform(id, cancel: true),
@@ -1118,13 +1177,18 @@ class _GlassLabState extends State<GlassLab> {
                     child: Stack(
                       fit: StackFit.loose,
                       children: [
-                        ExcludeFocus(
-                          excluding: !advancedMode,
-                          child: IgnorePointer(
-                            ignoring: !advancedMode,
-                            child: Builder(
-                              builder: (context) =>
-                                  moduleView(runtime, m, context, '$id/root'),
+                        Opacity(
+                          opacity: transformingId == id && resizeSide == null
+                              ? .2
+                              : 1,
+                          child: ExcludeFocus(
+                            excluding: !advancedMode,
+                            child: IgnorePointer(
+                              ignoring: !advancedMode,
+                              child: Builder(
+                                builder: (context) =>
+                                    moduleView(runtime, m, context, '$id/root'),
+                              ),
                             ),
                           ),
                         ),
@@ -1811,12 +1875,35 @@ class _GlassLabState extends State<GlassLab> {
     );
   }
 
-  void showPalette(BuildContext c) => showModalBottomSheet(
-    context: c,
-    isScrollControlled: true,
-    builder: (_) =>
-        SizedBox(height: MediaQuery.sizeOf(c).height * .85, child: palette(c)),
-  );
+  void showPalette(BuildContext c) {
+    showModalBottomSheet<void>(
+      context: c,
+      isScrollControlled: true,
+      barrierColor: Colors.transparent,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      enableDrag: false,
+      builder: (_) => StatefulBuilder(
+        builder: (_, rebuild) {
+          paletteSetter = rebuild;
+          return Listener(
+            onPointerCancel: (_) => catalogCanceled = true,
+            child: Opacity(
+              opacity: catalogDragging ? 0 : 1,
+              child: SizedBox(
+                height: MediaQuery.sizeOf(c).height * .85,
+                child: palette(c),
+              ),
+            ),
+          );
+        },
+      ),
+    ).whenComplete(() {
+      paletteSetter = null;
+      catalogDragging = false;
+    });
+  }
+
   void showInspector(BuildContext c) => showModalBottomSheet(
     context: c,
     isScrollControlled: true,

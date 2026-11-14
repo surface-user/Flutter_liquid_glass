@@ -122,9 +122,19 @@ Json createBasicModule(String type, int id, {Offset? at}) {
 }
 
 class BasicPalette extends StatefulWidget {
-  const BasicPalette({super.key, required this.onAdd, this.onCollapse});
+  const BasicPalette({
+    super.key,
+    required this.onAdd,
+    this.onCollapse,
+    this.dragFeedback,
+    this.onDragStarted,
+    this.onDragEnd,
+  });
   final ValueChanged<String> onAdd;
   final VoidCallback? onCollapse;
+  final Widget Function(String)? dragFeedback;
+  final VoidCallback? onDragStarted;
+  final void Function(String, DraggableDetails)? onDragEnd;
   @override
   State<BasicPalette> createState() => _BasicPaletteState();
 }
@@ -250,14 +260,27 @@ class _BasicPaletteState extends State<BasicPalette> {
                                     height: 96 * scale.clamp(1, 1.7),
                                     child: Draggable<String>(
                                       data: entry.type,
-                                      feedback: Material(
-                                        elevation: 6,
-                                        borderRadius: BorderRadius.circular(16),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(16),
-                                          child: Text(entry.title),
-                                        ),
-                                      ),
+                                      onDragStarted: widget.onDragStarted,
+                                      onDragEnd: (details) => widget.onDragEnd
+                                          ?.call(entry.type, details),
+                                      rootOverlay: true,
+                                      maxSimultaneousDrags: 1,
+                                      dragAnchorStrategy: (_, _, _) =>
+                                          const Offset(16, 16),
+                                      feedback:
+                                          widget.dragFeedback?.call(
+                                            entry.type,
+                                          ) ??
+                                          Material(
+                                            elevation: 6,
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Text(entry.title),
+                                            ),
+                                          ),
                                       child: Tooltip(
                                         message:
                                             '${entry.description} 点击添加，或拖入画布。',
