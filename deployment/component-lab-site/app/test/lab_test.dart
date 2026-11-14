@@ -251,11 +251,7 @@ void main() {
           tester.element(find.byType(Scaffold).first),
         );
         expect(locale.backButtonTooltip, '返回');
-        if (width < 820) {
-          await tester.tap(find.byTooltip('全局主题'));
-        } else {
-          await tester.tap(find.text('全局主题与样式'));
-        }
+        await tester.tap(find.byKey(const ValueKey('nav-appearance')));
         await tester.pumpAndSettle();
         for (final section in ['动画设置', '性能设置', '无障碍设置']) {
           expect(

@@ -43,9 +43,10 @@ class _GlassLabState extends State<GlassLab> {
 
   Json scene = prepareScene(initialScene());
   String? selected = 'node-1';
-  String query = '';
   bool global = false, snap = true;
   bool advancedMode = false;
+  bool sidebarOpen = true;
+  String sidebarSection = 'components';
   double zoom = .85;
   String tab = '属性';
   final messenger = GlobalKey<ScaffoldMessengerState>();
@@ -324,7 +325,9 @@ class _GlassLabState extends State<GlassLab> {
         final wide = c.maxWidth >= 1180, small = c.maxWidth < 820;
         final textScale = MediaQuery.textScalerOf(context).scale(1);
         final compactCanvas =
-            (c.maxWidth - (small ? 52 : 220) - (wide ? 330 : 0)) <
+            (c.maxWidth -
+                (small || !sidebarOpen ? 64 : 344) -
+                (wide ? 330 : 0)) <
             700 * textScale;
         return Column(
           children: [
@@ -475,30 +478,9 @@ class _GlassLabState extends State<GlassLab> {
             Expanded(
               child: Row(
                 children: [
-                  if (!small)
-                    SizedBox(width: 220, child: palette(appContext))
-                  else
-                    SizedBox(
-                      width: 52,
-                      child: Column(
-                        children: [
-                          tool(
-                            Icons.widgets_outlined,
-                            '添加组件',
-                            () => showPalette(appContext),
-                          ),
-                          tool(
-                            Icons.tune,
-                            '检查器',
-                            () => showInspector(appContext),
-                          ),
-                          tool(Icons.public, '全局主题', () {
-                            setState(() => global = true);
-                            showInspector(appContext);
-                          }),
-                        ],
-                      ),
-                    ),
+                  workspaceRail(appContext, small: small, wide: wide),
+                  if (!small && sidebarOpen)
+                    SizedBox(width: 280, child: palette(appContext)),
                   Expanded(
                     child: Column(
                       children: [
@@ -516,7 +498,8 @@ class _GlassLabState extends State<GlassLab> {
                                 color: muted,
                               ),
                               const SizedBox(width: 8),
-                              if (!compactCanvas || textScale <= 1.3)
+                              if (!compactCanvas ||
+                                  (c.maxWidth >= 390 && textScale <= 1.3))
                                 Text(
                                   advancedMode ? '自由画布' : '编辑画布',
                                   style: const TextStyle(
@@ -637,183 +620,155 @@ class _GlassLabState extends State<GlassLab> {
       },
     ),
   );
-  Widget palette(BuildContext appContext) => !advancedMode
-      ? Material(
-          color: panel,
-          child: Column(
-            children: [
-              Expanded(child: BasicPalette(onAdd: (type) => add(type))),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() => global = true);
-                    if (MediaQuery.sizeOf(appContext).width < 1180) {
-                      Navigator.of(appContext).maybePop().then((_) {
-                        if (mounted) showInspector(appContext);
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.palette_outlined, size: 16),
-                  label: const Text('整体外观与动效'),
-                ),
-              ),
-            ],
-          ),
-        )
-      : Material(
-          color: panel,
-          shape: const Border(right: BorderSide(color: line)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 22, 20, 4),
-                child: Text(
-                  '组件库',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  '点击添加 · 或拖入画布',
-                  style: TextStyle(color: muted, fontSize: 11),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: TextField(
-                  onChanged: (v) => setState(() => query = v),
-                  decoration: const InputDecoration(
-                    hintText: '搜索组件…',
-                    prefixIcon: Icon(Icons.search, size: 17),
+  Widget workspaceRail(
+    BuildContext context, {
+    required bool small,
+    required bool wide,
+  }) => Material(
+    color: const Color(0xff151a25),
+    child: SizedBox(
+      width: 64,
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          for (final section in const [
+            ('components', '组件', Icons.add_box_outlined),
+            ('layers', '图层', Icons.layers_outlined),
+            ('appearance', '外观与动效', Icons.palette_outlined),
+            ('properties', '组件属性', Icons.tune),
+          ])
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: IconButton(
+                key: ValueKey('nav-${section.$1}'),
+                tooltip: section.$2,
+                isSelected:
+                    section.$1 == (global ? 'appearance' : sidebarSection),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.resolveWith(
+                    (states) => states.contains(WidgetState.selected)
+                        ? mint.withValues(alpha: .14)
+                        : Colors.transparent,
+                  ),
+                  foregroundColor: WidgetStateProperty.resolveWith(
+                    (states) =>
+                        states.contains(WidgetState.selected) ? mint : muted,
                   ),
                 ),
+                icon: Icon(section.$3, size: 23),
+                onPressed: () {
+                  if (section.$1 == 'appearance' ||
+                      section.$1 == 'properties') {
+                    setState(() {
+                      global = section.$1 == 'appearance';
+                      tab = '属性';
+                    });
+                    if (!wide) showInspector(context);
+                  } else {
+                    setState(() {
+                      sidebarSection = section.$1;
+                      sidebarOpen = true;
+                      global = false;
+                    });
+                    if (small) showPalette(context);
+                  }
+                },
               ),
-              Expanded(
-                child: ListView(
-                  children: [
-                    for (final section in {
-                      '表面与材质': [
-                        'GlassCard',
-                        'GlassSurface',
-                        'AnimatedGlassSurface',
-                        'GlassBackdrop',
-                        'GlassGroup',
-                      ],
-                      '交互与导航': [
-                        'GlassButton',
-                        'GlassIconButton',
-                        'GlassTextField',
-                        'GlassNavigationItem',
-                        'GlassTab',
-                        'GlassToolbar',
-                        'GlassMenu',
-                        'GlassAppBar',
-                      ],
-                      '浮层与主题': [
-                        'GlassDialog',
-                        'showGlassDialog',
-                        'GlassPageRoute',
-                        'LiquidGlassTheme',
-                      ],
-                      '基础组合': [
-                        'Text',
-                        'Icon',
-                        'Row',
-                        'Column',
-                        'MenuItemButton',
-                      ],
-                    }.entries) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
+            ),
+        ],
+      ),
+    ),
+  );
+
+  Widget palette(BuildContext appContext) {
+    final small = MediaQuery.sizeOf(appContext).width < 820;
+    void close() {
+      if (small) {
+        Navigator.of(appContext).pop();
+      } else {
+        setState(() => sidebarOpen = false);
+      }
+    }
+
+    return Material(
+      color: panel,
+      shape: const Border(right: BorderSide(color: line)),
+      child: sidebarSection == 'components'
+          ? BasicPalette(
+              onCollapse: close,
+              onAdd: (type) {
+                add(type);
+                if (small) close();
+              },
+            )
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 12, 8),
+                  child: Row(
+                    children: [
+                      const Expanded(
                         child: Text(
-                          section.key.toUpperCase(),
-                          style: const TextStyle(
-                            color: muted,
-                            fontSize: 10,
-                            letterSpacing: 1.2,
+                          '图层',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      for (final type in section.value.where(
-                        (t) => '${chineseLabel(t)} $t'.toLowerCase().contains(
-                          query.toLowerCase(),
+                      IconButton(
+                        onPressed: close,
+                        tooltip: '收起图层面板',
+                        icon: const Icon(Icons.chevron_left, size: 20),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      if (modules.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text('添加组件后，可在这里选择它。'),
                         ),
-                      ))
-                        Draggable<String>(
-                          data: type,
-                          feedback: Material(
-                            color: panel,
-                            elevation: 8,
-                            borderRadius: BorderRadius.circular(8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Text(
-                                chineseLabel(type),
-                                style: const TextStyle(
-                                  color: mint,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
+                      for (final raw in modules.reversed)
+                        ListTile(
+                          key: ValueKey('layer-${raw['id']}'),
+                          selected: selected == raw['id'] && !global,
+                          selectedColor: mint,
+                          leading: Icon(
+                            basicEntryFor(raw['type'])?.icon ??
+                                Icons.widgets_outlined,
+                            size: 20,
                           ),
-                          child: ListTile(
-                            dense: true,
-                            minTileHeight: 38,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                            ),
-                            leading: Icon(
-                              _typeIcon(type),
-                              size: 17,
-                              color: muted,
-                            ),
-                            title: Text(
-                              chineseLabel(type),
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            trailing: const Icon(
-                              Icons.add,
-                              size: 13,
-                              color: muted,
-                            ),
-                            onTap: () => add(type),
+                          title: Text(
+                            basicEntryFor(raw['type'])?.title ?? '自定义内容',
+                            style: const TextStyle(fontSize: 13),
                           ),
+                          trailing: Text(
+                            '${modules.indexOf(raw) + 1}',
+                            style: const TextStyle(color: muted, fontSize: 11),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              selected = raw['id'];
+                              global = false;
+                              tab = '属性';
+                            });
+                            if (small) close();
+                          },
                         ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() => global = true);
-                    if (MediaQuery.sizeOf(appContext).width < 1180) {
-                      Navigator.of(appContext).maybePop().then((_) {
-                        if (mounted) showInspector(appContext);
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.palette_outlined, size: 16),
-                  label: const Text('全局主题与样式'),
-                ),
-              ),
-            ],
-          ),
-        );
-  IconData _typeIcon(String t) => switch (t) {
-    'GlassButton' || 'GlassIconButton' => Icons.touch_app_outlined,
-    'GlassTextField' => Icons.text_fields,
-    'GlassMenu' || 'showGlassDialog' || 'GlassDialog' => Icons.open_in_new,
-    'GlassTab' || 'GlassNavigationItem' => Icons.tab_outlined,
-    'LiquidGlassTheme' => Icons.palette_outlined,
-    'Text' => Icons.title,
-    'Row' || 'Column' || 'GlassToolbar' => Icons.view_quilt_outlined,
-    _ => Icons.layers_outlined,
-  };
+              ],
+            ),
+    );
+  }
+
+  IconData _typeIcon(String type) =>
+      basicEntryFor(type)?.icon ?? Icons.layers_outlined;
 
   Widget canvas(BuildContext appContext) {
     final theme = glassTheme(Map<String, dynamic>.from(scene['theme']));
@@ -849,8 +804,16 @@ class _GlassLabState extends State<GlassLab> {
               clipBehavior: Clip.hardEdge,
               children: [
                 Positioned.fill(
-                  child: CustomPaint(
-                    painter: _Grid(theme.brightness == Brightness.dark),
+                  child: GestureDetector(
+                    key: const ValueKey('canvas-background'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() {
+                      selected = null;
+                      global = false;
+                    }),
+                    child: CustomPaint(
+                      painter: _Grid(theme.brightness == Brightness.dark),
+                    ),
                   ),
                 ),
                 for (final raw in modules)
