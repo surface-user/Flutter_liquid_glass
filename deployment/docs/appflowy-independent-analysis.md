@@ -1,10 +1,10 @@
 # AppFlowy Flutter 桌面客户端独立研究
 
-状态：REVIEW  
-研究日期：2026-11-15  
-固定分支：`main`  
-完整提交：`8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93`  
-提交时间：2026-10-28T06:07:24Z；提交信息为 README 图片更新。  
+状态：REVIEW
+研究日期：2026-11-15
+固定分支：`main`
+完整提交：`8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93`
+提交时间：2026-10-28T06:07:24Z；提交信息为 README 图片更新。
 研究对象：[AppFlowy-IO/AppFlowy 固定快照](https://github.com/AppFlowy-IO/AppFlowy/tree/8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93)。
 
 ## 1. 研究范围、方法与证据等级
@@ -376,6 +376,5 @@ ShareButton 提供 ShareBloc，并监听 isLoading=false 且 exportResult 非空
 | E72 | 文档打开事件：`frontend/appflowy_flutter/lib/plugins/document/application/document_service.dart` | [L25–L30](https://github.com/AppFlowy-IO/AppFlowy/blob/8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93/frontend/appflowy_flutter/lib/plugins/document/application/document_service.dart#L25-L30) |
 | E73 | 桌面编辑器内容构建：`frontend/appflowy_flutter/lib/plugins/document/document_page.dart` | [L157–L207](https://github.com/AppFlowy-IO/AppFlowy/blob/8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93/frontend/appflowy_flutter/lib/plugins/document/document_page.dart#L157-L207) |
 
-未检查：真实应用运行、测试/构建、当前发布包、全仓库语义/动画策略、性能和完整许可证依赖清单。  
+未检查：真实应用运行、测试/构建、当前发布包、全仓库语义/动画策略、性能和完整许可证依赖清单。
 需保留的风险：报告中静态发现的控制器清理、导出异常处理和测试陈旧问题尚未运行复现；请勿将其升级为已证实的用户故障或将本报告当成产品验收。
-
