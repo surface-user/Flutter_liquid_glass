@@ -16,12 +16,17 @@
 
 ## 当前批次与依赖
 
+### 2026-11-15 四项目独立研究（仅文档）
+
+用户授权独立子代理研究AppFlowy、fluent_ui、shadcn_flutter、Appainter，再由主Agent结合讨论定位综合判断。独立代理不继承对话、不读记忆或本地定位文档；仅写deployment/docs，暂不改代码和站点。四份独立报告和主Agent综合已整理，代码和站点未改。先读[综合建议](flutter-reference-synthesis.md)，具体调度、证据及交付见[独立研究账本](reference-research-task.md)。
+
+
 ### 2026-11-14 单一拖动视觉与完整运行预览（追加授权）
 
 | 编号 | 状态 | 依赖 | 退出条件 | 证据/PR |
 | --- | --- | --- | --- | --- |
-| SINGLE-A | DONE | DRAG-A DONE | 拖动中只绘制全页预览，原组件/选框/手柄不可见但保持状态；结束/取消正确恢复，删除/撤销保持；独立PR | 原位残影已复现；14项专项及149项全回归、Edge移动/删除/撤销通过；独立[PR #18](https://github.com/surface-user/Flutter_liquid_glass/pull/18)，CI/发布另记 |
-| RUN-A | DONE | P0-C、FIT-A/B DONE | 背景铺满运行视口，内容保持尺寸和相对位置并居中，窄屏/调整窗口适配；适应/1:1/缩放可用，输入/菜单弹窗/页面/重置退出与中文回归；独立PR后更新原站 | 真实控件居中/全背景/窗口适配与中文输入重置退出通过；独立[PR #19](https://github.com/surface-user/Flutter_liquid_glass/pull/19)，[复验记录](preview-visual-verification.md)；CI/发布另记 |
+| SINGLE-A | DONE | DRAG-A DONE | 拖动中只绘制全页预览，原组件/选框/手柄不可见但保持状态；结束/取消正确恢复，删除/撤销保持；独立PR | 原位残影已复现；14项专项及149项全回归、Edge移动/删除/撤销通过；独立[PR #18](https://github.com/surface-user/Flutter_liquid_glass/pull/18)，v8发布成功；库发布CI仍exit65，未合并 |
+| RUN-A | DONE | P0-C、FIT-A/B DONE | 背景铺满运行视口，内容保持尺寸和相对位置并居中，窄屏/调整窗口适配；适应/1:1/缩放可用，输入/菜单弹窗/页面/重置退出与中文回归；独立PR后更新原站 | 真实控件居中/全背景/窗口适配与中文输入重置退出通过；独立[PR #19](https://github.com/surface-user/Flutter_liquid_glass/pull/19)，[复验记录](preview-visual-verification.md)；v8发布成功；库发布CI仍exit65，未合并 |
 
 
 ### 2026-11-14 全页拖动反馈与按区域删除（追加授权）
