@@ -18,7 +18,7 @@
 
 ### 2026-11-15 四项目独立研究（仅文档）
 
-用户授权独立子代理研究AppFlowy、fluent_ui、shadcn_flutter、Appainter，再由主Agent结合讨论定位综合判断。独立代理不继承对话、不读记忆或本地定位文档；仅写deployment/docs，暂不改代码和站点。具体调度、证据及交付见[独立研究账本](reference-research-task.md)。
+用户授权独立子代理研究AppFlowy、fluent_ui、shadcn_flutter、Appainter，再由主Agent结合讨论定位综合判断。独立代理不继承对话、不读记忆或本地定位文档；仅写deployment/docs，暂不改代码和站点。四份独立报告和主Agent综合已整理，代码和站点未改。先读[综合建议](flutter-reference-synthesis.md)，具体调度、证据及交付见[独立研究账本](reference-research-task.md)。
 
 
 ### 2026-11-14 单一拖动视觉与完整运行预览（追加授权）
