@@ -1,4 +1,14 @@
-# Public demo
+# Demo 与后续设计台
+
+## 当前边界
+
+根组件库优先，设计台在 LIB-16 后按 WEB-LATER 另行定义。目标是消费真实版本/API，配置组件/状态/事件并生成提示词，交由用户 Agent 实现界面；不把网站工程导出或在线模型服务塞进首版库。
+
+下方保留 main 的原始发布记录，仅为 2026-09-17 快照；本次没有验证站点在线性、发布状态/受众或本地 deployment checkout。main 没有跟踪 deployment/；路径属于当时另行维护的工作区，不能在当前仓库直接执行。后续若授权更新，先读取实际站点身份与部署规则，不能猜测 ID 或重建同名站点。本任务只创建文档 PR，不发布。
+
+## 原始发布记录
+
+### Public demo
 
 URL: https://lightweight-liquid-glass-lab.marseille-cjh.chatgpt.site
 
