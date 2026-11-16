@@ -17,6 +17,7 @@ doc/VERIFICATION.md
 doc/WORKFLOW.md
 doc/api.md
 doc/architecture.md
+doc/baseline-audit.md
 doc/component-catalog.md
 doc/design-system.md
 doc/function-verification.md

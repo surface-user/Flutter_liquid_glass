@@ -26,6 +26,7 @@
 | --- | --- |
 | [AGENTS.md](AGENTS.md) | 当前开发规则和最小验证矩阵 |
 | [task.md](task.md) | LIB/WEB 计划；后半为明确标记的未合并实现历史 |
+| [baseline-audit.md](baseline-audit.md) | LIB-00 的当前 main/旧 PR 链、复用边界及待产品决策核查 |
 | [architecture.md](architecture.md) | main 实际依赖与后续模块/适配边界 |
 | [component-catalog.md](component-catalog.md) | 主线、#4 与计划能力对照 |
 | [api.md](api.md) | main API 与 #4 增量的分界 |
