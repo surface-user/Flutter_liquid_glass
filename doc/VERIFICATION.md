@@ -1,5 +1,7 @@
 # Verification record
 
+> 历史记录：下方完整保留 main 原有的 2026-09-17 验证正文，包含当时缺失远端/元数据、NDK 和未验平台的事实；这些不是今日仓库状态或本次测试结论。新方向及主线/未合并边界见 [README.md](README.md)，后续 #4 记录见 [testing.md](testing.md)。本轮没有重新运行本页检查。
+
 Local validation: 2026-09-17, Windows 11, Flutter 3.44.4 stable, Dart 3.12.2.
 SDK: D:/computer_work/Tools_work/flutter. The SDK is not on the machine PATH.
 
