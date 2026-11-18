@@ -10,5 +10,11 @@ flutter build web --release
 ```
 
 Android uses the stock Java Flutter embedding. No platform-specific glass rendering.
-Gallery screenshots are in test/goldens; all UI implementation is in lib/main.dart.
+Gallery screenshots are in `test/goldens`; the gallery entry is `lib/main.dart`.
+
+Run the standalone [layout recipe](lib/recipes/layout_recipe.dart) with
+`flutter run -t lib/recipes/layout_recipe.dart`. Its header wraps at narrow
+widths, and the same Flutter cards sit inside either a solid `Material` panel
+or a single optional `GlassSurface`. The recipe uses only Flutter and the
+library's public entry point.
 
