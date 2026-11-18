@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'motion_preferences.dart';
 import 'style.dart';
 import 'theme.dart';
 
@@ -361,6 +362,17 @@ class _AnimatedGlassStyle extends ImplicitlyAnimatedWidget {
 class _AnimatedGlassStyleState
     extends AnimatedWidgetBaseState<_AnimatedGlassStyle> {
   _StyleTween? _style;
+  late final _motionObserver = PlatformReduceMotionObserver((reduced) {
+    if (reduced) _finishTransition();
+  });
+
+  @override
+  void initState() {
+    super.initState();
+    controller.addStatusListener((status) {
+      _motionObserver.listening = status.isAnimating;
+    });
+  }
 
   @override
   void forEachTween(TweenVisitor<dynamic> visitor) {
@@ -377,9 +389,17 @@ class _AnimatedGlassStyleState
   void didUpdateWidget(_AnimatedGlassStyle oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Changing the duration alone does not finish an active SDK tween.
-    if (widget.duration == Duration.zero && controller.isAnimating) {
-      controller.value = 1;
-    }
+    if (widget.duration == Duration.zero) _finishTransition();
+  }
+
+  void _finishTransition() {
+    if (controller.isAnimating) controller.value = 1;
+  }
+
+  @override
+  void dispose() {
+    _motionObserver.listening = false;
+    super.dispose();
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'motion.dart';
+import 'motion_preferences.dart';
 import 'style.dart';
 
 enum GlassQuality { low, balanced, high, adaptive }
@@ -149,8 +150,10 @@ class LiquidGlassTheme extends InheritedTheme {
 
 bool glassReduceMotion(BuildContext context) {
   final theme = LiquidGlassTheme.of(context);
-  return MediaQuery.maybeOf(context)?.disableAnimations == true ||
-      MediaQuery.maybeOf(context)?.accessibleNavigation == true ||
+  final media = MediaQuery.maybeOf(context);
+  return media?.disableAnimations == true ||
+      media?.accessibleNavigation == true ||
+      platformRequestsReducedMotion ||
       theme.accessibility.reduceMotion ||
       !theme.performance.enableAnimations;
 }
