@@ -37,6 +37,7 @@
 
 ## 实现与兼容
 
+- 新通用组件按[组件目录](component-catalog.md#八类组件)的用途命名、归目录，不加 `Glass` 或 `Liquid` 前缀。主题、材质和动效独立；组件不依赖玻璃渲染，玻璃效果可通过外层 `GlassSurface` 组合。既有公开 API 和内部路径不因目录整理被整体迁移。
 - 优先现有实现或 SDK；新 API 要有参数消费点、默认/null、受控值/回调、所有权、取消/卸载与不支持项。
 - 新 API 同步 Dart 文档、可编译公开入口示例、必要测试、README 和 CHANGELOG。兼容旧 Glass API 与默认视觉，破坏性变更另定迁移/版本。
 - 状态覆盖按实际组件选择 idle/hover/focus/pressed/disabled/selected/error/loading/readOnly 等，不凭空增加字段。

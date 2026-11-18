@@ -1,3 +1,7 @@
+## Unreleased
+
+- Add a controlled `NavigationItem` for regular and glass surfaces, with keyboard activation and selected semantics.
+
 ## 0.1.0
 
 - Initial pure Flutter glass surface, immutable styles and seven presets.

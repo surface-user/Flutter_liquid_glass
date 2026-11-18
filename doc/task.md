@@ -1,12 +1,12 @@
 # 通用 Flutter UI 组件库整合任务
 
-更新日期：2026-11-16。当前方向：**先整合底层组件库与公开接口，再建设可视化设计台**。玻璃是可选特色材质，不是所有控件的前提。本次独立文档 PR 以 main a0bc51a 为基底，移植并校正 #26 的计划；以下 LIB/WEB 实施任务均为 PLANNED。本次已同步规范的文档部分，不将整个 LIB-01 或组件实现标为完成。
+更新日期：2026-11-18。当前方向：**先整合底层组件库与公开接口，再建设可视化设计台**。玻璃是可选特色材质，不是所有控件的前提。#27 从 main a0bc51a 移植并校正了 #26 的计划。已确认 8 类组件和首批范围；各项实现状态见下方任务记录。
 
 ## 1. 当前决定、范围与基线
 
 - 本文件是根组件库的主任务账本；`deployment/docs/task.md` 只管理网站自身工作。[PR #25](https://github.com/surface-user/Flutter_liquid_glass/pull/25) 的网站优先计划需调整，不能作为接下来的根库开发顺序；保留其历史，不合并或关闭它。
 - 产品目标：为 Flutter 应用及用户的 Agent 提供可组合、接口真实、样式一致的通用 UI 能力，逐步覆盖基础控件、导航、表单、浮层、布局、反馈和动效。优先复用 SDK、现有库和经过核查的第三方能力，缺口才自研，不预设四个参考项目都要采用。
-- 本轮不修改 `lib/`、`test/`、`example/`、依赖、SDK、包名或网站，不发布、不合并。后续实施以明确批准的任务范围为准；计划存在及技术依赖满足不等于开发已获批准。
+- #27 只调整文档。本次在 #29 交付独立导航条目及相关规范；组件分类是后续任务的归类依据，各项仍按明确批准的范围实施。不发布、不合并。
 - #26 原读取基线（保留来源，不作为本 PR 基底）：根库 `ac0028eacd0e1ee22747d454c04a456dcb307377`（`codex/fix-five-contract-bugs`）；#25 头 `8d501b2ba5ee5a7eb1f84cad82a44e7fa49b3307` 与其根 `lib/`、`doc/task.md` 一致，后续差异在 deployment。main 尚未包含该根库基线；原 #26 以该源库分支为 base；本 PR 则从 main 独立提交，只移植 doc/，不带入 #26 相对 main 的22个提交/109文件或网站链。
 - 原 M0–M5、BUG-TEST、测试失败及设备/人工/非作者审查记录原文保留在后面的历史区；已有实现不重新标成未开发，也不把历史 REVIEW 自动改为 DONE。后续开工重读最新分支和未提交改动。
 - 本次已同步 [Agent 规范](AGENTS.md)、[架构](architecture.md)、[设计规范](design-system.md)：通用库优先、玻璃可选、允许经评估的第三方 UI。LIB-01 仍需冻结首版/命名/包边界，LIB-02 才做候选实测与具体采用决定；没有安装或批准某个依赖。玻璃原生渲染、无业务耦合、API 兼容、分组隔离、减少动画、降级和性能约束继续适用。
@@ -27,8 +27,9 @@
 
 | 能力 | 实际接口/实现 | 本轮判断 |
 | --- | --- | --- |
-| 主题、密度、材质 | LiquidGlassThemeData/merge、GlassLayout、GlassStyle/Presets、SDK ColorScheme/TextTheme/ButtonStyle | 已有；补通用实色/透明/玻璃的用途与主题映射，不重造 token 系统 |
-| 表面 | GlassSurface、AnimatedGlassSurface、GlassCard、GlassBackdrop、GlassGroup | 已有；保留模糊上限、重叠隔离、高对比/无模糊可读；Backdrop 默认静态 |
+| 主题与密度 | LiquidGlassThemeData/merge、GlassLayout、SDK ColorScheme/TextTheme/ButtonStyle | 已有；补通用主题映射，不重造 token 系统 |
+| 材质 | GlassSurface、GlassStyle/Presets、GlassBackdrop、GlassGroup | 已有；保留模糊上限、重叠隔离、高对比/无模糊可读；Backdrop 默认静态 |
+| 布局与内容容器 | GlassCard | 已有玻璃卡片；通用卡片、面板和顶栏布局按 LIB-10 推进 |
 | 操作 | GlassButton、GlassIconButton，内部 interaction、SDK InkWell | 已有 hover/focus/pressed/disabled、按压/释放、指针高光；通用按钮变体和 loading 契约待定 |
 | 文本输入 | GlassTextField(controller/focusNode、onChanged/onSubmitted、InputDecoration) → SDK TextField | 已有基本输入/搜索、只读/禁用/错误外观；没有据此认定已提供 FormField 校验、数字输入或自动补全 |
 | 导航与布局 | GlassNavigationItem(selected/onPressed)、GlassTab(onSelected/onClose)、GlassToolbar(Wrap)、GlassAppBar | 已有受控条目、独立关闭和工具栏；未提供完整树数据、TabManager 或通用页面业务状态 |
@@ -60,20 +61,39 @@
 
 ## 3. 组件整合清单
 
+### 已确认分类与首批范围
+
+以[组件与能力目录](component-catalog.md#八类组件)为准。首批覆盖 5 类，其余按实际场景排期；下方技术清单和任务编号保留后续候选，不扩大首批交付。
+
+| 类别 | 职责边界 | 首批范围 |
+| --- | --- | --- |
+| 操作 | 触发命令 | 通用按钮和图标按钮（LIB-05） |
+| 输入与表单 | 编辑草稿、校验和提交 | 单行与多行文本输入，可组合 Flutter 表单（LIB-06） |
+| 选择与开关 | 在选项间选择，或改变开关、范围等持续值 | 后续（LIB-07、LIB-15A） |
+| 专用选择器 | 编辑日期、时间、颜色等有专属交互的值 | 后续（LIB-15A） |
+| 导航 | 请求切换页面或视图；选中与路由由应用持有 | 独立导航条目与标签（LIB-09A、LIB-09） |
+| 布局与内容容器 | 排列和组织内容；材质独立配置 | 卡片、面板和顶栏布局组合（LIB-10） |
+| 弹窗与浮层 | 临时呈现交互，负责关闭、焦点和结果 | 确认弹窗（LIB-08） |
+| 状态与反馈 | 提示进度、结果或当前状态 | 验收示例使用 Flutter 组合，统一接口后续评估（LIB-11） |
+
+[主题、材质和动效](component-catalog.md#基础能力)单列：主题决定视觉默认与覆盖（LIB-03/04），材质决定表面绘制与降级（LIB-04，`GlassSurface` 归此类），动效决定过渡与减少动画策略（LIB-12）。通用组件按用途命名，组件实现按职责归目录；`NavigationItem` 放在 `lib/src/components/navigation/`，普通实色或玻璃材质由调用方在外层组合。
+
+### 技术清单与后续候选
+
 “SDK 有”表示候选基础，不表示本库已有对应公开封装；“待扩展”表示未在当前入口实现的能力。下表是范围与优先选择，最终接口名、依赖和支持平台在对应任务验收时冻结。
 
 | 类别/作用 | 当前状态 | 拟整合内容与方式/理由 | 批次任务 |
 | --- | --- | --- | --- |
-| 通用按钮、图标、链接、切换/分段操作 | 玻璃按钮已实现 | 扩展变体、尺寸、loading/disabled、leading/trailing；SDK Filled/Outlined/Text/IconButton、SegmentedButton 主题接入，已有玻璃接口保留。自研只补不可表达的共同契约 | P0 LIB-05 |
+| 通用按钮、图标按钮、链接按钮、命令工具栏 | 玻璃按钮已实现 | 扩展变体、尺寸、loading/disabled、leading/trailing；SDK Filled/Outlined/Text/IconButton 主题接入，已有玻璃接口保留。分段选择归选择与开关 | P0 LIB-05 |
 | 文本、密码、搜索、多行、表单项 | GlassTextField 部分覆盖 | SDK TextField/TextFormField/Form 组合；补 label/helper/error、校验/提交/重置、obscure/输入类型/formatter 等必要透传，先核对差异；不自造编辑器 | P0 LIB-06 |
 | Checkbox、Radio、Switch、分段选择 | 无对应本库公开类型 | SDK 优先，统一主题与受控值/回调；三态、互斥、键盘与 disabled 必验。fluent/shadcn 作差异候选，SDK 不足才适配 | P0 LIB-07 |
 | Select/Dropdown、Combobox/Autocomplete | SDK 可组合，根库未封装 | 先单选/搜索建议，使用 SDK DropdownMenu/Autocomplete；异步查询由外部负责。复杂可搜索/多选比较 fluent ComboBox/AutoSuggestBox、shadcn Select 的真实签名 | P0 LIB-07；P1 LIB-15A |
 | Slider/Range、数字输入 | SDK 有，根库未封装 | SDK Slider/RangeSlider 与格式化/校验；高级 NumberBox 比较 fluent，避免把数值解析和文本草稿混同 | P1 LIB-15A |
 | 日期/时间/日历、颜色选择 | 根库未提供 | SDK picker 优先；评估独立选择包或 fluent 日历。日期范围、时区/locale、取消返回、颜色格式分别定约，颜色包不沿用 Appainter 的许可结论 | P1 LIB-15A |
-| 侧栏、顶栏、底部/轨道导航、Tab、Breadcrumb | 已有条目/顶栏/Tab/工具栏 | 现有受控组件 + SDK NavigationRail/Bar/Drawer、TabBar 组合；补分组、溢出/滚动及可访问导航，不引入业务页面管理器。fluent 桌面导航作为复杂能力候选 | P0 LIB-09；P1 LIB-14 |
+| 侧栏条目、底部/轨道导航、Tab、Breadcrumb | #29 草稿新增独立条目；#4 有未合并的条目和 Tab | 受控条目 + SDK NavigationRail/Bar/Drawer、TabBar 组合；补分组、溢出/滚动及可访问导航，不引入业务页面管理器。复杂桌面导航再评估 fluent_ui | P0 LIB-09A、LIB-09；P1 LIB-14 |
 | 树与层级、可重排/可关闭 Tab | 条目 indent 只是表现 | 先明确选中/展开/虚拟化/拖拽职责；比较 SDK TreeSliver/ReorderableListView 与 fluent TreeView/TabView，数据和页面缓存外置，不把现有 indent 称完整树 | P1 LIB-15B |
 | 普通卡片、面板、列表项、分隔与折叠 | 玻璃卡片/表面已有 | SDK Card/ListTile/Divider/ExpansionTile；统一实色层与间距/密度；必要时提供可复用组合，保留玻璃可选 | P0 LIB-10 |
-| Row/Column/Wrap、Stack、滚动、Grid/响应式 | SDK 已有；工具栏 Wrap 已有 | 直接 SDK + 布局配方；真实重复需求才做响应式容器/分栏适配，不重复包装所有布局原语。可拖分栏评估后置 | P0 LIB-10；P1 LIB-15B |
+| 顶栏布局、Row/Column/Wrap、Stack、滚动、Grid/响应式 | SDK 已有；#4 有未合并的工具栏 Wrap | 直接 SDK + 布局配方；真实重复需求才做响应式容器/分栏适配，不重复包装所有布局原语。可拖分栏评估后置 | P0 LIB-10；P1 LIB-15B |
 | 说明/确认/输入弹窗 | GlassDialog/showGlassDialog 已有基础 | 以现有泛型结果机制组合用途预设；统一 confirm/cancel/null、滚动/窄窗、焦点恢复和 theme 捕获；修正或明确 reverseDuration 契约 | P0 LIB-08 |
 | 菜单、右键菜单、Popover/Tooltip/锚定浮层 | 单层 GlassMenu、SDK Tooltip 可用 | 先补锚点/窗口翻转/外点关闭/Esc 与焦点；SDK MenuAnchor/OverlayPortal 优先，复杂 Popover 比较 fluent Flyout/shadcn，级联菜单后置 | P0 LIB-08；P1 LIB-14 |
 | Drawer/Sheet、可展开区域 | SDK 有；根库未提供专用 API | SDK Drawer/showModalBottomSheet/ExpansionTile，核对局部 Navigator、遮罩/返回值、拖动关闭、焦点与减少动画；必要桥接主题 | P1 LIB-15A |
@@ -106,7 +126,7 @@
 
 ## 5. 分阶段任务、依赖与退出条件
 
-每项独立 PR，按 [工作流](WORKFLOW.md) 和 PR 模板交付；共享主题/入口/动效文件按所有权串行集成，不擅自开代理。状态：PLANNED → 获实施授权且依赖验收后 READY → IN_PROGRESS → REVIEW → DONE；失败退回，真实阻塞另记。当前没有新任务处于开发/完成状态。
+每项独立 PR，按 [工作流](WORKFLOW.md) 和 PR 模板交付；共享主题/入口/动效文件按所有权串行集成，不擅自开代理。状态：PLANNED → 获实施授权且依赖验收后 READY → IN_PROGRESS → REVIEW → DONE；失败退回，真实阻塞另记。LIB-09A 在 [#29 草稿](https://github.com/surface-user/Flutter_liquid_glass/pull/29) 审查，其余新实现按下表追踪。
 
 ### G0：固定整合边界与接口契约
 
@@ -119,6 +139,16 @@
 
 ### G1：首版可用的通用组件基础
 
+#### LIB-09A：独立导航条目
+
+状态：REVIEW（本地验证完成，待非作者审查）。经确认从 #27 合入后的 main `4842bea` 建立独立分支；只交付无材质前缀的 [NavigationItem](api.md#独立导航条目)。本任务使用 Flutter 控件和主线已有的 `GlassSurface`，不依赖尚未合入的通用主题、按钮或弹窗，也不改变完整 LIB-09 的依赖与状态。以 #4 的受控条目和回归思路为参考，保留旧 PR 链。
+
+验收：同一公开接口在普通实色表面（`Material`）、玻璃表面（`GlassSurface`）和关闭模糊的玻璃表面上，选中语义、焦点、点击和 Enter/Space 激活一致。禁用不激活，焦点和激活不自动变更选中；外部焦点节点仍由应用持有。材质配置只放在父表面；不引入侧栏容器、路由、组选择或页面状态。
+
+本地验证（Windows，Flutter 3.47.1）：格式、静态分析和根测试 27/27 通过（含 4 项新增用例及根视觉回归）。示例 2 通过、2 失败：浅色 1280/390 截图分别有 699/704 像素不同；从未修改的 `4842bea` 隔离复跑得到相同失败，8 张参考、实际与差异图片的 SHA256 对应一致。保留失败产物和原基准，不调整容差。未做设备、实窗或读屏验收；本任务不合并、不发布。
+
+分类复核：`NavigationItem` 源码归导航目录，仍从原公开入口导出，仅依赖 Flutter Material 主持交互和状态样式。测试继续从公共入口导入，并把 `GlassSurface` 作为外层夹具。归档后复跑格式、静态分析与根测试 27/27 均通过；示例及基准图无改动，本次未复跑示例。
+
 | 编号 | 优先级/状态 | 依赖 | 交付及验收 |
 | --- | --- | --- | --- |
 | LIB-04 | P0 / PLANNED | LIB-03 | 补通用主题与材质接入：语义色/文字/间距/圆角/尺寸/密度、浅深/局部继承、实色/透明/玻璃、主题切换和 SDK 控件主题配方；复用现有配置并明确哪些控件支持何种材质。验收：同一消费者混用普通与玻璃组件，显式值/继承/高对比/无模糊优先级一致，旧默认和 48px 触摸目标不回退，不把所有组件包一层 BackdropFilter。 |
@@ -126,9 +156,9 @@
 | LIB-06 | P0 / PLANNED | LIB-04 | 以现有 GlassTextField/SDK 扩展文本、密码、搜索、多行与 FormField 组合；补本批需要的输入透传、错误/校验/提交/重置和异步校验的外部责任。验收：受控文本/初值冲突、组合输入跨重建、选择/粘贴、只读/禁用、外部 controller/focus 不被释放、错误语义/2x文字；物理中文 IME 另验不虚报。 |
 | LIB-07 | P0 / PLANNED | LIB-04 | 实现 Checkbox/Radio/Switch/分段选择及首个单选/搜索建议的 SDK 主题接入或必要包装；不等待复杂多选才交付。验收：受控回填、null/三态、互斥、清空、disabled、方向键/Tab/Space、选中语义；筛选/空结果/长标签与菜单边界可观察。第三方方案若被选中则额外依赖 LIB-02，不能先占位 API。 |
 | LIB-08 | P0 / PLANNED | LIB-04、LIB-05、LIB-06 | 补确认/输入/说明弹窗组合与菜单/锚定浮层共同边界；先保留现有泛型结果与单层菜单。为 showGlassDialog reverseDuration 写失败回归，再选择真实路由消费实现或明确不支持的兼容契约；不只改说明假装已生效。验收：confirm/cancel/null/校验、嵌套 Navigator/局部主题、外点/Esc/返回键、焦点圈定/恢复、重复开关/窗口裁切及正反计时；复杂第三方浮层额外依赖 LIB-02。 |
-| LIB-09 | P0 / PLANNED | LIB-04、LIB-05、LIB-08 | 整合侧栏/导航轨道/Tab/工具栏/面包屑的受控组合，明确窄屏响应、滚动/溢出、选中与关闭和局部内容切换；复用已有条目，不做业务 TabManager。验收：键盘顺序、长中文/RTL、禁用目标、关闭与选中回调分离、隐藏页 ticker/焦点停用；示例状态由消费者持有。 |
+| LIB-09 | P0 / PLANNED | LIB-04、LIB-05、LIB-08 | 先补标签和侧栏受控组合，导航轨道与面包屑后续评估；明确窄屏响应、滚动/溢出、选中与关闭和局部内容切换；复用独立条目，不做业务 TabManager。验收：键盘顺序、长中文/RTL、禁用目标、关闭与选中回调分离、隐藏页 ticker/焦点停用；示例状态由消费者持有。 |
 | LIB-10 | P0 / PLANNED | LIB-04 | 补卡片/面板/列表项/分隔/折叠与常见布局配方，定义布局约束、padding、滚动和 responsive 边界；SDK 可完整表达者直接组合。验收：窄窗/长内容/2x文字/RTL、嵌套滚动和无界约束的支持规则、折叠时焦点/语义不落隐藏内容，不引业务布局引擎。 |
-| LIB-11 | P0 / PLANNED | LIB-04、LIB-05、LIB-08 | 统一 tooltip、进度、Toast/SnackBar/Banner、空/错/成功的接入与动作/关闭/播报。验收：可确定进度、重复通知队列/替换规则、空/错状态可操作、loading 结束/后台/卸载无闲置帧，播报不抢焦点；SDK 组合已足够者不新增公开控件。 |
+| LIB-11 | P0 / PLANNED | LIB-04、LIB-05、LIB-08 | 简化工作台先用 Flutter 组合反馈；再评估统一进度、Toast/SnackBar/Banner、空/错/成功的接口。验收：可确定进度、重复通知队列/替换规则、空/错状态可操作、loading 结束/后台/卸载无闲置帧，播报不抢焦点；SDK 组合已足够者不新增公开控件。 |
 | LIB-12 | P0 / PLANNED | LIB-04、LIB-08、LIB-09、LIB-10、LIB-11 | 按动效清单统一实际消费与触发：交互、表面、路由/弹窗、内容切换、展开和反馈；复用 GlassMotionSpec/SDK 的可表达部分，说明局部覆盖与中断/反向。验收：状态/transform/时间采样证明有效，动态四项已有偏好及锁定平台额外信号可关闭非必要动画；无 blur 连续动画、无隐藏/空闲 ticker。不是时间线编辑器。 |
 | LIB-13 | P0 / PLANNED | LIB-05、LIB-06、LIB-07、LIB-08、LIB-09、LIB-10、LIB-11、LIB-12 | 做跨组件可访问性与兼容集成：键盘/快捷键、焦点顺序与恢复、角色/名称/值/错误/选中/加载语义、触摸目标、中文/RTL/2x文字、高对比/减少透明/关闭模糊、嵌套主题。验收：自动化语义/交互断言 + Windows 实窗/物理 IME/读屏的实际记录；未有设备的平台继续标待验，不能用 Gallery 截图代替。 |
 
@@ -139,10 +169,10 @@
 | LIB-14 | P1 / PLANNED | LIB-02、LIB-03、LIB-04 | 若 LIB-02 选中第三方，首批仅接入有明确增量价值的桌面导航/树或复杂选择/Popover；每个来源分别独立 PR，可直接消费或必要适配。不选中时记录“不采用”及 SDK 替代，不造空包。验收：只装核心不被迫装可选 UI；主题映射、值/事件、dispose、减少动画、资产声明和最低 SDK/平台消费通过；非所有第三方参数都自动承诺支持。 |
 | LIB-15A | P1 / PLANNED | LIB-06、LIB-07、LIB-08、LIB-13 | 按使用价值分别开子任务实现数字/范围、日期时间、颜色、复杂多选与 Drawer/Sheet；先冻结选择器范围/locale/取消/边界。每类独立 PR、最小消费者和对应交互/无障碍验证；若选第三方额外依赖 LIB-02/14，未选中的类别可延期，不以合并大 PR 掩盖未完成项。 |
 | LIB-15B | P1 / PLANNED | LIB-09、LIB-10、LIB-11、LIB-13 | 分别评估树/大列表/数据表、拖分栏/重排、Avatar/Chip/资源和可选 Skeleton；为复杂控件给出数据量与性能支持上限。每类独立子任务/PR，排序/分页/选择/稳定 key/焦点/语义与卸载证据可复核，不自研完整数据平台。 |
-| LIB-16 | P0 / PLANNED | LIB-13；仅所选 P1 进入本次基线时再依赖对应 LIB-14/15A/15B | 在独立消费者中完成“导航 → 编辑表单 → 弹窗确认 → 结果/反馈”最小流程，证明根库接口可用；不是开发网站。同步公开 Dart 文档、API/目录、README/迁移与 CHANGELOG，例子只用公共入口。跑适用格式/分析、根/example行为、视觉/Web/发布预检，保留旧 Golden/失败证据；按真实环境测性能，人工/设备/非作者审查与 CI 单列。验收：首版选定组件和动效无虚设字段/空回调，支持矩阵、版本、接入步骤完整，可供 Agent 使用；不要求所有 P1 才能交付 P0。 |
+| LIB-16 | P0 / PLANNED | LIB-13；仅所选 P1 进入本次基线时再依赖对应 LIB-14/15A/15B | 用独立的简化工作台验收首批组件：侧栏、顶部栏与标签、主内容与卡片、底部输入区、确认弹窗及结果反馈。使用模拟数据、只用公共入口，验证布局、视觉和基本交互，不实现真实 Agent 流程。同步 Dart 文档、API/目录、README/迁移与 CHANGELOG；运行适用格式/分析、行为、视觉、Web 和发布预检，保留旧 Golden/失败证据。按真实环境测性能，人工/设备/非作者审查与 CI 单列；不要求所有 P1 才能交付 P0。 |
 | WEB-LATER | 后续 / PLANNED | LIB-16；另定网站范围 | 再在 deployment 计划可视化设计台：组件配置/层级/状态与事件关系 → 生成带真实 API/版本/主题/动效/无障碍/未支持项的提示词 → 用户 Agent 还原。用至少两个不同组合做实际还原并核对行为；保留设计与运行状态分离、JSON往返/旧数据保护。不将网页、完整场景工程导出或在线模型接入塞进根库首版。 |
 
-主要顺序：LIB-00 → 01 → 03 → 04 → 基础组件 → 12/13 → 16 → WEB-LATER。LIB-02 在01后进行；仅选中第三方的任务依赖其结果。LIB-05/06/07/10 等可在文件边界明确后独立实施，08先等输入/操作契约。P1逐类立项，P2先收集需求。任务表列依赖，不表示本轮已授权并行或开发。
+主要顺序：LIB-00 → 01 → 03 → 04 → 基础组件 → 12/13 → 16 → WEB-LATER。首批工作台只取上表已确认的组件和适用检查；LIB-12/13 的完整任务仍保留其后续依赖，不因工作台通过而标记完成。LIB-02 在01后进行；仅选中第三方的任务依赖其结果。各组件按明确范围独立实施，08先等输入/操作契约。P1逐类立项，P2先收集需求。
 
 ## 6. 每个组件的完成标准与未决事项
 
@@ -157,7 +187,7 @@
 
 开工前仍需决定/核实：
 
-- 单包还是可选适配包、通用 API 命名、依赖准入和核心最低 SDK：LIB-01/02 的具体选择，当前未定；不以用户的广泛整合目标推导必须引入某个框架。
+- 后续组件的具体名称和签名、单包还是可选适配包、实际采用的依赖和 SDK 影响仍随任务决定。通用组件的命名原则和 8 类目录已确认；不因此引入某个框架。
 - 首版精确变体/尺寸/平台支持：LIB-03 冻结，Windows 优先兼容验收，同时保留 Android 原性能目标；其他平台逐项验证。
 - 第三方控件的宿主、主题/localization、路由/Overlay、状态枚举和动效开关并不互换；若无法可靠桥接，保留直接依赖用法或拒绝该项，不嵌套整个 App 来隐藏问题。
 - 资源/传递依赖和具体复用文件的许可未完成全量核查；本库现有 LICENSE 不因候选根许可标签而自动覆盖外部资产。

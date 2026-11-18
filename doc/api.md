@@ -2,13 +2,13 @@
 
 本节按 main 基底 `a0bc51a` 的6个实现文件逐项核对；不是 #4 增量清单。消费者仅导入 `package:lightweight_liquid_glass/lightweight_liquid_glass.dart`；`src/` 路径不属于兼容接口。版本仍为 0.1.0，当前运行时仅依赖 Flutter SDK；这是现状，第三方可按 [AGENTS.md](AGENTS.md) 评估采用。
 
-下列20项是 main 的公开声明，不等于20个控件。本轮没有改 API 或默认视觉；仅静态核对源码，未重新编译。
+下列20项是固定基线的公开声明，不等于20个控件。LIB-09A 新增一项 [NavigationItem](#独立导航条目)，原有声明和默认外观保持不变。
 
 ## 导出清单
 
 20 个公开声明：`GlassStyle`、`GlassPresets`、`GlassQuality`、`GlassPerformanceConfig`、`GlassAccessibilityConfig`、`LiquidGlassThemeData`、`LiquidGlassTheme`、`GlassGroup`、`GlassSurface`、`AnimatedGlassSurface`、`GlassBackdrop`、`GlassCard`、`GlassButton`、`GlassIconButton`、`GlassAppBar`、`GlassDialog`、`showGlassDialog`、`GlassTransition`、`GlassMotionSpec`、`GlassPageRoute`。
 
-main 入口 export 六个原始文件，仅显式 hide glassReduceMotion/glassTransition；没有 #4 的逐项 show 清单，私有 painter 依 Dart 私有作用域隐藏。本次未修改导出。
+原入口 export 六个文件，显式 hide glassReduceMotion/glassTransition；没有 #4 的逐项 show 清单，私有 painter 依 Dart 私有作用域隐藏。LIB-09A 在同一入口另行导出 `NavigationItem`。
 
 ## 组件构造参数
 
@@ -26,7 +26,7 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 | GlassAppBar | 无 | title/leading/actions/style/bottom=null；toolbarHeight=kToolbarHeight；automaticallyImplyLeading=true |
 | GlassDialog | content | title/style/semanticLabel=null；actions=[]；内部最大宽度 480、padding=24 |
 
-`GlassSurface.enabled=false` 关闭装饰与过滤，保留内容、布局和裁剪，不等于禁用子控件。卡片 `onTap=null` 表示静态卡片；按钮 `onPressed=null` 禁止指针/键盘激活。
+`GlassSurface` 是玻璃表面容器，为 `child` 提供背景过滤、着色、边框和裁剪；它不管理子组件的值、焦点或激活。关闭模糊时使用降级填充；`GlassSurface.enabled=false` 则关闭装饰与过滤，保留内容、布局和裁剪。卡片 `onTap=null` 表示静态卡片；按钮 `onPressed=null` 禁止指针/键盘激活。
 
 外部 `FocusNode` 由调用方持有并释放；组件不得释放它。main 没有 #4 指针高光的 ValueNotifier；背景内部动画 controller 由组件创建与释放。child、标题、动作和业务状态均由调用方提供。
 
@@ -65,6 +65,12 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 - `GlassAccessibilityConfig` 默认 highContrast/reduceMotion/reduceTransparency 均 false。系统 highContrast 与主题高对比度合并；系统 disableAnimations/accessibleNavigation、主题 reduceMotion 或关闭 enableAnimations 任一满足即减少动画。
 
 断言、copyWith 显式清空、离散插值、相异过滤隔离、动态减少动画的原测试保留。main 没有 #4 的文字角色、状态样式、密度或部分覆盖增量。
+
+## 独立导航条目
+
+`NavigationItem` 从原包入口导出，需要 Material 宿主。必填 `label: String`；`selected` 默认为 false，由应用控制；可选的 `leading`、`trailing` 为非交互内容，`onPressed` 为空时禁用，`focusNode` 由调用方持有并释放。长标签省略显示，悬停可查看完整文本，读屏仍读取完整标签。
+
+焦点移动不会选中条目。指针、Enter 和 Space 通过同一回调请求激活；应用可以拒绝切换。条目使用宿主的 Flutter `ColorScheme`，提供选中背景和独立焦点边框；状态反馈不带动画。调用方可用 `Material` 提供普通实色表面，或用玻璃表面容器 `GlassSurface` 包住布局；两者使用同一个 `NavigationItem`，选中、焦点和激活规则一致。首版不管理导航组、页面或路由，也不开放材质参数。
 
 ## #4 未合并增量与通用计划
 
