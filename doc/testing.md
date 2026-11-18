@@ -22,6 +22,21 @@ flutter build web --release
 
 第三方采用需补独立消费者、实际最低 SDK/依赖解算、宿主/Overlay、状态/焦点/资源生命周期、减少动画、许可/传递资产和包体。物理 IME/读屏、Android 真机、其他平台、非作者审查分别记证据，不以 widget 测试或历史 Windows 数据替代。
 
+## LIB-13A：首批组件的最低 SDK 验证
+
+Windows，Flutter 3.44.0 stable（`559ffa3f75`），Dart 3.12.0，应用基底为 [#39 / b79e904](https://github.com/surface-user/Flutter_liquid_glass/pull/39)。从 [Flutter 官方归档](https://docs.flutter.dev/install/archive) 使用独立 SDK；下载文件的 SHA256 与[发行清单](https://storage.googleapis.com/flutter_infra_release/releases/releases_windows.json)一致。
+
+| 检查 | 结果 |
+| --- | --- |
+| 根库及示例依赖解析、静态分析 | 通过 |
+| 根库行为（样式、原有行为、按钮、导航条目和标签）| 32/32 |
+| 示例行为（弹窗、表单、布局、主题、工作台、Gallery）| 17/17 |
+| 根库视觉、原 Gallery 视觉 | 4/4、3/3 |
+| 工作台视觉 | 窄窗匹配；和 Flutter 3.47.1 基准比较，宽窗普通表面差 230 像素、玻璃表面差 206 像素，均在顶部栏。精确比较失败，保留差异和原基准 |
+| 工作台 Web release（`flutter build web --release --target lib/recipes/workbench_recipe.dart`，在 `example/` 运行）| 构建通过，仍有示例 CupertinoIcons 字体提示 |
+
+Flutter 3.47.1 下通过的工作台视觉基准以生成版本为准。跨 SDK 视觉差异仍待 LIB-16 收口，以上结果覆盖首批代码基底的 SDK 兼容性。Windows 实窗、物理输入法、读屏、浏览器交互和 Android 设备另验。
+
 ## #4 历史验证账本（原文）
 
 > 历史快照：本页原文对应未合并实现 [#4 / ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，移植自 #26 文档快照。以下“当前”“本轮”、PASS/DONE/REVIEW、命令与授权均属于原记录，不表示 main 已具备这些文件/能力，不是本次执行结果，也不产生当前操作授权。代码/测试链接固定到该提交；build/ 日志是原作者本地忽略产物，本次未取得或复验。现行规则见 [AGENTS.md](AGENTS.md)，主线事实见 [README.md](README.md)。
