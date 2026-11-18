@@ -743,6 +743,12 @@ flutter run -d edge -t lib/recipes/form_recipe.dart
 flutter run -d edge -t lib/recipes/confirmation_recipe.dart
 ```
 
+单独运行[选择与开关示例](doc/getting-started.md#选择与开关示例)（在 `example` 目录）：
+
+```sh
+flutter run -d edge -t lib/recipes/selection_recipe.dart
+```
+
 构建 Web：
 
 ```sh
