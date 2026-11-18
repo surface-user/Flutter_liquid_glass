@@ -87,45 +87,74 @@ Widget glassTransition(
 }) {
   if (reduceMotion ||
       glassReduceMotion(context) ||
-      spec.transition == GlassTransition.none)
+      spec.transition == GlassTransition.none) {
     return child;
-  final progress = animation.drive(
-    CurveTween(
-      curve: animation.status == AnimationStatus.reverse
-          ? spec.reverseCurve
-          : spec.curve,
-    ),
-  );
-  Widget result = child;
-  switch (spec.transition) {
-    case GlassTransition.fadeSlide:
-      result = SlideTransition(
-        position: Tween(
-          begin: const Offset(0, .035),
-          end: Offset.zero,
-        ).animate(progress),
-        child: result,
-      );
-    case GlassTransition.scaleFade:
-      result = ScaleTransition(
-        scale: Tween(begin: .97, end: 1.0).animate(progress),
-        child: result,
-      );
-    case GlassTransition.sharedAxis:
-      result = SlideTransition(
-        position: Tween(
-          begin: const Offset(.06, 0),
-          end: Offset.zero,
-        ).animate(progress),
-        child: result,
-      );
-      result = ScaleTransition(
-        scale: Tween(begin: .98, end: 1.0).animate(progress),
-        child: result,
-      );
-    case GlassTransition.fade:
-    case GlassTransition.none:
-      break;
   }
-  return FadeTransition(opacity: progress, child: result);
+  return _GlassRouteTransition(animation: animation, spec: spec, child: child);
+}
+
+class _GlassRouteTransition extends StatefulWidget {
+  const _GlassRouteTransition({
+    required this.animation,
+    required this.spec,
+    required this.child,
+  });
+
+  final Animation<double> animation;
+  final GlassMotionSpec spec;
+  final Widget child;
+
+  @override
+  State<_GlassRouteTransition> createState() => _GlassRouteTransitionState();
+}
+
+class _GlassRouteTransitionState extends State<_GlassRouteTransition> {
+  // The route keeps the same animation and spec throughout its lifetime.
+  late final _progress = CurvedAnimation(
+    parent: widget.animation,
+    curve: widget.spec.curve,
+    reverseCurve: widget.spec.reverseCurve,
+  );
+
+  @override
+  void dispose() {
+    _progress.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget result = widget.child;
+    switch (widget.spec.transition) {
+      case GlassTransition.fadeSlide:
+        result = SlideTransition(
+          position: Tween(
+            begin: const Offset(0, .035),
+            end: Offset.zero,
+          ).animate(_progress),
+          child: result,
+        );
+      case GlassTransition.scaleFade:
+        result = ScaleTransition(
+          scale: Tween(begin: .97, end: 1.0).animate(_progress),
+          child: result,
+        );
+      case GlassTransition.sharedAxis:
+        result = SlideTransition(
+          position: Tween(
+            begin: const Offset(.06, 0),
+            end: Offset.zero,
+          ).animate(_progress),
+          child: result,
+        );
+        result = ScaleTransition(
+          scale: Tween(begin: .98, end: 1.0).animate(_progress),
+          child: result,
+        );
+      case GlassTransition.fade:
+      case GlassTransition.none:
+        break;
+    }
+    return FadeTransition(opacity: _progress, child: result);
+  }
 }
