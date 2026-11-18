@@ -66,3 +66,11 @@ main 的嵌套 performance/accessibility/motion 没有 copyWith；构造新对�
 LiquidGlassTheme.merge、GlassLayout、colorScheme/textTheme/controlStyle、紧凑密度和 GlassTextField、GlassNavigationItem、GlassTab、GlassToolbar、GlassMenu 都只存在于 #4。不要将其示例粘到当前 main；如需试验，明确锁定 [#4 ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，并记录它未合并/未完成人工设备验收的风险。
 
 [原增量接入示例](https://github.com/surface-user/Flutter_liquid_glass/blob/ac0028eacd0e1ee22747d454c04a456dcb307377/doc/getting-started.md) 保留作为该版本用法，不能当成本次代码已新增。通用 API、第三方适配和设计台仍按 [task.md](task.md) 开展；本次不安装依赖。
+
+## 说明与输入弹窗示例
+
+[独立示例](../example/lib/recipes/dialog_recipes.dart)使用 Flutter 的 `showDialog`、`AlertDialog` 和 `Form`。在 `example` 目录运行 `flutter run -d edge -t lib/recipes/dialog_recipes.dart`，测试运行 `flutter test test/dialog_recipes_test.dart`。
+
+- 说明弹窗使用可访问标题和滚动正文，关闭按钮保持可达。开启减少动画后，打开和关闭均跳过路由动画。
+- 输入弹窗从页面当前标题初始化。原生表单拒绝空白标题，通过后返回去掉首尾空白的文字，页面才更新显示值。取消按钮显式返回取消，外点或 Esc 返回空结果，两者都丢弃草稿。
+- 可用 Enter 打开输入弹窗、Tab 移动焦点、Esc 关闭。在触发器仍可聚焦时，关闭后焦点回到触发器。应用负责表单提交和持久化。
