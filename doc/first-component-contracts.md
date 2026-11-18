@@ -57,7 +57,7 @@ material.Form(
 ## 导航（LIB-09A/09）
 
 - **#29 已实现**：`NavigationItem({required String label, bool selected = false, Widget? leading, Widget? trailing, VoidCallback? onPressed, FocusNode? focusNode, Key? key})`。可空值默认 null。仅请求激活；父级更新 `selected` 后才改变选中语义。空回调禁用；两侧插槽不接管激活。条目只依赖 Flutter，玻璃由消费端组合。
-- **拟新增**：先用相同的受控语义组合侧栏；如果需要可关闭的单个标签，建议 `NavigationTab({required String label, bool selected = false, VoidCallback? onPressed, VoidCallback? onClose, String? closeTooltip, FocusNode? focusNode, Key? key})`。可空值默认 null；空激活回调只禁用主标签；空 `onClose` 表示无关闭按钮，有 `onClose` 时调用方提供非空本地化 `closeTooltip`。关闭按钮是同级焦点目标，不能冒泡成激活；应用决定是否关闭以及下一个选中项。标签列表、路由、重排和页面缓存由使用端持有，不造 TabManager。
+- **LIB-09 已实现**：侧栏组合继续使用 `NavigationItem`，可关闭标签使用 [`NavigationTab`](api.md#独立导航标签)。空激活回调只禁用主标签；空 `onClose` 表示无关闭按钮，有 `onClose` 时调用方提供非空本地化 `closeTooltip`。关闭按钮是同级焦点目标，不请求激活；应用决定是否关闭以及下一个选中项。标签列表、路由、重排和页面缓存由使用端持有。
 
 ```dart
 ui.NavigationItem(

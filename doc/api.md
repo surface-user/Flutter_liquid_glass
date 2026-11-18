@@ -95,6 +95,14 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 
 构造时的 null 表示继承；`copyWith` 的 null 表示保留当前字段。要恢复某字段的继承，传入省略该字段的新配置即可。宿主主题插值在中点切换导航主题的颜色覆盖，不插值 null。覆盖颜色不会改变前景色或自动重算高对比配色，应用应在所选背景上验证文字和焦点可辨认。此主题不改变原有 `LiquidGlassTheme` 的整体替换行为。
 
+## 独立导航标签
+
+`NavigationTab({Key? key, required String label, bool selected = false, VoidCallback? onPressed, VoidCallback? onClose, String? closeTooltip, FocusNode? focusNode})` 从原包入口导出。可空字段默认是 null；`focusNode` 只属于主标签，由调用方释放。
+
+主标签使用受控 `selected`、标签角色和导航条目主题。点击、Enter 或 Space 只请求激活，焦点移动不会选中。关闭是独立的图标按钮，`onClose` 为空时隐藏；传入关闭回调须同时提供本地化的非空 `closeTooltip`，供 Tooltip 和辅助技术使用。调试构建会断言，关闭断言时缺失名称回退到宿主的 Material 本地化关闭文案。禁用主标签不会禁用关闭按钮；请求关闭不会替应用改选中、移除标签或确认。
+
+普通或玻璃材质由外层提供。主标题可随宽度省略，保留完整可访问名称。调用方应提供足以容纳两项 48 逻辑像素目标的宽度，或提供横向滚动。列表、重排、路由以及隐藏页的焦点和生命周期由应用管理。
+
 ## #4 未合并增量与通用计划
 
 #4 ac0028e 的 GlassLayout、LiquidGlassTheme.merge、主题语义/文字/状态/密度和五个桌面控件共增加6个公开声明，合计26个。其构造参数、ButtonStyle 消费字段、nullable 清空/覆盖、所有权和焦点规则完整保留在 [固定 API 文档](https://github.com/surface-user/Flutter_liquid_glass/blob/ac0028eacd0e1ee22747d454c04a456dcb307377/doc/api.md)。本 PR 不复制它们为 main 已支持；实际选择该基底后复用原合同与失败回归。

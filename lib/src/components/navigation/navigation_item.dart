@@ -1,6 +1,10 @@
+import 'dart:ui' show SemanticsRole;
+
 import 'package:flutter/material.dart';
 
+import '../../theme/action_button_theme.dart';
 import '../../theme/navigation_item_theme.dart';
+import '../actions/action_button.dart';
 
 /// An independent navigation item for use inside a caller-owned layout.
 ///
@@ -15,7 +19,16 @@ class NavigationItem extends StatelessWidget {
     this.selected = false,
     this.onPressed,
     this.focusNode,
-  });
+  }) : _isTab = false;
+
+  const NavigationItem._tab({
+    required this.label,
+    required this.selected,
+    required this.onPressed,
+    required this.focusNode,
+  }) : _isTab = true,
+       leading = null,
+       trailing = null;
 
   /// The visible label. Long labels are shortened and available in a tooltip.
   final String label;
@@ -35,6 +48,8 @@ class NavigationItem extends StatelessWidget {
   /// An optional focus node that the caller owns and disposes.
   final FocusNode? focusNode;
 
+  final bool _isTab;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -48,6 +63,7 @@ class NavigationItem extends StatelessWidget {
           : foreground,
     );
     return TextButton(
+      isSemanticButton: !_isTab,
       onPressed: onPressed,
       focusNode: focusNode,
       style: ButtonStyle(
@@ -89,6 +105,7 @@ class NavigationItem extends StatelessWidget {
         ),
       ),
       child: Semantics(
+        role: _isTab ? SemanticsRole.tab : null,
         selected: selected,
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -111,4 +128,68 @@ class NavigationItem extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A controlled navigation tab with an optional independent close action.
+///
+/// The caller owns selection, decides whether to close, and manages the
+/// corresponding page. The tab can be used on a regular or glass surface.
+class NavigationTab extends StatelessWidget {
+  const NavigationTab({
+    super.key,
+    required this.label,
+    this.selected = false,
+    this.onPressed,
+    this.onClose,
+    this.closeTooltip,
+    this.focusNode,
+  }) : assert(
+         onClose == null || (closeTooltip != null && closeTooltip != ''),
+         'A closable tab needs a non-empty closeTooltip.',
+       );
+
+  /// The visible label and accessible name of the tab.
+  final String label;
+
+  /// Whether the caller considers this tab selected.
+  final bool selected;
+
+  /// Requests selection. Null disables the tab without disabling its close
+  /// button.
+  final VoidCallback? onPressed;
+
+  /// Requests closure without changing selection. Null hides the close button.
+  final VoidCallback? onClose;
+
+  /// The localized name of the close button, required when [onClose] is set.
+  final String? closeTooltip;
+
+  /// A caller-owned focus node for the main tab, not its close button.
+  final FocusNode? focusNode;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Flexible(
+        child: NavigationItem._tab(
+          label: label,
+          selected: selected,
+          onPressed: onPressed,
+          focusNode: focusNode,
+        ),
+      ),
+      if (onClose != null)
+        IconActionButton(
+          icon: const Icon(Icons.close),
+          tooltip: switch (closeTooltip) {
+            final label? when label.isNotEmpty => label,
+            _ => MaterialLocalizations.of(context).closeButtonTooltip,
+          },
+          size: ActionButtonSize.small,
+          variant: ActionButtonVariant.auxiliary,
+          onPressed: onClose,
+        ),
+    ],
+  );
 }
