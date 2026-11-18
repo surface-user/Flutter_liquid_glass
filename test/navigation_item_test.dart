@@ -5,6 +5,124 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lightweight_liquid_glass/lightweight_liquid_glass.dart';
 
 void main() {
+  testWidgets('unconfigured navigation uses the host dark scheme', (
+    tester,
+  ) async {
+    final focusNode = FocusNode();
+    addTearDown(focusNode.dispose);
+    final theme = ThemeData.dark();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: theme,
+        home: Scaffold(
+          body: NavigationItem(
+            label: 'Dark',
+            selected: true,
+            onPressed: () {},
+            focusNode: focusNode,
+          ),
+        ),
+      ),
+    );
+    focusNode.requestFocus();
+    await tester.pumpAndSettle();
+
+    final item = find.byType(NavigationItem);
+    final material = tester.widget<Material>(
+      find.descendant(of: item, matching: find.byType(Material)),
+    );
+    final labelColor = DefaultTextStyle.of(
+      tester.element(find.text('Dark')),
+    ).style.color;
+    expect(material.color, theme.colorScheme.secondaryContainer);
+    expect(labelColor, theme.colorScheme.onSecondaryContainer);
+    expect(
+      (material.shape! as OutlinedBorder).side.color,
+      theme.colorScheme.onSecondaryContainer,
+    );
+  });
+
+  testWidgets('navigation theme inherits colors per field in each subtree', (
+    tester,
+  ) async {
+    final focusNode = FocusNode();
+    addTearDown(focusNode.dispose);
+    const globalFill = Color(0xFFBEDAFF);
+    const globalFocus = Color(0xFF215C94);
+    const outerFill = Color(0xFFE6C880);
+    const innerFill = Color(0xFFAFDFC1);
+    const outerFocus = Color(0xFF076040);
+    const updatedFocus = Color(0xFF9C2B27);
+    const global = NavigationItemThemeData(
+      selectedBackgroundColor: globalFill,
+      focusBorderColor: globalFocus,
+    );
+    final localItem = NavigationItemTheme(
+      data: const NavigationItemThemeData(selectedBackgroundColor: innerFill),
+      child: GlassSurface(
+        child: NavigationItem(
+          label: 'Local',
+          selected: true,
+          onPressed: () {},
+          focusNode: focusNode,
+        ),
+      ),
+    );
+
+    Future<void> showTheme(NavigationItemThemeData outer) => tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: const [global]),
+        home: Scaffold(
+          body: Column(
+            children: [
+              const NavigationItem(label: 'Global', selected: true),
+              NavigationItemTheme(data: outer, child: localItem),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    Material itemMaterial(String label) => tester.widget<Material>(
+      find.descendant(
+        of: find.widgetWithText(NavigationItem, label),
+        matching: find.byType(Material),
+      ),
+    );
+
+    Color focusBorder() =>
+        (itemMaterial('Local').shape! as OutlinedBorder).side.color;
+
+    await showTheme(
+      const NavigationItemThemeData(selectedBackgroundColor: outerFill),
+    );
+    focusNode.requestFocus();
+    await tester.pumpAndSettle();
+    expect(itemMaterial('Global').color, globalFill);
+    expect(itemMaterial('Local').color, innerFill);
+    expect(focusBorder(), globalFocus);
+
+    await showTheme(
+      const NavigationItemThemeData(
+        selectedBackgroundColor: outerFill,
+        focusBorderColor: outerFocus,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(itemMaterial('Global').color, globalFill);
+    expect(itemMaterial('Local').color, innerFill);
+    expect(focusBorder(), outerFocus);
+
+    await showTheme(
+      const NavigationItemThemeData(focusBorderColor: updatedFocus),
+    );
+    await tester.pumpAndSettle();
+    expect(itemMaterial('Global').color, globalFill);
+    expect(itemMaterial('Local').color, innerFill);
+    expect(focusBorder(), updatedFocus);
+    expect(focusNode.hasFocus, isTrue);
+  });
+
   for (final surface in ['solid', 'glass', 'glass without blur']) {
     testWidgets('navigation selection, focus and activation on $surface', (
       tester,

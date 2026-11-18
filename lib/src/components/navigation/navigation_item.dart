@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/navigation_item_theme.dart';
+
 /// An independent navigation item for use inside a caller-owned layout.
 ///
 /// The caller owns selection and decides what activation does. This item
@@ -36,6 +38,7 @@ class NavigationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final theme = NavigationItemTheme.of(context);
     final foreground = selected
         ? colors.onSecondaryContainer
         : colors.onSurface;
@@ -66,7 +69,7 @@ class NavigationItem extends StatelessWidget {
         iconColor: foregroundColor,
         backgroundColor: WidgetStateProperty.resolveWith((states) {
           final base = selected
-              ? colors.secondaryContainer
+              ? theme.selectedBackgroundColor ?? colors.secondaryContainer
               : Colors.transparent;
           if (states.contains(WidgetState.disabled)) return base;
           final opacity = states.contains(WidgetState.pressed)
@@ -78,7 +81,10 @@ class NavigationItem extends StatelessWidget {
         }),
         side: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.focused)
-              ? BorderSide(color: foreground, width: 2)
+              ? BorderSide(
+                  color: theme.focusBorderColor ?? foreground,
+                  width: 2,
+                )
               : BorderSide.none,
         ),
       ),
