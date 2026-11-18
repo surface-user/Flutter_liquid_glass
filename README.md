@@ -715,6 +715,12 @@ flutter run -d edge
 flutter run -d edge -t lib/recipes/form_recipe.dart
 ```
 
+单独运行[确认弹窗示例](doc/getting-started.md#确认弹窗示例)（在 `example` 目录）：
+
+```sh
+flutter run -d edge -t lib/recipes/confirmation_recipe.dart
+```
+
 构建 Web：
 
 ```sh
