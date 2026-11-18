@@ -688,6 +688,12 @@ flutter run -d edge
 
 也可通过 `flutter devices` 查看设备，再用 `flutter run -d <设备ID>` 选择平台。
 
+单独运行[原生表单示例](doc/getting-started.md#原生表单示例)（在 `example` 目录）：
+
+```sh
+flutter run -d edge -t lib/recipes/form_recipe.dart
+```
+
 构建 Web：
 
 ```sh
