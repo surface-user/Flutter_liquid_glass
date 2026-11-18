@@ -69,6 +69,16 @@ main 的嵌套 performance/accessibility/motion 没有 copyWith；构造新对�
 - `consumeOutsideTap: true` 消费关闭菜单的外点，不让该次点击触发后方按钮。只有菜单项的 `onPressed` 才执行命令。
 - 示例始终使用 `animated: false`，包括系统减少动画时；这只关闭菜单展开和收起动画，不改变宿主其他控件的动效。窄窗与键盘行为由 widget 测试覆盖，实窗和屏幕阅读器需另验。
 
+## 选择与开关示例
+
+[选择示例源码](../example/lib/recipes/selection_recipe.dart)用 Flutter 原生 `CheckboxListTile`、`RadioGroup` / `RadioListTile` 和 `SwitchListTile`，由应用持有值并在回调时更新。外观跟随宿主的 `ThemeData` 颜色，包括高对比度主题。此配方独立于 gallery，不增加库接口或依赖。
+
+- 三态复选按未勾选 → 勾选 → 混合（`null`）循环。
+- 单选值由 `RadioGroup` 统一管理；用 Tab 进入组，方向键切换并跳过禁用项。禁用单选用 `enabled: false`。
+- 复选和开关以 `onChanged: null` 禁用，已保存的值保持不变。
+
+在 `example` 目录执行 `flutter run -d edge -t lib/recipes/selection_recipe.dart`，或用 `flutter test test/selection_recipe_test.dart` 验证。
+
 ## #4 未合并接口
 
 LiquidGlassTheme.merge、GlassLayout、colorScheme/textTheme/controlStyle、紧凑密度和 GlassTextField、GlassNavigationItem、GlassTab、GlassToolbar、GlassMenu 都只存在于 #4。不要将其示例粘到当前 main；如需试验，明确锁定 [#4 ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，并记录它未合并/未完成人工设备验收的风险。
