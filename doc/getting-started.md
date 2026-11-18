@@ -53,6 +53,14 @@ main 的嵌套 performance/accessibility/motion 没有 copyWith；构造新对�
 - 标题只用 `initialValue`，备注由外部 controller 持有。示例先 `validate()`，成功后用 `save()` 读取值到页面；不提交数据。错误用同步 validator 或调用方提供的 `forceErrorText`；外部错误由调用方显式清除。
 - `reset()` 恢复原生字段的初始文本；不传 `resetValue`，也不依赖同一字段动态更新初值来改重置基准。外部 controller 和焦点节点仍由调用方释放。组合输入的 widget 测试不等于实机输入法验收。
 
+## 确认弹窗示例
+
+[确认弹窗示例源码](../example/lib/recipes/confirmation_recipe.dart)在同一个 Flutter `showDialog<bool>` 路由上，用 `AlertDialog` 提供普通外观，或用 `GlassDialog` 提供玻璃外观。在 `example` 目录执行 `flutter run -d edge -t lib/recipes/confirmation_recipe.dart`；测试执行 `flutter test test/confirmation_recipe_test.dart`。示例独立于 gallery，不新增库 API。
+
+- 确认返回 `true`，取消按钮返回 `false`，允许的外点或 Esc 等无值关闭返回 `null`。应用只在收到 `true` 时执行确认操作。
+- 默认打开在根 Navigator；嵌套场景可用 `useRootNavigator: false`。按钮用弹窗的 context 弹出对应路由。弹窗内 Tab 闭环，关闭后在原触发器仍可聚焦时恢复焦点。
+- `barrierDismissible: false` 禁止外点和 Esc，但不是阻止所有退出方式的开关。减少动画时跳过弹窗路由动画；旧 `showGlassDialog` 与独立退出时长的契约留给后续。
+
 ## #4 未合并接口
 
 LiquidGlassTheme.merge、GlassLayout、colorScheme/textTheme/controlStyle、紧凑密度和 GlassTextField、GlassNavigationItem、GlassTab、GlassToolbar、GlassMenu 都只存在于 #4。不要将其示例粘到当前 main；如需试验，明确锁定 [#4 ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，并记录它未合并/未完成人工设备验收的风险。
