@@ -66,6 +66,21 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 
 断言、copyWith 显式清空、离散插值、相异过滤隔离、动态减少动画的原测试保留。main 没有 #4 的文字角色、状态样式、密度或部分覆盖增量。
 
+## 通用按钮
+
+| 接口 | 必填 | 可选及默认 |
+| --- | --- | --- |
+| `ActionButton` | `Widget child`、`VoidCallback? onPressed` | `Widget? leading`（装饰，不播报）、`Key? key`（null）；另见共用选项 |
+| `IconActionButton` | `Widget icon`、`String tooltip`（非空，本地化名称）、`VoidCallback? onPressed` | `Key? key`（null）；另见共用选项 |
+
+共用选项：`ActionButtonVariant variant = secondary`（`primary`、`secondary`、`auxiliary`）；`ActionButtonSize size = medium`（`small`、`medium`、`large`）；`bool loading = false`；`FocusNode? focusNode` 与 `ActionButtonStyle? style` 默认为 null。外部焦点节点由应用释放。内容只用于显示，不应嵌套其他独立控件。
+
+两种按钮共用 Flutter 激活和焦点机制；空回调禁用。非空回调且加载时，按钮保留焦点、名称及尺寸，不接受指针、Enter、Space 或语义激活；静态忙碌标记不启动循环动画。组件不执行异步任务、不自行重置加载状态。普通按钮可直接使用，玻璃可由外层 `GlassSurface` 提供；本切片没有按钮内建材质开关。原有 `GlassButton` 和 `GlassIconButton` 行为不变。
+
+`ActionButtonStyle` 有两个可空字段：`BorderRadiusGeometry? borderRadius`（零圆角用 `BorderRadius.zero`）与 `Color? focusBorderColor`。高对比模式的焦点边框使用对应前景色。把 `ActionButtonThemeData` 加入 `ThemeData.extensions` 配置全局，或通过 `ActionButtonTheme(data: ..., child: ...)` 配置子树。主题的 `style`（通用）、`primary`、`secondary`、`auxiliary` 均默认为空样式。`ActionButtonTheme.of(context, variant)` 返回局部和全局继承后的样式覆盖，不补组件默认值。
+
+各字段按实例 → 最近局部 → 更外层局部 → 全局 → 组件默认取值。同一层先查对应用途，再查通用；null 继承。主题的 `copyWith` 替换指定组，省略的组保留；主题过渡在中点切换这组配置。
+
 ## 独立导航条目
 
 `NavigationItem` 从原包入口导出，需要 Material 宿主。必填 `label: String`；`selected` 默认为 false，由应用控制；可选的 `leading`、`trailing` 为非交互内容，`onPressed` 为空时禁用，`focusNode` 由调用方持有并释放。长标签省略显示，悬停可查看完整文本，读屏仍读取完整标签。

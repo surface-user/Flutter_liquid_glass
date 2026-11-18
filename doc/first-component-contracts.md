@@ -6,17 +6,19 @@
 
 ## 操作（LIB-05）
 
-| 拟新增 | 必填 | 可选及默认 |
+本工作树已按 LIB-05 实现以下按钮；实际公开参数、样式及用法见 [通用按钮 API](api.md#通用按钮)。
+
+| 组件 | 必填 | 可选及默认 |
 | --- | --- | --- |
-| `ActionButton` | `Widget child`、`VoidCallback? onPressed` | `Widget? leading`、`FocusNode? focusNode` 默认为 null；`ActionButtonVariant variant = secondary`（`primary / secondary / auxiliary`，默认用途待实现 PR 确认）；`ActionButtonSize size = medium`（`small / medium / large`）；`bool loading = false` |
-| `IconActionButton` | `Widget icon`、`String tooltip`、`VoidCallback? onPressed` | 同上 `focusNode`、`variant`、`size`、`loading`，无 `leading` |
+| `ActionButton` | `Widget child`、`VoidCallback? onPressed` | `Widget? leading`、`FocusNode? focusNode`、`ActionButtonStyle? style` 默认为 null；`ActionButtonVariant variant = secondary`（`primary / secondary / auxiliary`）；`ActionButtonSize size = medium`（`small / medium / large`）；`bool loading = false` |
+| `IconActionButton` | `Widget icon`、`String tooltip`、`VoidCallback? onPressed` | 同上 `focusNode`、`variant`、`size`、`loading`、`style`，无 `leading` |
 
 - `onPressed: null` 表示外部禁用；`loading: true` 表示请求处理中，不接收指针、Enter、Space 或辅助技术的再次激活，不为加载把非空回调改成 null 或替换焦点节点。已获焦点、可访问名称、触摸目标和布局保持稳定，读屏能得知忙碌且不能重复触发。若调用方同时把回调置为 null，按禁用行为处理。组件不执行 Future、不自动结束加载；调用方设置状态。
 - `leading` 和 `icon` 只提供内容，装饰图标不重复播报；图标按钮使用非空 `tooltip` 提供名称。用途与尺寸分别选择样式，不改变激活方式。玻璃仍是独立、可继承的表面配置；首个切片只验普通按钮与外层玻璃的组合，按钮独立表面接口随实现确认，不提前增加模糊参数。三个尺寸默认触摸目标保留 48×48 逻辑像素，跟随文字放大；不保证固定高度。
 - 验收：按压取消不调用，指针、Enter/Space 和语义动作每次只调用一次；加载时原焦点和外框不跳，解除加载后可再次激活；外部 `FocusNode` 不释放；焦点可与 hover/pressed 并存且可辨认。旧 `GlassButton` / `GlassIconButton` 及默认视觉不回退。
 
 ```dart
-// 拟新增；save()、saving 由应用提供。
+// save()、saving 由应用提供。
 ui.ActionButton(
   onPressed: save,
   loading: saving,

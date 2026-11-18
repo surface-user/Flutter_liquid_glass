@@ -119,6 +119,27 @@ class DemoApp extends StatelessWidget {
 
 以下代码片段均使用相同的两个 import；涉及 `context` 的片段应放在页面的 `build` 方法或事件回调中。
 
+## 通用按钮
+
+`ActionButton` 用于文字操作，`IconActionButton` 用于带有可访问名称的图标操作。默认是次要用途、标准尺寸；三种尺寸在约束充足时均保留 48×48 逻辑像素的最小触摸目标。按钮可独立使用，若需要玻璃，使用 `GlassSurface` 作为外层容器。
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:lightweight_liquid_glass/lightweight_liquid_glass.dart' as ui;
+
+Widget saveAction({required bool saving, required VoidCallback onSave}) {
+  return ui.ActionButton(
+    variant: ui.ActionButtonVariant.primary,
+    loading: saving,
+    onPressed: onSave,
+    leading: const Icon(Icons.save),
+    child: const Text('保存'),
+  );
+}
+```
+
+`onPressed: null` 表示禁用；调用方持有 `loading` 并在任务结束时更新它。加载阻止指针、键盘和辅助技术激活，保留已取得的焦点、名称和外框尺寸，并显示静态忙碌标记。图标按钮要求提供本地化的非空 `tooltip`。局部样式和全局主题用法见 [通用按钮 API](doc/api.md#通用按钮)。
+
 ## 独立导航条目
 
 `NavigationItem` 根据应用传入的 `selected` 呈现选中状态，并负责焦点和激活。点击、Enter 或 Space 会请求激活，由应用决定是否选中或切页。省略 `onPressed` 即禁用。下面用同一个条目分别搭配普通实色表面（Flutter 的 `Material`）和玻璃表面容器（`GlassSurface`）：
