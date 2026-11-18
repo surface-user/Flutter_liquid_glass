@@ -59,7 +59,7 @@ main 的嵌套 performance/accessibility/motion 没有 copyWith；构造新对�
 
 - 确认返回 `true`，取消按钮返回 `false`，允许的外点或 Esc 等无值关闭返回 `null`。应用只在收到 `true` 时执行确认操作。
 - 默认打开在根 Navigator；嵌套场景可用 `useRootNavigator: false`。按钮用弹窗的 context 弹出对应路由。弹窗内 Tab 闭环，关闭后在原触发器仍可聚焦时恢复焦点。
-- `barrierDismissible: false` 禁止外点和 Esc，但不是阻止所有退出方式的开关。减少动画时跳过弹窗路由动画；旧 `showGlassDialog` 与独立退出时长的契约留给后续。
+- `barrierDismissible: false` 禁止外点和 Esc，动作按钮仍可关闭弹窗。减少动画时跳过弹窗路由动画。使用 `showGlassDialog` 时，可以用 `GlassMotionSpec` 分别设置进入与退出时长。
 
 ## #4 未合并接口
 
