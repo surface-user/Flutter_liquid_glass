@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// A single navigation destination for use inside a caller-owned layout.
+/// An independent navigation item for use inside a caller-owned layout.
 ///
 /// The caller owns selection and decides what activation does. This item
 /// works on a regular Material surface or inside a separate glass surface.

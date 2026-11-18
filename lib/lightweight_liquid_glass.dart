@@ -7,4 +7,4 @@ export 'src/surface.dart';
 export 'src/backdrop.dart';
 export 'src/components.dart';
 export 'src/motion.dart' hide glassTransition;
-export 'src/navigation_item.dart';
+export 'src/components/navigation/navigation_item.dart' show NavigationItem;
