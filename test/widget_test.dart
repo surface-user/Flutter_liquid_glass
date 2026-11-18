@@ -242,17 +242,107 @@ void main() {
     );
     const start = GlassStyle(tintOpacity: .1, blurSigmaX: 4);
     const end = GlassStyle(tintOpacity: .9, blurSigmaX: 16);
+    const retarget = GlassStyle(tintOpacity: .7, blurSigmaX: 8);
     await tester.pumpWidget(scene(start));
     await tester.pumpWidget(scene(end));
     await tester.pump(const Duration(milliseconds: 500));
     var style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
     expect(style.tintOpacity, closeTo(.5, .01));
     expect(style.blurSigmaX, 16);
+    await tester.pumpWidget(scene(retarget));
+    style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
+    expect(style.tintOpacity, closeTo(.5, .01));
+    expect(style.blurSigmaX, 8);
+    await tester.pump(const Duration(milliseconds: 500));
+    style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
+    expect(style.tintOpacity, closeTo(.6, .01));
     await tester.pumpWidget(scene(start, reduced: true));
     await tester.pump();
     style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
     expect(style.tintOpacity, .1);
   });
+  const reductionCases = [
+    (
+      'disableAnimations',
+      MediaQueryData(disableAnimations: true),
+      LiquidGlassThemeData(),
+    ),
+    (
+      'accessibleNavigation',
+      MediaQueryData(accessibleNavigation: true),
+      LiquidGlassThemeData(),
+    ),
+    (
+      'reduceMotion',
+      MediaQueryData(),
+      LiquidGlassThemeData(
+        accessibility: GlassAccessibilityConfig(reduceMotion: true),
+      ),
+    ),
+    (
+      'enableAnimations=false',
+      MediaQueryData(),
+      LiquidGlassThemeData(
+        performance: GlassPerformanceConfig(enableAnimations: false),
+      ),
+    ),
+  ];
+  for (final (reason, media, theme) in reductionCases) {
+    testWidgets(
+      'reducing motion finishes the current surface transition ($reason)',
+      (tester) async {
+        const start = GlassStyle(tintOpacity: .1, blurSigmaX: 4, blurSigmaY: 5);
+        const target = GlassStyle(
+          tintOpacity: .9,
+          blurSigmaX: 16,
+          blurSigmaY: 12,
+        );
+        Widget scene(GlassStyle style, {bool reduced = false}) => host(
+          LiquidGlassTheme(
+            data: reduced ? theme : const LiquidGlassThemeData(),
+            child: AnimatedGlassSurface(
+              style: style,
+              duration: const Duration(seconds: 1),
+              curve: Curves.linear,
+              child: const SizedBox(
+                width: 240,
+                child: TextField(showCursor: false),
+              ),
+            ),
+          ),
+          media: reduced ? media : const MediaQueryData(),
+        );
+        GlassStyle paintedStyle() =>
+            tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
+
+        await tester.pumpWidget(scene(start));
+        final field = find.byType(EditableText);
+        await tester.enterText(field, 'draft');
+        await tester.pumpAndSettle();
+        final editor = tester.state<EditableTextState>(field);
+        expect(editor.widget.focusNode.hasFocus, isTrue);
+
+        await tester.pumpWidget(scene(target));
+        expect(paintedStyle().blurSigmaX, target.blurSigmaX);
+        expect(paintedStyle().blurSigmaY, target.blurSigmaY);
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(paintedStyle().tintOpacity, closeTo(.5, .01));
+        expect(paintedStyle().blurSigmaX, target.blurSigmaX);
+        expect(paintedStyle().blurSigmaY, target.blurSigmaY);
+
+        await tester.pumpWidget(scene(target, reduced: true));
+        expect(paintedStyle().tintOpacity, target.tintOpacity);
+        expect(tester.hasRunningAnimations, isFalse);
+        expect(tester.state<EditableTextState>(field), same(editor));
+        expect(editor.widget.focusNode.hasFocus, isTrue);
+        expect(editor.widget.controller.text, 'draft');
+
+        await tester.pumpWidget(scene(target));
+        expect(paintedStyle().tintOpacity, target.tintOpacity);
+        expect(tester.hasRunningAnimations, isFalse);
+      },
+    );
+  }
   testWidgets('dialog captures local theme and returns result', (tester) async {
     String? result;
     final dark = LiquidGlassThemeData.dark();
