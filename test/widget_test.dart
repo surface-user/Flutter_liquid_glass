@@ -242,16 +242,285 @@ void main() {
     );
     const start = GlassStyle(tintOpacity: .1, blurSigmaX: 4);
     const end = GlassStyle(tintOpacity: .9, blurSigmaX: 16);
+    const retarget = GlassStyle(tintOpacity: .7, blurSigmaX: 8);
     await tester.pumpWidget(scene(start));
     await tester.pumpWidget(scene(end));
     await tester.pump(const Duration(milliseconds: 500));
     var style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
     expect(style.tintOpacity, closeTo(.5, .01));
     expect(style.blurSigmaX, 16);
+    await tester.pumpWidget(scene(retarget));
+    style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
+    expect(style.tintOpacity, closeTo(.5, .01));
+    expect(style.blurSigmaX, 8);
+    await tester.pump(const Duration(milliseconds: 500));
+    style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
+    expect(style.tintOpacity, closeTo(.6, .01));
     await tester.pumpWidget(scene(start, reduced: true));
     await tester.pump();
     style = tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
     expect(style.tintOpacity, .1);
+  });
+  const reductionCases = [
+    (
+      'disableAnimations',
+      MediaQueryData(disableAnimations: true),
+      LiquidGlassThemeData(),
+    ),
+    (
+      'accessibleNavigation',
+      MediaQueryData(accessibleNavigation: true),
+      LiquidGlassThemeData(),
+    ),
+    (
+      'reduceMotion',
+      MediaQueryData(),
+      LiquidGlassThemeData(
+        accessibility: GlassAccessibilityConfig(reduceMotion: true),
+      ),
+    ),
+    (
+      'enableAnimations=false',
+      MediaQueryData(),
+      LiquidGlassThemeData(
+        performance: GlassPerformanceConfig(enableAnimations: false),
+      ),
+    ),
+  ];
+  for (final (reason, media, theme) in reductionCases) {
+    testWidgets(
+      'reducing motion finishes the current surface transition ($reason)',
+      (tester) async {
+        const start = GlassStyle(tintOpacity: .1, blurSigmaX: 4, blurSigmaY: 5);
+        const target = GlassStyle(
+          tintOpacity: .9,
+          blurSigmaX: 16,
+          blurSigmaY: 12,
+        );
+        Widget scene(GlassStyle style, {bool reduced = false}) => host(
+          LiquidGlassTheme(
+            data: reduced ? theme : const LiquidGlassThemeData(),
+            child: AnimatedGlassSurface(
+              style: style,
+              duration: const Duration(seconds: 1),
+              curve: Curves.linear,
+              child: const SizedBox(
+                width: 240,
+                child: TextField(showCursor: false),
+              ),
+            ),
+          ),
+          media: reduced ? media : const MediaQueryData(),
+        );
+        GlassStyle paintedStyle() =>
+            tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
+
+        await tester.pumpWidget(scene(start));
+        final field = find.byType(EditableText);
+        await tester.enterText(field, 'draft');
+        await tester.pumpAndSettle();
+        final editor = tester.state<EditableTextState>(field);
+        expect(editor.widget.focusNode.hasFocus, isTrue);
+
+        await tester.pumpWidget(scene(target));
+        expect(paintedStyle().blurSigmaX, target.blurSigmaX);
+        expect(paintedStyle().blurSigmaY, target.blurSigmaY);
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(paintedStyle().tintOpacity, closeTo(.5, .01));
+        expect(paintedStyle().blurSigmaX, target.blurSigmaX);
+        expect(paintedStyle().blurSigmaY, target.blurSigmaY);
+
+        await tester.pumpWidget(scene(target, reduced: true));
+        expect(paintedStyle().tintOpacity, target.tintOpacity);
+        expect(tester.hasRunningAnimations, isFalse);
+        expect(tester.state<EditableTextState>(field), same(editor));
+        expect(editor.widget.focusNode.hasFocus, isTrue);
+        expect(editor.widget.controller.text, 'draft');
+
+        await tester.pumpWidget(scene(target));
+        expect(paintedStyle().tintOpacity, target.tintOpacity);
+        expect(tester.hasRunningAnimations, isFalse);
+      },
+    );
+  }
+  testWidgets(
+    'independent platform reduce motion finishes the surface transition',
+    (tester) async {
+      final dispatcher = tester.platformDispatcher;
+      dispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures();
+      addTearDown(dispatcher.clearAccessibilityFeaturesTestValue);
+
+      const start = GlassStyle(tintOpacity: .1);
+      const target = GlassStyle(tintOpacity: .9);
+      Widget scene(GlassStyle style) => host(
+        AnimatedGlassSurface(
+          style: style,
+          duration: const Duration(seconds: 1),
+          curve: Curves.linear,
+          child: const SizedBox(
+            width: 240,
+            child: TextField(showCursor: false),
+          ),
+        ),
+      );
+      GlassStyle paintedStyle() =>
+          tester.widget<GlassSurface>(find.byType(GlassSurface)).style!;
+
+      await tester.pumpWidget(scene(start));
+      final field = find.byType(EditableText);
+      await tester.enterText(field, 'draft');
+      await tester.pumpAndSettle();
+      final editor = tester.state<EditableTextState>(field);
+      final fieldRect = tester.getRect(field);
+
+      await tester.pumpWidget(scene(target));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(paintedStyle().tintOpacity, closeTo(.5, .01));
+
+      dispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(reduceMotion: true);
+      await tester.pump();
+      expect(paintedStyle().tintOpacity, target.tintOpacity);
+      expect(tester.hasRunningAnimations, isFalse);
+      expect(tester.state<EditableTextState>(field), same(editor));
+      expect(editor.widget.focusNode.hasFocus, isTrue);
+      expect(editor.widget.controller.text, 'draft');
+      expect(tester.getRect(field), fieldRect);
+
+      dispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures();
+      await tester.pump();
+      expect(paintedStyle().tintOpacity, target.tintOpacity);
+      expect(tester.hasRunningAnimations, isFalse);
+
+      await tester.pumpWidget(scene(start));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(paintedStyle().tintOpacity, closeTo(.5, .01));
+      await tester.pumpWidget(const SizedBox());
+      dispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(reduceMotion: true);
+      await tester.pump();
+      expect(tester.hasRunningAnimations, isFalse);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('platform reduce motion pauses the optional backdrop loop', (
+    tester,
+  ) async {
+    final dispatcher = tester.platformDispatcher;
+    void reduceMotion(bool value) {
+      dispatcher.accessibilityFeaturesTestValue = FakeAccessibilityFeatures(
+        reduceMotion: value,
+      );
+    }
+
+    reduceMotion(false);
+    addTearDown(dispatcher.clearAccessibilityFeaturesTestValue);
+
+    Widget scene({
+      bool visible = true,
+      bool animate = true,
+      bool reducedByTheme = false,
+    }) => host(
+      LiquidGlassTheme(
+        data: LiquidGlassThemeData(
+          accessibility: GlassAccessibilityConfig(reduceMotion: reducedByTheme),
+        ),
+        child: TickerMode(
+          enabled: visible,
+          child: SizedBox(
+            width: 320,
+            height: 200,
+            child: GlassBackdrop(
+              animate: animate,
+              child: const Center(child: Text('Backdrop content')),
+            ),
+          ),
+        ),
+      ),
+    );
+    final transform = find.descendant(
+      of: find.byType(GlassBackdrop),
+      matching: find.byType(Transform),
+    );
+    double verticalOffset() =>
+        tester.widget<Transform>(transform).transform.getTranslation().y;
+
+    await tester.pumpWidget(scene());
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 4));
+    expect(verticalOffset(), greaterThan(0));
+    final content = tester.getRect(find.text('Backdrop content'));
+
+    reduceMotion(true);
+    await tester.pump();
+    expect(verticalOffset(), 0);
+    expect(tester.getRect(find.text('Backdrop content')), content);
+    expect(tester.hasRunningAnimations, isFalse);
+
+    reduceMotion(false);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 4));
+    expect(verticalOffset(), greaterThan(0));
+
+    reduceMotion(true);
+    await tester.pumpWidget(scene(reducedByTheme: true));
+    reduceMotion(false);
+    await tester.pump();
+    expect(verticalOffset(), 0);
+    expect(tester.hasRunningAnimations, isFalse);
+
+    await tester.pumpWidget(scene(visible: false));
+    reduceMotion(true);
+    await tester.pump();
+    reduceMotion(false);
+    await tester.pump();
+    expect(verticalOffset(), 0);
+    expect(tester.hasRunningAnimations, isFalse);
+
+    await tester.pumpWidget(scene(animate: false));
+    expect(tester.hasRunningAnimations, isFalse);
+    await tester.pumpWidget(scene());
+    expect(tester.hasRunningAnimations, isTrue);
+    await tester.pumpWidget(const SizedBox());
+    reduceMotion(true);
+    await tester.pump();
+    expect(tester.hasRunningAnimations, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('a new glass page route reads platform reduce motion', (
+    tester,
+  ) async {
+    final dispatcher = tester.platformDispatcher;
+    dispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      reduceMotion: true,
+    );
+    addTearDown(dispatcher.clearAccessibilityFeaturesTestValue);
+    late GlassPageRoute<void> route;
+    await tester.pumpWidget(
+      host(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () {
+              route = GlassPageRoute<void>(
+                context: context,
+                builder: (_) => const Center(child: Text('Destination')),
+              );
+              Navigator.of(context).push(route);
+            },
+            child: const Text('Push'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Push'));
+    await tester.pump();
+    expect(route.transitionDuration, Duration.zero);
+    expect(route.reverseTransitionDuration, Duration.zero);
+    expect(route.animation!.status, AnimationStatus.completed);
+    expect(find.text('Destination'), findsOneWidget);
   });
   testWidgets('dialog captures local theme and returns result', (tester) async {
     String? result;

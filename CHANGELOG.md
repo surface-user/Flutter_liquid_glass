@@ -1,6 +1,8 @@
 ## Unreleased
 
 - Honor `GlassMotionSpec.reverseDuration` when closing a dialog opened by `showGlassDialog`.
+- Honor the platform's separate reduce-motion flag for glass surfaces, optional backdrop animation and newly opened glass routes with a source context.
+- Finish active `AnimatedGlassSurface` transitions immediately when motion is reduced, preserving child state and focus.
 - Add a controlled `NavigationItem` for regular and glass surfaces, with keyboard activation and selected semantics.
 - Add a controlled `NavigationTab` with tab semantics and an optional, independently focusable close button.
 - Add global and per-subtree navigation item color overrides for the selected background and focus border.

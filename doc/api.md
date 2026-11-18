@@ -33,7 +33,7 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 ## 弹窗与页面转场
 
 - `showGlassDialog<T>` 返回 `Future<T?>`；必填 `context`、`builder`；默认 `barrierDismissible=true`、`useRootNavigator=true`、`routeSettings=null`、`motion=null`。捕获局部主题，结果由 `Navigator.pop<T>` 返回。路由分别使用 `GlassMotionSpec.duration` 和 `reverseDuration`；省略 `motion` 时从调用位置的玻璃主题取值。减少动画或使用 `GlassTransition.none` 时，两个时长均为零。
-- `GlassPageRoute<T>` 必填 `builder`；`context/motion/settings=null`、`reduceMotion=false`、`fullscreenDialog=false`。提供源 context 时捕获主题与减少动画设置，`spec` 保持可读。
+- `GlassPageRoute<T>` 必填 `builder`；`context/motion/settings=null`、`reduceMotion=false`、`fullscreenDialog=false`。提供源 context 时捕获主题与减少动画设置，`spec` 保持可读。若省略 `context`，调用方可用 `reduceMotion: true` 在创建时把正反时长设为零。
 - `GlassTransition`：fade、fadeSlide、scaleFade、sharedAxis、none。
 - `GlassMotionSpec`：transition=fadeSlide，duration=280ms，reverseDuration=220ms，curve=easeOutCubic，reverseCurve=easeInCubic。现有交互按压时长并不读取该路由配置。
 

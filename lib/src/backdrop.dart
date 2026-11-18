@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'motion_preferences.dart';
 import 'theme.dart';
 
 /// Procedural radial light blooms over a gradient. Requires bounded layout.
@@ -29,14 +30,15 @@ class GlassBackdrop extends StatefulWidget {
 
 class _GlassBackdropState extends State<GlassBackdrop>
     with SingleTickerProviderStateMixin {
+  late final _motionObserver = PlatformReduceMotionObserver((_) => _sync());
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 16),
   );
   void _sync() {
-    if (widget.animate &&
-        !glassReduceMotion(context) &&
-        TickerMode.valuesOf(context).enabled) {
+    final canAnimate = widget.animate && TickerMode.valuesOf(context).enabled;
+    _motionObserver.listening = canAnimate;
+    if (canAnimate && !glassReduceMotion(context)) {
       if (!_controller.isAnimating) _controller.repeat(reverse: true);
     } else {
       _controller.stop();
@@ -58,6 +60,7 @@ class _GlassBackdropState extends State<GlassBackdrop>
 
   @override
   void dispose() {
+    _motionObserver.listening = false;
     _controller.dispose();
     super.dispose();
   }

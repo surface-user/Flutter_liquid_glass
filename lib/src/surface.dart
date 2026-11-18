@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'motion_preferences.dart';
 import 'style.dart';
 import 'theme.dart';
 
@@ -286,6 +287,7 @@ class _GlassPainter extends CustomPainter {
 
 /// Interpolates visual style. Blur sigma is held at the target throughout the
 /// transition, avoiding an expensive changing blur kernel on every frame.
+/// When motion is reduced, the current transition finishes immediately.
 class AnimatedGlassSurface extends StatelessWidget {
   const AnimatedGlassSurface({
     super.key,
@@ -315,8 +317,8 @@ class AnimatedGlassSurface extends StatelessWidget {
   final bool enabled;
   final Color? fallbackColor;
   @override
-  Widget build(BuildContext context) => TweenAnimationBuilder<GlassStyle>(
-    tween: _StyleTween(end: style),
+  Widget build(BuildContext context) => _AnimatedGlassStyle(
+    style: style,
     duration: glassReduceMotion(context) ? Duration.zero : duration,
     curve: curve,
     child: child,
@@ -340,8 +342,73 @@ class AnimatedGlassSurface extends StatelessWidget {
   );
 }
 
-class _StyleTween extends Tween<GlassStyle> {
-  _StyleTween({required GlassStyle super.end});
+class _AnimatedGlassStyle extends ImplicitlyAnimatedWidget {
+  const _AnimatedGlassStyle({
+    required this.style,
+    required super.duration,
+    required super.curve,
+    required this.child,
+    required this.builder,
+  });
+
+  final GlassStyle style;
+  final Widget child;
+  final ValueWidgetBuilder<GlassStyle> builder;
+
   @override
-  GlassStyle lerp(double t) => GlassStyle.lerp(begin ?? end!, end!, t);
+  _AnimatedGlassStyleState createState() => _AnimatedGlassStyleState();
+}
+
+class _AnimatedGlassStyleState
+    extends AnimatedWidgetBaseState<_AnimatedGlassStyle> {
+  _StyleTween? _style;
+  late final _motionObserver = PlatformReduceMotionObserver((reduced) {
+    if (reduced) _finishTransition();
+  });
+
+  @override
+  void initState() {
+    super.initState();
+    controller.addStatusListener((status) {
+      _motionObserver.listening = status.isAnimating;
+    });
+  }
+
+  @override
+  void forEachTween(TweenVisitor<dynamic> visitor) {
+    _style =
+        visitor(
+              _style,
+              widget.style,
+              (dynamic value) => _StyleTween(begin: value as GlassStyle),
+            )
+            as _StyleTween?;
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedGlassStyle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Changing the duration alone does not finish an active SDK tween.
+    if (widget.duration == Duration.zero) _finishTransition();
+  }
+
+  void _finishTransition() {
+    if (controller.isAnimating) controller.value = 1;
+  }
+
+  @override
+  void dispose() {
+    _motionObserver.listening = false;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      widget.builder(context, _style!.evaluate(animation), widget.child);
+}
+
+class _StyleTween extends Tween<GlassStyle> {
+  _StyleTween({required GlassStyle super.begin});
+  @override
+  GlassStyle lerp(double t) => GlassStyle.lerp(begin!, end!, t);
 }
