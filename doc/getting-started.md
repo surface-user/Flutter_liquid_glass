@@ -61,6 +61,14 @@ main 的嵌套 performance/accessibility/motion 没有 copyWith；构造新对�
 - 默认打开在根 Navigator；嵌套场景可用 `useRootNavigator: false`。按钮用弹窗的 context 弹出对应路由。弹窗内 Tab 闭环，关闭后在原触发器仍可聚焦时恢复焦点。
 - `barrierDismissible: false` 禁止外点和 Esc，但不是阻止所有退出方式的开关。减少动画时跳过弹窗路由动画；旧 `showGlassDialog` 与独立退出时长的契约留给后续。
 
+## 锚定菜单示例
+
+[菜单示例源码](../example/lib/recipes/anchored_menu_recipe.dart)使用 Flutter 的 `MenuAnchor` 和 `MenuItemButton`。应用持有命令与执行结果；菜单只负责呈现和交互。示例将触发按钮放在页面右下角，由 Flutter 在可用空间内定位菜单。在 `example` 目录运行 `flutter run -d edge -t lib/recipes/anchored_menu_recipe.dart`；测试执行 `flutter test test/anchored_menu_recipe_test.dart`。
+
+- 示例打开时聚焦首个命令，方向键切换可用项目，Enter 执行，Esc 仅关闭；结束后回到仍存在的触发按钮。禁用项的 `onPressed` 为 `null`。
+- `consumeOutsideTap: true` 消费关闭菜单的外点，不让该次点击触发后方按钮。只有菜单项的 `onPressed` 才执行命令。
+- 示例始终使用 `animated: false`，包括系统减少动画时；这只关闭菜单展开和收起动画，不改变宿主其他控件的动效。窄窗与键盘行为由 widget 测试覆盖，实窗和屏幕阅读器需另验。
+
 ## #4 未合并接口
 
 LiquidGlassTheme.merge、GlassLayout、colorScheme/textTheme/controlStyle、紧凑密度和 GlassTextField、GlassNavigationItem、GlassTab、GlassToolbar、GlassMenu 都只存在于 #4。不要将其示例粘到当前 main；如需试验，明确锁定 [#4 ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，并记录它未合并/未完成人工设备验收的风险。
