@@ -45,6 +45,14 @@ main 的嵌套 performance/accessibility/motion 没有 copyWith；构造新对�
 
 [#29 草稿](https://github.com/surface-user/Flutter_liquid_glass/pull/29)新增 [`NavigationItem`](api.md#独立导航条目)，可搭配普通实色表面或玻璃表面容器。合入前，从 #29 分支试用；这与 #4 中的 `GlassNavigationItem` 是两个接口。
 
+## 原生表单示例
+
+[表单示例源码](../example/lib/recipes/form_recipe.dart)通过 Flutter 的 `Form` 和 `TextFormField` 组合单行标题和多行备注。在 `example` 目录运行 `flutter pub get`，再用 `flutter run -d edge -t lib/recipes/form_recipe.dart` 启动；测试用 `flutter test test/form_recipe_test.dart`。该示例独立于 gallery，库未新增输入包装类型。
+
+- 应用用 `ThemeData.inputDecorationTheme` 定义全局外观。局部用 `InputDecorationTheme.of(context).copyWith(...)` 继承未覆盖的字段；实例的 `InputDecoration` 优先。普通和玻璃表面可复用同一表单；示例用 `MaterialApp.highContrastTheme` 响应系统高对比度。
+- 标题只用 `initialValue`，备注由外部 controller 持有。示例先 `validate()`，成功后用 `save()` 读取值到页面；不提交数据。错误用同步 validator 或调用方提供的 `forceErrorText`；外部错误由调用方显式清除。
+- `reset()` 恢复原生字段的初始文本；不传 `resetValue`，也不依赖同一字段动态更新初值来改重置基准。外部 controller 和焦点节点仍由调用方释放。组合输入的 widget 测试不等于实机输入法验收。
+
 ## #4 未合并接口
 
 LiquidGlassTheme.merge、GlassLayout、colorScheme/textTheme/controlStyle、紧凑密度和 GlassTextField、GlassNavigationItem、GlassTab、GlassToolbar、GlassMenu 都只存在于 #4。不要将其示例粘到当前 main；如需试验，明确锁定 [#4 ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，并记录它未合并/未完成人工设备验收的风险。
