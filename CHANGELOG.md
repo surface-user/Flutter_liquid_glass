@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Add a controlled `NavigationItem` for regular and glass surfaces, with keyboard activation and selected semantics.
+- Add global and per-subtree navigation item color overrides for the selected background and focus border.
 
 ## 0.1.0
 

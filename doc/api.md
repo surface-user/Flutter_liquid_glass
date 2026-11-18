@@ -72,6 +72,14 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 
 焦点移动不会选中条目。指针、Enter 和 Space 通过同一回调请求激活；应用可以拒绝切换。条目使用宿主的 Flutter `ColorScheme`，提供选中背景和独立焦点边框；状态反馈不带动画。调用方可用 `Material` 提供普通实色表面，或用玻璃表面容器 `GlassSurface` 包住布局；两者使用同一个 `NavigationItem`，选中、焦点和激活规则一致。首版不管理导航组、页面或路由，也不开放材质参数。
 
+### 导航条目主题
+
+从原包入口导出的 `NavigationItemThemeData` 可加入 `ThemeData.extensions`，作为全局配置。两个字段均为 `Color?`，默认为 null：`selectedBackgroundColor` 是选中条目的底色，其上仍会显示悬停和按压反馈；`focusBorderColor` 是聚焦时边框的颜色。
+
+`NavigationItemTheme({Key? key, required NavigationItemThemeData data, required Widget child})` 仅影响其子树。字段依次取最近的局部配置、更外层局部配置、全局配置，最后才使用宿主默认值。未设置选中底色时取 `ColorScheme.secondaryContainer`；未设置边框颜色时沿用条目前景色。`NavigationItemTheme.of(context)` 可读取前三级合成后的覆盖值，未配置的字段仍为 null。
+
+构造时的 null 表示继承；`copyWith` 的 null 表示保留当前字段。要恢复某字段的继承，传入省略该字段的新配置即可。宿主主题插值在中点切换导航主题的颜色覆盖，不插值 null。覆盖颜色不会改变前景色或自动重算高对比配色，应用应在所选背景上验证文字和焦点可辨认。此主题不改变原有 `LiquidGlassTheme` 的整体替换行为。
+
 ## #4 未合并增量与通用计划
 
 #4 ac0028e 的 GlassLayout、LiquidGlassTheme.merge、主题语义/文字/状态/密度和五个桌面控件共增加6个公开声明，合计26个。其构造参数、ButtonStyle 消费字段、nullable 清空/覆盖、所有权和焦点规则完整保留在 [固定 API 文档](https://github.com/surface-user/Flutter_liquid_glass/blob/ac0028eacd0e1ee22747d454c04a456dcb307377/doc/api.md)。本 PR 不复制它们为 main 已支持；实际选择该基底后复用原合同与失败回归。

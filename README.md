@@ -141,6 +141,28 @@ Widget projectsDestination({
 
 请把独立的菜单或关闭按钮放在条目旁边，`leading` 和 `trailing` 用于图标、徽标等非交互内容。
 
+可在 `ThemeData.extensions` 配置全局选中背景和焦点边框颜色，再用 `NavigationItemTheme` 局部覆盖。下面的侧栏只改选中背景，焦点边框沿用全局配置：
+
+```dart
+Widget themedNavigation(Widget sidebar) => MaterialApp(
+  theme: ThemeData(
+    extensions: const [
+      NavigationItemThemeData(focusBorderColor: Color(0xff215c94)),
+    ],
+  ),
+  home: Scaffold(
+    body: NavigationItemTheme(
+      data: const NavigationItemThemeData(
+        selectedBackgroundColor: Color(0xffbedaff),
+      ),
+      child: sidebar,
+    ),
+  ),
+);
+```
+
+未设置的字段逐层向外查找，再回退到全局配置和宿主的默认颜色。样式不会改变选中状态、焦点或激活方式；自定义颜色时，请搭配宿主前景色和背景验证可读性与焦点对比度。
+
 ## 玻璃与动效接口
 
 所有公开接口统一从以下入口导入：
