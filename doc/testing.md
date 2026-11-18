@@ -37,6 +37,16 @@ Windows，Flutter 3.44.0 stable（`559ffa3f75`），Dart 3.12.0，应用基底�
 
 Flutter 3.47.1 下通过的工作台视觉基准以生成版本为准。跨 SDK 视觉差异仍待 LIB-16 收口，以上结果覆盖首批代码基底的 SDK 兼容性。Windows 实窗、物理输入法、读屏、浏览器交互和 Android 设备另验。
 
+## LIB-13B：工作台 Windows 实窗冒烟
+
+Windows 实际桌面、Flutter 3.44.0，以 `example/` 下的 `flutter build windows --release --target lib/recipes/workbench_recipe.dart` 构建并启动 [#39 / b79e904](https://github.com/surface-user/Flutter_liquid_glass/pull/39) 的工作台。
+
+- 普通表面切到玻璃，鼠标选择 Project 后侧栏、活动标签和摘要同步；关模糊时保留便笺内容。
+- 在输入框后用 Tab 和 Enter 打开确认，Cancel 获得初始焦点；Esc 关闭后显示 `Dialog dismissed`，焦点返回 `Apply draft`。
+- 通过实窗键盘注入触发 Windows 系统输入法，观察拼音候选 `ni` 并用空格提交首项「你」。切换无模糊后文字仍在，确认后预览显示「你」与 `Draft applied`。
+
+Windows UI Automation 树可见输入框、触发按钮和弹窗名称与焦点。该操作记录覆盖一次原生输入法流程；物理键盘人工、读屏播报、浏览器交互、其他平台和完整 LIB-13 仍分别验收。
+
 ## #4 历史验证账本（原文）
 
 > 历史快照：本页原文对应未合并实现 [#4 / ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，移植自 #26 文档快照。以下“当前”“本轮”、PASS/DONE/REVIEW、命令与授权均属于原记录，不表示 main 已具备这些文件/能力，不是本次执行结果，也不产生当前操作授权。代码/测试链接固定到该提交；build/ 日志是原作者本地忽略产物，本次未取得或复验。现行规则见 [AGENTS.md](AGENTS.md)，主线事实见 [README.md](README.md)。
