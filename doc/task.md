@@ -39,7 +39,7 @@
 
 ## 2. 整合方式与候选来源
 
-每个组件先选方式：**已有实现 → SDK 直接组合/主题接入 → 第三方直接依赖 → 包装适配 → 最小自研**。直接使用不等于统一重导出整套第三方 API；包装必须解决明确的主题、值/回调、焦点、动效或兼容问题。SDK 已完整满足时，交付可编译用法和主题接入即可，不为组件数量机械造同名壳。
+逐组件并列比较已有实现、Flutter SDK 与成熟第三方，按体验、兼容、许可、维护和依赖成本选择直接组合、适配或自研。仅在主题、交互或兼容有明确收益时做包装，不重导出第三方整套 API。
 
 下列版本及结论继承 #26 的既有研究；其当轮抽查了源码、pubspec 和许可文本，本次未重新尽调，不声称为最新发布包。未安装、构建或验证第三方运行；依赖约束相交不等于已兼容。
 
@@ -86,7 +86,7 @@
 | --- | --- | --- | --- |
 | 通用按钮、图标按钮、链接按钮、命令工具栏 | 玻璃按钮已实现 | 扩展变体、尺寸、loading/disabled、leading/trailing；SDK Filled/Outlined/Text/IconButton 主题接入，已有玻璃接口保留。分段选择归选择与开关 | P0 LIB-05 |
 | 文本、密码、搜索、多行、表单项 | GlassTextField 部分覆盖 | SDK TextField/TextFormField/Form 组合；补 label/helper/error、校验/提交/重置、obscure/输入类型/formatter 等必要透传，先核对差异；不自造编辑器 | P0 LIB-06 |
-| Checkbox、Radio、Switch、分段选择 | 无对应本库公开类型 | SDK 优先，统一主题与受控值/回调；三态、互斥、键盘与 disabled 必验。fluent/shadcn 作差异候选，SDK 不足才适配 | P0 LIB-07 |
+| Checkbox、Radio、Switch、分段选择 | 无对应本库公开类型 | 比较 SDK 与 fluent/shadcn 的受控值、主题和维护成本，按实际收益决定；三态、互斥、键盘与 disabled 必验 | P0 LIB-07 |
 | Select/Dropdown、Combobox/Autocomplete | SDK 可组合，根库未封装 | 先单选/搜索建议，使用 SDK DropdownMenu/Autocomplete；异步查询由外部负责。复杂可搜索/多选比较 fluent ComboBox/AutoSuggestBox、shadcn Select 的真实签名 | P0 LIB-07；P1 LIB-15A |
 | Slider/Range、数字输入 | SDK 有，根库未封装 | SDK Slider/RangeSlider 与格式化/校验；高级 NumberBox 比较 fluent，避免把数值解析和文本草稿混同 | P1 LIB-15A |
 | 日期/时间/日历、颜色选择 | 根库未提供 | SDK picker 优先；评估独立选择包或 fluent 日历。日期范围、时区/locale、取消返回、颜色格式分别定约，颜色包不沿用 Appainter 的许可结论 | P1 LIB-15A |
@@ -126,22 +126,22 @@
 
 ## 5. 分阶段任务、依赖与退出条件
 
-每项独立 PR，按 [工作流](WORKFLOW.md) 和 PR 模板交付；共享主题/入口/动效文件按所有权串行集成，不擅自开代理。状态：PLANNED → 获实施授权且依赖验收后 READY → IN_PROGRESS → REVIEW → DONE；失败退回，真实阻塞另记。LIB-09A 在 [#29 草稿](https://github.com/surface-user/Flutter_liquid_glass/pull/29) 审查，其余新实现按下表追踪。
+主 Agent 维护本表。开工前读取本页，检查未完成任务；依赖满足且范围明确后置 READY，分配时置 IN_PROGRESS，交付实现与验证证据后置 REVIEW，主 Agent 验收通过后置 DONE，失败退回 IN_PROGRESS。真实阻塞标 BLOCKED 并写原因，解除后重新排队。独立任务可并行（最多三个子 Agent），共享入口、主题和账本由主 Agent 串行协调。每项独立 PR；DONE 仅指任务验收，合入、发布、外部审查和真机实测分别记录。
 
 ### G0：固定整合边界与接口契约
 
 | 编号 | 优先级/状态 | 依赖 | 交付及验收 |
 | --- | --- | --- | --- |
-| LIB-00 | P0 / PLANNED | 无 | 复核当前源库分支、main 差距及原 M1–M5/#4 的 REVIEW/CI/人工待验，确定下一实现基底。保留已有失败/未跟踪文件，输出可追溯版本与已有能力映射；不以重开任务清空历史，也不强制先合并旧 PR 才可继续独立工作。 |
-| LIB-01 | P0 / PLANNED | LIB-00 | 同步 AGENTS/architecture/design-system 的通用库定位、核心/可选适配边界和依赖准入；定义 SDK 组合何时足够、何时提供稳定库 API。比较单包直接依赖与独立适配包维护成本，选最小可行方案；冻结首版 P0 清单、命名/旧 Glass API 共存策略。包名/SDK/破坏性迁移有具体依据再决定，不自动改名。验收：本清单每行有责任模块、采用方式、明确排除项，无“无依赖”与实际接入矛盾。 |
+| LIB-00 | P0 / DONE | 无 | [#28](https://github.com/surface-user/Flutter_liquid_glass/pull/28) 的基底与能力映射经独立复核并验收。main 为 `4842bea`；保留 #4 及旧链。#28 仍是草稿，未合入。 |
+| LIB-01 | P0 / DONE | LIB-00 | [首批交付范围](design-system.md#首批组件交付)及 [接口原则](design-system.md#首批接口约定)已验收。各首批类别有归属、采用方式和排除项；保留包名、入口和旧 Glass API，未新增依赖或接口。本任务以 #29 的分类为基底，独立草稿交付。 |
 | LIB-02 | P0 / PLANNED | LIB-01 | 对拟采用的 fluent/shadcn 版本做最小独立消费者试验：至少覆盖值/回调、主题/宿主、一个浮层与动效关闭；核对发布包与固定源码、最低 SDK、传递依赖、资源许可、Web/Windows/Android 支持和包体成本。输出采用/延期/拒绝及证据；AppFlowy/Appainter 保持参考，除非另有具体许可依据。验收：明确锁定版本/升级策略和 NOTICE 来源；能拒绝全部第三方而用 SDK 完成本批，不为证明研究有效强行引包。 |
-| LIB-03 | P0 / PLANNED | LIB-01 | 按首版组件冻结最小公开契约：必填/默认/null、值/回调类型、受控与初值、controller/focusNode 所有权、selected/indeterminate/error/loading/readOnly/disabled、插槽、异步结果/取消、优先级与生命周期、稳定入口。用可编译消费者证明旧 API 可用、新 API 无业务类型；SDK/第三方同名类命名空间明确，不新增万能 Component/JSON 运行时。验收：参数有消费点/有效条件及不支持项，配置字段存在不算能力完成。 |
+| LIB-03 | P0 / READY | LIB-01 | 按首批范围明确最小公开契约：参数/默认/null、受控与初值、资源所有权、回调、状态、主题与材质、兼容入口。接口约定与现有 API 分开；可编译新接口消费者随各实现 PR 验收。 |
 
 ### G1：首版可用的通用组件基础
 
 #### LIB-09A：独立导航条目
 
-状态：REVIEW（本地验证完成，待非作者审查）。经确认从 #27 合入后的 main `4842bea` 建立独立分支；只交付无材质前缀的 [NavigationItem](api.md#独立导航条目)。本任务使用 Flutter 控件和主线已有的 `GlassSurface`，不依赖尚未合入的通用主题、按钮或弹窗，也不改变完整 LIB-09 的依赖与状态。以 #4 的受控条目和回归思路为参考，保留旧 PR 链。
+状态：DONE（本地任务验收；[#29](https://github.com/surface-user/Flutter_liquid_glass/pull/29)仍为草稿）。主 Agent 在 `546e58c` 复跑格式、分析和根库 27 项测试，并核对独立审查结论。仅交付无材质前缀的 [NavigationItem](api.md#独立导航条目)，不改变 LIB-09 的范围或依赖；保留旧 PR 链。
 
 验收：同一公开接口在普通实色表面（`Material`）、玻璃表面（`GlassSurface`）和关闭模糊的玻璃表面上，选中语义、焦点、点击和 Enter/Space 激活一致。禁用不激活，焦点和激活不自动变更选中；外部焦点节点仍由应用持有。材质配置只放在父表面；不引入侧栏容器、路由、组选择或页面状态。
 
