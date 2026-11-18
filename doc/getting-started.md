@@ -99,3 +99,11 @@ LiquidGlassTheme.merge、GlassLayout、colorScheme/textTheme/controlStyle、紧�
 - 说明弹窗使用可访问标题和滚动正文，关闭按钮保持可达。开启减少动画后，打开和关闭均跳过路由动画。
 - 输入弹窗从页面当前标题初始化。原生表单拒绝空白标题，通过后返回去掉首尾空白的文字，页面才更新显示值。取消按钮显式返回取消，外点或 Esc 返回空结果，两者都丢弃草稿。
 - 可用 Enter 打开输入弹窗、Tab 移动焦点、Esc 关闭。在触发器仍可聚焦时，关闭后焦点回到触发器。应用负责表单提交和持久化。
+
+## 状态与反馈示例
+
+[独立示例](../example/lib/recipes/feedback_recipe.dart)组合 Flutter 的 `LinearProgressIndicator`、`Semantics` 和 `ScaffoldMessenger`。在 `example` 目录运行 `flutter run -d edge -t lib/recipes/feedback_recipe.dart`，测试运行 `flutter test test/feedback_recipe_test.dart`。
+
+- 应用持有状态和进度。未知进度时显示静态等待文案，进度可确定后展示数值。空态、错误态和完成态有可播报的名称和下一步操作。
+- 页面自己的 `ScaffoldMessenger` 用新提示替换当前提示。只有显式操作才确认消息，关闭或替换时仅移除消息。原生 `SnackBar` 提供播报和关闭操作，显示时保留当前焦点。
+- 每次展示提示时读取系统 `disableAnimations`、`accessibleNavigation` 和主题 `reduceMotion`、`enableAnimations`。任一设置要求减少动画时，提示直接显示和关闭。设置变化在下一条提示生效。待机状态没有循环动效。
