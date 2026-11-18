@@ -525,7 +525,7 @@ final confirmed = await showGlassDialog<bool>(
 // confirmed 为 true / false；通过遮罩或返回操作关闭时可能为 null。
 ```
 
-`showGlassDialog` 默认使用根 Navigator，捕获调用位置的继承主题，并使用安全区域。第一版基于 `showGeneralDialog`：进入与退出共用 `motion.duration`；`reverseCurve` 用于退出曲线，独立 `reverseDuration` 仅在 `GlassPageRoute` 中生效。
+`showGlassDialog` 默认使用根 Navigator，捕获调用位置的继承主题，并使用安全区域。进入和退出分别使用 `motion.duration` 和 `motion.reverseDuration`。省略 `motion` 时使用调用位置的玻璃主题，默认进入 280 毫秒、退出 220 毫秒。减少动画或选择 `GlassTransition.none` 时，两个时长均为零。
 
 ### 8. GlassMotionSpec / GlassPageRoute：页面动画
 

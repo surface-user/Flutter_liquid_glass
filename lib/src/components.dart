@@ -207,7 +207,10 @@ class GlassDialog extends StatelessWidget {
   );
 }
 
-/// Captures inherited themes so local glass overrides survive the new route.
+/// Opens a dialog with the caller's themes and returns the navigator pop result.
+///
+/// The resolved [GlassMotionSpec] controls entrance and exit independently.
+/// Reduced motion or [GlassTransition.none] sets both durations to zero.
 Future<T?> showGlassDialog<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -219,27 +222,49 @@ Future<T?> showGlassDialog<T>({
   final theme = LiquidGlassTheme.of(context);
   final spec = motion ?? theme.motion;
   final reduced = glassReduceMotion(context);
-  final themes = InheritedTheme.capture(
-    from: context,
-    to: Navigator.of(context, rootNavigator: useRootNavigator).context,
-  );
-  return showGeneralDialog<T>(
-    context: context,
-    useRootNavigator: useRootNavigator,
-    barrierDismissible: barrierDismissible,
-    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.black.withValues(alpha: .32),
-    routeSettings: routeSettings,
-    transitionDuration: reduced || spec.transition == GlassTransition.none
-        ? Duration.zero
-        : spec.duration,
-    pageBuilder: (context, animation, secondaryAnimation) => themes.wrap(
-      LiquidGlassTheme(
-        data: theme,
-        child: SafeArea(child: Builder(builder: builder)),
+  final skipAnimation = reduced || spec.transition == GlassTransition.none;
+  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  final themes = InheritedTheme.capture(from: context, to: navigator.context);
+  return navigator.push<T>(
+    _GlassDialogRoute<T>(
+      barrierDismissible: barrierDismissible,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withValues(alpha: .32),
+      settings: routeSettings,
+      transitionDuration: skipAnimation ? Duration.zero : spec.duration,
+      reverseTransitionDuration: skipAnimation
+          ? Duration.zero
+          : spec.reverseDuration,
+      pageBuilder: (context, animation, secondaryAnimation) => themes.wrap(
+        LiquidGlassTheme(
+          data: theme,
+          child: SafeArea(child: Builder(builder: builder)),
+        ),
       ),
+      transitionBuilder: (context, animation, secondaryAnimation, child) =>
+          glassTransition(
+            context,
+            animation,
+            child,
+            spec,
+            reduceMotion: reduced,
+          ),
     ),
-    transitionBuilder: (context, animation, secondaryAnimation, child) =>
-        glassTransition(context, animation, child, spec, reduceMotion: reduced),
   );
+}
+
+class _GlassDialogRoute<T> extends RawDialogRoute<T> {
+  _GlassDialogRoute({
+    required super.pageBuilder,
+    required super.barrierDismissible,
+    required super.barrierLabel,
+    required super.barrierColor,
+    required super.transitionDuration,
+    required this.reverseTransitionDuration,
+    required super.transitionBuilder,
+    super.settings,
+  });
+
+  @override
+  final Duration reverseTransitionDuration;
 }

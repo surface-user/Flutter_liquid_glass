@@ -89,7 +89,7 @@ material.Widget panel(material.Widget child, {bool glass = false}) {
 
 ## 确认弹窗（LIB-08）
 
-首批用 [Flutter `showDialog<bool>`](https://api.flutter.dev/flutter/material/showDialog.html) 及 `AlertDialog` 组合，不加同名路由函数。必填 `BuildContext context`、`WidgetBuilder builder`。此配方沿用 `bool useRootNavigator = true` 与 `bool barrierDismissible = true`；有嵌套导航时可以显式选 `useRootNavigator: false`。外层闭合焦点遍历沿弹窗路由，标题、内容、动作由调用方传入；窄窗和长文可滚动。玻璃变体可另用现有 `showGlassDialog<bool>` 与 `GlassDialog` 组合，按相同结果规则验收，不默认提供该路由当前未兑现的独立退出时长。
+首批用 [Flutter `showDialog<bool>`](https://api.flutter.dev/flutter/material/showDialog.html) 及 `AlertDialog` 组合，不加同名路由函数。必填 `BuildContext context`、`WidgetBuilder builder`。此配方沿用 `bool useRootNavigator = true` 与 `bool barrierDismissible = true`；有嵌套导航时可以显式选 `useRootNavigator: false`。外层闭合焦点遍历沿弹窗路由，标题、内容、动作由调用方传入；窄窗和长文可滚动。玻璃变体可另用 `showGlassDialog<bool>` 与 `GlassDialog` 组合，沿用相同结果规则，进入与退出时长可分别配置。
 
 | 结果 | 来源 |
 | --- | --- |
