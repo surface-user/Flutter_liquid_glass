@@ -61,6 +61,13 @@ main 的嵌套 performance/accessibility/motion 没有 copyWith；构造新对�
 - 默认打开在根 Navigator；嵌套场景可用 `useRootNavigator: false`。按钮用弹窗的 context 弹出对应路由。弹窗内 Tab 闭环，关闭后在原触发器仍可聚焦时恢复焦点。
 - `barrierDismissible: false` 禁止外点和 Esc，但不是阻止所有退出方式的开关。减少动画时跳过弹窗路由动画；旧 `showGlassDialog` 与独立退出时长的契约留给后续。
 
+## 原生选项选择示例
+
+[选项选择示例源码](../example/lib/recipes/option_selection_recipe.dart)组合 Flutter 的 `SegmentedButton`、`DropdownButton` 和 `Autocomplete`。在 `example` 目录运行 `flutter run -d edge -t lib/recipes/option_selection_recipe.dart`，测试用 `flutter test test/option_selection_recipe_test.dart`。
+
+- 应用持有分段和下拉的选中值。重新激活当前分段可清空选择。下拉可手动清空，选中的归档选项被移除时也会清空。窄窗使用竖排分段，长下拉标签最多显示两行。
+- 搜索只过滤本地候选项。输入文字和已确认的候选值分别由应用持有。用方向键浏览候选项，按 Enter 选中。修改或清空文字会清除已确认的值，查询无匹配时提示无结果。
+
 ## #4 未合并接口
 
 LiquidGlassTheme.merge、GlassLayout、colorScheme/textTheme/controlStyle、紧凑密度和 GlassTextField、GlassNavigationItem、GlassTab、GlassToolbar、GlassMenu 都只存在于 #4。不要将其示例粘到当前 main；如需试验，明确锁定 [#4 ac0028e](https://github.com/surface-user/Flutter_liquid_glass/tree/ac0028eacd0e1ee22747d454c04a456dcb307377)，并记录它未合并/未完成人工设备验收的风险。
