@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Keep glass page and dialog transitions continuous when dismissed mid-entrance.
 - Honor `GlassMotionSpec.reverseDuration` when closing a dialog opened by `showGlassDialog`.
 - Honor the platform's separate reduce-motion flag for glass surfaces, optional backdrop animation and newly opened glass routes with a source context.
 - Finish active `AnimatedGlassSurface` transitions immediately when motion is reduced, preserving child state and focus.

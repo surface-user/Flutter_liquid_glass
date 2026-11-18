@@ -36,6 +36,7 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 - `GlassPageRoute<T>` 必填 `builder`；`context/motion/settings=null`、`reduceMotion=false`、`fullscreenDialog=false`。提供源 context 时捕获主题与减少动画设置，`spec` 保持可读。若省略 `context`，调用方可用 `reduceMotion: true` 在创建时把正反时长设为零。
 - `GlassTransition`：fade、fadeSlide、scaleFade、sharedAxis、none。
 - `GlassMotionSpec`：transition=fadeSlide，duration=280ms，reverseDuration=220ms，curve=easeOutCubic，reverseCurve=easeInCubic。现有交互按压时长并不读取该路由配置。
+- 玻璃页面或弹窗在进入半途关闭时，沿当前曲线反向运行，保持透明度、位移和缩放连续。完整打开后关闭使用 `reverseCurve`。
 
 ## 样式与预设
 
