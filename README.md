@@ -184,6 +184,28 @@ Widget themedNavigation(Widget sidebar) => MaterialApp(
 
 未设置的字段逐层向外查找，再回退到全局配置和宿主的默认颜色。样式不会改变选中状态、焦点或激活方式；自定义颜色时，请搭配宿主前景色和背景验证可读性与焦点对比度。
 
+## 独立导航标签
+
+`NavigationTab` 复用导航条目的主题样式。主标签请求切换，关闭按钮独立请求关闭；应用负责更新选中项、移除标签并切换页面。
+
+```dart
+Widget projectTab({
+  required bool selected,
+  required VoidCallback openProject,
+  required VoidCallback closeProject,
+}) {
+  return NavigationTab(
+    label: '项目',
+    selected: selected,
+    onPressed: openProject,
+    onClose: closeProject,
+    closeTooltip: '关闭项目',
+  );
+}
+```
+
+不传 `onClose` 会隐藏关闭按钮。允许关闭时须提供本地化的非空 `closeTooltip`；主标签的 `onPressed` 为空时，关闭按钮仍可用。标签列表可由应用加入横向滚动，普通和玻璃表面均可使用。
+
 ## 玻璃与动效接口
 
 所有公开接口统一从以下入口导入：

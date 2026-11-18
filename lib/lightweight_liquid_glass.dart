@@ -9,7 +9,8 @@ export 'src/components.dart';
 export 'src/motion.dart' hide glassTransition;
 export 'src/components/actions/action_button.dart'
     show ActionButton, IconActionButton;
-export 'src/components/navigation/navigation_item.dart' show NavigationItem;
+export 'src/components/navigation/navigation_item.dart'
+    show NavigationItem, NavigationTab;
 export 'src/theme/action_button_theme.dart'
     show
         ActionButtonSize,
