@@ -30,7 +30,7 @@
 | 重点保证 Android 性能，同时尽可能兼容其他 Flutter 平台 | 限定模糊区域和强度，提供分组过滤、质量等级与特效开关；Android 实际帧率仍需在目标设备上验证 |
 | 避免持续动画模糊半径 | 样式切换直接采用目标模糊参数；页面动画仅使用透明度、位移和轻微缩放 |
 | 不包含任何雨课堂业务类型或业务代码 | 只包含通用 UI、主题、动画、性能配置和演示页面 |
-| 组件和材质可组合 | 通用组件处理交互，可在普通表面直接使用；`GlassSurface` 可作为外层容器 |
+| 组件和材质可组合 | 通用组件处理交互，可在普通实色表面直接使用；需要玻璃材质时，用玻璃表面容器 `GlassSurface` 包裹内容 |
 | 保持运行依赖轻量 | 当前仅依赖 Flutter SDK；依赖评估规则见 [开发规范](doc/AGENTS.md) |
 
 示例应用保留 Flutter 标准平台启动工程，Android 入口为 Java `FlutterActivity`；`.gradle.kts` 属于构建配置，不承担玻璃 UI 渲染。库本身没有自定义原生渲染代码，也不需要额外图片或自定义着色器资源。
@@ -121,7 +121,7 @@ class DemoApp extends StatelessWidget {
 
 ## 独立导航条目
 
-`NavigationItem` 只呈现应用传入的 `selected`；点击、Enter 或 Space 会请求激活，由应用决定是否选中或切页。省略 `onPressed` 即禁用。下面在同一个 `MaterialApp` 中用相同的条目配置组合两种表面（`selected`、`useGlass`、`onNavigate` 由调用方提供）：
+`NavigationItem` 根据应用传入的 `selected` 呈现选中状态，并负责焦点和激活。点击、Enter 或 Space 会请求激活，由应用决定是否选中或切页。省略 `onPressed` 即禁用。下面用同一个条目分别搭配普通实色表面（Flutter 的 `Material`）和玻璃表面容器（`GlassSurface`）：
 
 ```dart
 Widget projectsDestination({
@@ -149,9 +149,9 @@ Widget projectsDestination({
 import 'package:lightweight_liquid_glass/lightweight_liquid_glass.dart';
 ```
 
-### 1. GlassSurface：通用玻璃容器
+### 1. GlassSurface：玻璃表面容器
 
-用于包裹文字、图标、表单、自定义布局等任意 Flutter Widget。
+`GlassSurface` 为 `child` 提供可选的玻璃材质，可以包住一个面板或整个侧栏。它管理背景模糊、着色、边框和裁剪；模糊只作用于容器后方的内容，前景文字和控件保持清晰，选中、焦点和激活仍由子组件处理。普通界面可直接使用 Flutter 的 `Material` 作为实色表面。
 
 | 参数 | 类型 / 默认值 | 功能 |
 | --- | --- | --- |
@@ -184,6 +184,7 @@ GlassSurface(
 使用约定：
 
 - `enabled: false` 移除玻璃效果，但保留布局和裁剪，**不会禁用子组件交互**。
+- 关闭背景模糊后，`GlassSurface` 仍会绘制降级填充及允许保留的装饰，有别于 `enabled: false`。
 - `Clip.none` 会按 `Clip.hardEdge` 处理，防止背景过滤扩展到整个页面。
 - `fallbackColor` 的 alpha 会被设为 1；如果没有配置背景渐变，降级表面是不透明的。
 - `shape: BoxShape.circle` 使用椭圆裁剪；宽高相等时才是正圆。

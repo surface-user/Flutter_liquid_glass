@@ -26,7 +26,7 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 | GlassAppBar | 无 | title/leading/actions/style/bottom=null；toolbarHeight=kToolbarHeight；automaticallyImplyLeading=true |
 | GlassDialog | content | title/style/semanticLabel=null；actions=[]；内部最大宽度 480、padding=24 |
 
-`GlassSurface.enabled=false` 关闭装饰与过滤，保留内容、布局和裁剪，不等于禁用子控件。卡片 `onTap=null` 表示静态卡片；按钮 `onPressed=null` 禁止指针/键盘激活。
+`GlassSurface` 是玻璃表面容器，为 `child` 提供背景过滤、着色、边框和裁剪；它不管理子组件的值、焦点或激活。关闭模糊时使用降级填充；`GlassSurface.enabled=false` 则关闭装饰与过滤，保留内容、布局和裁剪。卡片 `onTap=null` 表示静态卡片；按钮 `onPressed=null` 禁止指针/键盘激活。
 
 外部 `FocusNode` 由调用方持有并释放；组件不得释放它。main 没有 #4 指针高光的 ValueNotifier；背景内部动画 controller 由组件创建与释放。child、标题、动作和业务状态均由调用方提供。
 
@@ -70,7 +70,7 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 
 `NavigationItem` 从原包入口导出，需要 Material 宿主。必填 `label: String`；`selected` 默认为 false，由应用控制；可选的 `leading`、`trailing` 为非交互内容，`onPressed` 为空时禁用，`focusNode` 由调用方持有并释放。长标签省略显示，悬停可查看完整文本，读屏仍读取完整标签。
 
-焦点移动不会选中条目。指针、Enter 和 Space 通过同一回调请求激活；应用可以拒绝切换。条目使用宿主的 Flutter `ColorScheme`，提供选中背景和独立焦点边框；状态反馈不带动画。需要玻璃时由调用方用 `GlassSurface` 包住布局或条目，不改变激活或选中规则。首版不管理导航组、页面或路由，也不开放材质参数。
+焦点移动不会选中条目。指针、Enter 和 Space 通过同一回调请求激活；应用可以拒绝切换。条目使用宿主的 Flutter `ColorScheme`，提供选中背景和独立焦点边框；状态反馈不带动画。调用方可用 `Material` 提供普通实色表面，或用玻璃表面容器 `GlassSurface` 包住布局；两者使用同一个 `NavigationItem`，选中、焦点和激活规则一致。首版不管理导航组、页面或路由，也不开放材质参数。
 
 ## #4 未合并增量与通用计划
 
