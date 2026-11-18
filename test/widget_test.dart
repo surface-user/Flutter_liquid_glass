@@ -293,6 +293,190 @@ void main() {
     await tester.pumpAndSettle();
     expect(result, 'ok');
   });
+  testWidgets('dialog uses distinct entrance and exit durations', (
+    tester,
+  ) async {
+    String? result;
+    late ModalRoute<String> route;
+    await tester.pumpWidget(
+      host(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () async {
+              result = await showGlassDialog<String>(
+                context: context,
+                motion: const GlassMotionSpec(
+                  transition: GlassTransition.fade,
+                  duration: Duration(milliseconds: 400),
+                  reverseDuration: Duration(milliseconds: 120),
+                ),
+                builder: (context) {
+                  route = ModalRoute.of<String>(context)!;
+                  return const Text('Timed dialog');
+                },
+              );
+            },
+            child: const Text('Open'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(route.animation!.value, closeTo(.5, .001));
+    await tester.pump(const Duration(milliseconds: 201));
+    expect(route.animation!.status, AnimationStatus.completed);
+
+    route.navigator!.pop('done');
+    await tester.pump();
+    expect(result, 'done');
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(route.animation!.value, closeTo(.5, .001));
+    expect(find.text('Timed dialog'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 61));
+    await tester.pump();
+    expect(find.text('Timed dialog'), findsNothing);
+  });
+  for (final useRootNavigator in [true, false]) {
+    testWidgets(
+      'dialog respects navigator and barrier (root=$useRootNavigator)',
+      (tester) async {
+        final root = GlobalKey<NavigatorState>();
+        final inner = GlobalKey<NavigatorState>();
+        final localTheme = ThemeData.dark();
+        const settings = RouteSettings(name: '/confirmation');
+        late String? result;
+        await tester.pumpWidget(
+          MaterialApp(
+            navigatorKey: root,
+            home: Navigator(
+              key: inner,
+              onGenerateRoute: (_) => MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  body: Center(
+                    child: Theme(
+                      data: localTheme,
+                      child: Builder(
+                        builder: (context) => TextButton(
+                          onPressed: () async {
+                            result = await showGlassDialog<String>(
+                              context: context,
+                              useRootNavigator: useRootNavigator,
+                              barrierDismissible: !useRootNavigator,
+                              routeSettings: settings,
+                              builder: (_) =>
+                                  const Dialog(child: Text('Nested dialog')),
+                            );
+                          },
+                          child: const Text('Open'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+        final dialog = find.text('Nested dialog');
+        final context = tester.element(dialog);
+        final route = ModalRoute.of<String>(context)!;
+        expect(route.navigator, (useRootNavigator ? root : inner).currentState);
+        expect(route.settings, same(settings));
+        expect(route.barrierDismissible, !useRootNavigator);
+        expect(
+          route.barrierLabel,
+          MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        );
+        expect(route.barrierColor, Colors.black.withValues(alpha: .32));
+        expect(Theme.of(context).colorScheme, localTheme.colorScheme);
+        expect(route.transitionDuration, const Duration(milliseconds: 280));
+        expect(
+          route.reverseTransitionDuration,
+          const Duration(milliseconds: 220),
+        );
+
+        await tester.tapAt(const Offset(8, 8));
+        await tester.pumpAndSettle();
+        if (useRootNavigator) {
+          expect(dialog, findsOneWidget);
+          Navigator.of(context).pop('done');
+          await tester.pumpAndSettle();
+        }
+        expect(dialog, findsNothing);
+        expect(result, useRootNavigator ? 'done' : null);
+      },
+    );
+  }
+  const stillMotionCases = [
+    (
+      'disableAnimations',
+      MediaQueryData(disableAnimations: true),
+      LiquidGlassThemeData(),
+    ),
+    (
+      'accessibleNavigation',
+      MediaQueryData(accessibleNavigation: true),
+      LiquidGlassThemeData(),
+    ),
+    (
+      'reduceMotion',
+      MediaQueryData(),
+      LiquidGlassThemeData(
+        accessibility: GlassAccessibilityConfig(reduceMotion: true),
+      ),
+    ),
+    (
+      'enableAnimations=false',
+      MediaQueryData(),
+      LiquidGlassThemeData(
+        performance: GlassPerformanceConfig(enableAnimations: false),
+      ),
+    ),
+    (
+      'GlassTransition.none',
+      MediaQueryData(),
+      LiquidGlassThemeData(
+        motion: GlassMotionSpec(transition: GlassTransition.none),
+      ),
+    ),
+  ];
+  for (final (reason, media, theme) in stillMotionCases) {
+    testWidgets('dialog skips both transitions for $reason', (tester) async {
+      await tester.pumpWidget(
+        host(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showGlassDialog<void>(
+                context: context,
+                builder: (_) => const Text('Still dialog'),
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+          media: media,
+          theme: theme,
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pump();
+      final dialog = find.text('Still dialog');
+      final context = tester.element(dialog);
+      final route = ModalRoute.of<void>(context)!;
+      expect(route.transitionDuration, Duration.zero);
+      expect(route.reverseTransitionDuration, Duration.zero);
+      expect(route.animation!.status, AnimationStatus.completed);
+      Navigator.of(context).pop();
+      await tester.pump();
+      await tester.pump();
+      expect(dialog, findsNothing);
+    });
+  }
   testWidgets('reduced motion suppresses backdrop ticker', (tester) async {
     await tester.pumpWidget(
       host(

@@ -32,7 +32,7 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 
 ## 弹窗与页面转场
 
-- `showGlassDialog<T>` 返回 `Future<T?>`；必填 `context`、`builder`；默认 `barrierDismissible=true`、`useRootNavigator=true`、`routeSettings=null`、`motion=null`。捕获局部主题，结果由 `Navigator.pop<T>` 返回。底层调用 Flutter `showGeneralDialog`，不能据此宣称已完成人工焦点恢复验收。
+- `showGlassDialog<T>` 返回 `Future<T?>`；必填 `context`、`builder`；默认 `barrierDismissible=true`、`useRootNavigator=true`、`routeSettings=null`、`motion=null`。捕获局部主题，结果由 `Navigator.pop<T>` 返回。路由分别使用 `GlassMotionSpec.duration` 和 `reverseDuration`；省略 `motion` 时从调用位置的玻璃主题取值。减少动画或使用 `GlassTransition.none` 时，两个时长均为零。
 - `GlassPageRoute<T>` 必填 `builder`；`context/motion/settings=null`、`reduceMotion=false`、`fullscreenDialog=false`。提供源 context 时捕获主题与减少动画设置，`spec` 保持可读。
 - `GlassTransition`：fade、fadeSlide、scaleFade、sharedAxis、none。
 - `GlassMotionSpec`：transition=fadeSlide，duration=280ms，reverseDuration=220ms，curve=easeOutCubic，reverseCurve=easeInCubic。现有交互按压时长并不读取该路由配置。
@@ -106,7 +106,5 @@ Widget 均保留 `key`，其默认值为 null；下表的“其余 null”仅指
 ## #4 未合并增量与通用计划
 
 #4 ac0028e 的 GlassLayout、LiquidGlassTheme.merge、主题语义/文字/状态/密度和五个桌面控件共增加6个公开声明，合计26个。其构造参数、ButtonStyle 消费字段、nullable 清空/覆盖、所有权和焦点规则完整保留在 [固定 API 文档](https://github.com/surface-user/Flutter_liquid_glass/blob/ac0028eacd0e1ee22747d454c04a456dcb307377/doc/api.md)。本 PR 不复制它们为 main 已支持；实际选择该基底后复用原合同与失败回归。
-
-已静态确认 main 的 showGlassDialog 仅向 showGeneralDialog 传 duration，独立 reverseDuration 没有消费；GlassPageRoute 则传入正反时长。LIB-08 保留失败回归/修复或明确兼容契约任务，本次不通过改文档假装修复。
 
 新通用 API、命名/适配入口在 LIB-03 冻结，SDK/第三方直接组合不等于本库重导出或全量兼容承诺。每项明确默认/null、值/事件、状态、插槽、取消/返回值、controller/FocusNode 所有权与平台支持，参考 [task.md](task.md)。
