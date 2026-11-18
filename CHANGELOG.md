@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Keep glass page and dialog transitions continuous when dismissed mid-entrance.
 - Honor `GlassMotionSpec.reverseDuration` when closing a dialog opened by `showGlassDialog`.
 - Add a controlled `NavigationItem` for regular and glass surfaces, with keyboard activation and selected semantics.
 - Add a controlled `NavigationTab` with tab semantics and an optional, independently focusable close button.
