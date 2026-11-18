@@ -157,15 +157,15 @@
 | LIB-06 | P0 / DONE | LIB-04A、LIB-03 | 原生单行、多行表单与主题配方已验收，无新输入类型或 resetValue。示例分析、4 项配方测试及旧交互共 5/5、Web release 通过；实机 IME 与浏览器人工验证待验。 |
 | LIB-07A | P0 / DONE | LIB-04 | Flutter SDK 三态复选、无障碍互斥单选和开关已验收。覆盖键盘、禁用保值、280px/2× 文字；相关示例 4/4、分析和 Web release 通过。 |
 | LIB-07B | P0 / DONE | LIB-04、LIB-06 | 原生分段、受控下拉和本地搜索建议已验收。键盘、清空、失效/禁用、无结果播报、320px RTL/2× 文字可交互；相关示例 5/5、分析和 Web release 通过。 |
-| LIB-07 | P0 / PLANNED | LIB-04 | 实现 Checkbox/Radio/Switch/分段选择及首个单选/搜索建议的 SDK 主题接入或必要包装；不等待复杂多选才交付。验收：受控回填、null/三态、互斥、清空、disabled、方向键/Tab/Space、选中语义；筛选/空结果/长标签与菜单边界可观察。第三方方案若被选中则额外依赖 LIB-02，不能先占位 API。 |
+| LIB-07 | P0 / DONE | LIB-04 | 两项子任务已验收 [#43](https://github.com/surface-user/Flutter_liquid_glass/pull/43)、[#45](https://github.com/surface-user/Flutter_liquid_glass/pull/45)。基础选择、单选和搜索建议采用 SDK 配方，整合基底 Flutter 3.44.0 根 44/44、示例行为 31/31；复杂多选留 LIB-15A。 |
 | LIB-08A | P0 / DONE | LIB-04、LIB-05、LIB-06 | 确认、取消与无值关闭、闭合焦点/恢复、嵌套导航、玻璃命名与减少动画已验收；示例分析、4 项配方与旧交互 5/5、Web 构建通过。 |
 | LIB-08B | P0 / DONE | LIB-08A | 回归先证实退出 60ms 时进度 0.85，修复后为 0.50。原签名、路由和遮挡语义通过；Flutter 3.47.1 根 44/44、相关示例 9/9、分析通过，Flutter 3.44.0 弹窗所在测试文件 23/23。 |
 | LIB-08C | P0 / DONE | LIB-08A | Flutter MenuAnchor 菜单已验收。方向键和 Enter、Esc、禁用语义、外点拦截和焦点恢复、280px/2× 边缘可达；相关示例 5/5、分析和 Web release 通过。 |
 | LIB-08D | P0 / DONE | LIB-08A、LIB-06 | Flutter 原生说明和输入弹窗已验收。覆盖标题语义、窄窗滚动、表单校验、取消/关闭/有值、焦点与重复关闭；相关示例 4/4、分析和 Web release 通过。 |
-| LIB-08 | P0 / PLANNED | LIB-08A | 后续输入/说明弹窗与菜单/锚定浮层。为旧 showGlassDialog reverseDuration 保留独立失败回归与修复/兼容决定；复杂第三方候选另依赖 LIB-02。 |
+| LIB-08 | P0 / DONE | LIB-08A | 确认、说明、输入、锚定菜单和旧时长修正以四项独立 PR 验收。整合基底 Flutter 3.44.0 根 44/44、示例行为 31/31；复杂浮层另按 LIB-14/15A 评估。 |
 | LIB-09 | P0 / DONE | LIB-04、LIB-05、LIB-09A | 受控标签与独立关闭已验收；两种材质、键鼠/语义、禁选可关闭、窄窗 RTL 与大字通过。格式、分析、根库 36/36 通过，实窗读屏待验。 |
 | LIB-10 | P0 / DONE | LIB-04A、LIB-03 | 普通/玻璃共用的顶栏、面板和卡片配方已验收。示例分析、3 项配方测试及旧交互共 4/4、Web release 通过；浏览器人工验证待验。 |
-| LIB-11 | P0 / PLANNED | LIB-04、LIB-05、LIB-08 | 简化工作台先用 Flutter 组合反馈；再评估统一进度、Toast/SnackBar/Banner、空/错/成功的接口。验收：可确定进度、重复通知队列/替换规则、空/错状态可操作、loading 结束/后台/卸载无闲置帧，播报不抢焦点；SDK 组合已足够者不新增公开控件。 |
+| LIB-11 | P0 / READY | LIB-04、LIB-05、LIB-08 | 简化工作台先用 Flutter 组合反馈；再评估统一进度、Toast/SnackBar/Banner、空/错/成功的接口。验收：可确定进度、重复通知队列/替换规则、空/错状态可操作、loading 结束/后台/卸载无闲置帧，播报不抢焦点；SDK 组合已足够者不新增公开控件。 |
 | LIB-12 | P0 / PLANNED | LIB-04、LIB-08、LIB-09、LIB-10、LIB-11 | 按动效清单统一实际消费与触发：交互、表面、路由/弹窗、内容切换、展开和反馈；复用 GlassMotionSpec/SDK 的可表达部分，说明局部覆盖与中断/反向。验收：状态/transform/时间采样证明有效，动态四项已有偏好及锁定平台额外信号可关闭非必要动画；无 blur 连续动画、无隐藏/空闲 ticker。不是时间线编辑器。 |
 | LIB-13 | P0 / PLANNED | LIB-05、LIB-06、LIB-07、LIB-08、LIB-09、LIB-10、LIB-11、LIB-12 | 做跨组件可访问性与兼容集成：键盘/快捷键、焦点顺序与恢复、角色/名称/值/错误/选中/加载语义、触摸目标、中文/RTL/2x文字、高对比/减少透明/关闭模糊、嵌套主题。验收：自动化语义/交互断言 + Windows 实窗/物理 IME/读屏的实际记录；未有设备的平台继续标待验，不能用 Gallery 截图代替。 |
 | LIB-13A | P0 / DONE | LIB-16A | Flutter 3.44.0 依赖、分析、根行为 32/32、示例行为 17/17、Web 构建通过；宽窗跨 SDK 视觉差异已记录至 [验证账本](testing.md#lib-13a首批组件的最低-sdk-验证)，留 LIB-16 收口。 |
